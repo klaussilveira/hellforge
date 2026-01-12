@@ -160,7 +160,7 @@ void FindAndReplaceShader::onChoosePick(wxCommandEvent& ev)
 
     if (ev.GetEventObject() == pickFindButton)
     {
-        pickFindButton->SetBackgroundColour(wxColour(220, 0, 0));
+        pickFindButton->SetBackgroundColour(wxColour(180, 80, 80));  // Darker red for dark theme
         pickReplaceButton->SetBackgroundColour(wxNullColour);
 
         _lastFocusedEntry = findNamedObject<wxTextCtrl>(this, "FindReplaceDialogFindEntry");
@@ -168,7 +168,7 @@ void FindAndReplaceShader::onChoosePick(wxCommandEvent& ev)
     else if (ev.GetEventObject() == pickReplaceButton)
     {
         pickFindButton->SetBackgroundColour(wxNullColour);
-        pickReplaceButton->SetBackgroundColour(wxColour(220, 0, 0));
+        pickReplaceButton->SetBackgroundColour(wxColour(180, 80, 80));  // Darker red for dark theme
 
         _lastFocusedEntry = findNamedObject<wxTextCtrl>(this, "FindReplaceDialogReplaceEntry");
     }
@@ -188,13 +188,13 @@ void FindAndReplaceShader::onEntryFocusChanged(wxFocusEvent& ev)
 
     if (_lastFocusedEntry == findNamedObject<wxTextCtrl>(this, "FindReplaceDialogFindEntry"))
     {
-        pickFindButton->SetBackgroundColour(wxColour(220, 0, 0));
+        pickFindButton->SetBackgroundColour(wxColour(180, 80, 80));  // Darker red for dark theme
         pickReplaceButton->SetBackgroundColour(wxNullColour);
     }
     else if (_lastFocusedEntry == findNamedObject<wxTextCtrl>(this, "FindReplaceDialogReplaceEntry"))
     {
         pickFindButton->SetBackgroundColour(wxNullColour);
-        pickReplaceButton->SetBackgroundColour(wxColour(220, 0, 0));
+        pickReplaceButton->SetBackgroundColour(wxColour(180, 80, 80));  // Darker red for dark theme
     }
 
     ev.Skip();

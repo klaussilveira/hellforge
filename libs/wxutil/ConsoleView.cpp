@@ -9,11 +9,16 @@ namespace wxutil
 
 ConsoleView::ConsoleView(wxWindow* parent) :
 	wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_RICH2|wxTE_READONLY),
-	_errorAttr(*wxRED),
-	_warningAttr(wxColour(255, 96, 0)),
-	_standardAttr(wxNullColour)
+	// Use brighter colours that are visible on dark backgrounds
+	_errorAttr(wxColour(255, 100, 100)),      // Lighter red for dark theme
+	_warningAttr(wxColour(255, 180, 80)),     // Lighter orange for dark theme
+	_standardAttr(wxColour(220, 220, 220))    // Light grey text for dark theme
 {
     _lineBuffer.reserve(512);
+
+    // Set dark background for the console
+    SetBackgroundColour(wxColour(29, 29, 29));  // #1d1d1d - matches Blender input background
+    SetForegroundColour(wxColour(220, 220, 220));
 }
 
 void ConsoleView::appendText(const std::string& text, TextMode mode)

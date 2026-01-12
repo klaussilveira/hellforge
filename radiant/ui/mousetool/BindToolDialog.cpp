@@ -44,7 +44,7 @@ void BindToolDialog::populateWindow()
         _("Please select a new button/modifier combination\nby clicking on the area below."));
 
     _clickPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SIMPLE);
-    _clickPanel->SetBackgroundColour(wxColour(150, 150, 150));
+    _clickPanel->SetBackgroundColour(wxColour(71, 114, 179));  // Blender selection colour for visibility
     _clickPanel->SetSizer(new wxBoxSizer(wxVERTICAL));
 
     _clickArea = new wxStaticText(_clickPanel, wxID_ANY,

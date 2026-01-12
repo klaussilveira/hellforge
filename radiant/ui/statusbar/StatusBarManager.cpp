@@ -23,9 +23,11 @@ StatusBarManager::StatusBarManager() :
 {
     _tempParent->SetName("StatusBarTemporaryParent");
 	_statusBar->SetName("Statusbar");
-#ifdef __WXMSW__
-    _statusBar->SetBackgroundColour(wxColour("#ABABAB"));
-#endif
+
+    // Apply dark theme colours to status bar
+    _statusBar->SetBackgroundColour(wxColour(48, 48, 48));  // #303030 - Blender header background
+    _statusBar->SetForegroundColour(wxColour(230, 230, 230));  // #e6e6e6 - Blender text
+
 	_tempParent->Hide();
 
 	wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);

@@ -2,6 +2,7 @@
 
 #include <wx/dataview.h>
 #include <wx/settings.h>
+#include "../UIThemeManager.h"
 
 // Background colour needs support by wxWidgets 3.1.1 or 3.1.4 on platforms other than MSW
 #if defined(__WXMSW__) || \
@@ -24,12 +25,14 @@ public:
         if (isFavourite)
         {
             wxDataViewItemAttr blueBold;
-            blueBold.SetColour(wxColor(0, 0, 255));
+            // Use theme selection colour for favourites in dark mode
+            const auto& colours = GlobalUIThemeManager().getColours();
+            blueBold.SetColour(colours.selection);
             blueBold.SetBold(true);
 
             return blueBold;
         }
-         
+
         return wxDataViewItemAttr();
     }
 
@@ -67,26 +70,30 @@ public:
 
     static void ApplyKeyValueAddedStyle(wxDataViewItemAttr& attr)
     {
+        const auto& colours = GlobalUIThemeManager().getColours();
         if (SupportsBackgroundColour())
         {
-            SetBackgroundColour(attr, wxColour(100, 254, 100));
+            // Darker green background for dark theme
+            SetBackgroundColour(attr, wxColour(40, 80, 40));
         }
         else
         {
-            attr.SetColour(wxColour(30, 130, 20));
+            attr.SetColour(colours.success);
             attr.SetBold(true);
         }
     }
 
     static void ApplyKeyValueChangedStyle(wxDataViewItemAttr& attr)
     {
+        const auto& colours = GlobalUIThemeManager().getColours();
         if (SupportsBackgroundColour())
         {
-            SetBackgroundColour(attr, wxColour(90, 140, 254));
+            // Darker blue background for dark theme
+            SetBackgroundColour(attr, wxColour(50, 80, 120));
         }
         else
         {
-            attr.SetColour(wxColour(90, 140, 254));
+            attr.SetColour(colours.selection);
             attr.SetBold(true);
         }
     }
@@ -95,11 +102,12 @@ public:
     {
         if (SupportsBackgroundColour())
         {
-            SetBackgroundColour(attr, wxColour(254, 100, 100));
+            // Darker red background for dark theme
+            SetBackgroundColour(attr, wxColour(100, 50, 50));
         }
         else
         {
-            attr.SetColour(wxColour(254, 100, 100));
+            attr.SetColour(wxColour(200, 80, 80));
             attr.SetBold(true);
         }
 
@@ -108,19 +116,22 @@ public:
 
     static void ApplyKeyValueAmbiguousStyle(wxDataViewItemAttr& attr)
     {
-        attr.SetColour(wxColour(80, 80, 80));
+        const auto& colours = GlobalUIThemeManager().getColours();
+        attr.SetColour(colours.textDisabled);
         SetItalic(attr, true);
     }
 
     static void ApplyKeyValueConflictStyle(wxDataViewItemAttr& attr)
     {
+        const auto& colours = GlobalUIThemeManager().getColours();
         if (SupportsBackgroundColour())
         {
-            SetBackgroundColour(attr, wxColour(230, 120, 0));
+            // Darker orange background for dark theme
+            SetBackgroundColour(attr, wxColour(100, 60, 20));
         }
         else
         {
-            attr.SetColour(wxColour(230, 120, 0));
+            attr.SetColour(colours.warning);
             attr.SetBold(true);
         }
     }

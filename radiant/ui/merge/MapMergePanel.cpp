@@ -578,8 +578,8 @@ void MapMergePanel::updateSummary()
         makeLabelBold(this, "UnresolvedConflicts");
         makeLabelBold(this, "UnresolvedConflictsLabel");
 
-        findNamedObject<wxStaticText>(this, "UnresolvedConflicts")->SetForegroundColour(wxColour(200, 0, 0));
-        findNamedObject<wxStaticText>(this, "UnresolvedConflictsLabel")->SetForegroundColour(wxColour(200, 0, 0));
+        findNamedObject<wxStaticText>(this, "UnresolvedConflicts")->SetForegroundColour(wxColour(255, 100, 100));
+        findNamedObject<wxStaticText>(this, "UnresolvedConflictsLabel")->SetForegroundColour(wxColour(255, 100, 100));
     }
     else
     {

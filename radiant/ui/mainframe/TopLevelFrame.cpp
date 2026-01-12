@@ -7,6 +7,7 @@
 #include "ui/istatusbarmanager.h"
 #include "ui/itoolbarmanager.h"
 #include "wxutil/Bitmap.h"
+#include "wxutil/UIThemeManager.h"
 #include <wx/toolbar.h>
 #include <wx/menu.h>
 #include <wx/app.h>
@@ -88,10 +89,13 @@ TopLevelFrame::TopLevelFrame() :
     _scrollEventFilter.reset(new wxutil::ScrollEventPropagationFilter);
 
 #if (wxMAJOR_VERSION >= 3) && (wxMINOR_VERSION < 1)
-	// In wxWidgets < 3.1.0 we don't receive the wxEVT_MENU_OPEN event on 
+	// In wxWidgets < 3.1.0 we don't receive the wxEVT_MENU_OPEN event on
 	// the menu itself (only on the toplevel frame), so let's propagate it
 	Connect(wxEVT_MENU_OPEN, wxMenuEventHandler(TopLevelFrame::onMenuOpenClose), nullptr, this);
 #endif
+
+    // Apply dark theme to the main frame
+    wxutil::GlobalUIThemeManager().applyTheme(this);
 }
 
 wxToolBar* TopLevelFrame::getToolbar(IMainFrame::Toolbar type)

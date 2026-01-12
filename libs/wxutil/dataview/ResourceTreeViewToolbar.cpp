@@ -241,8 +241,8 @@ void ResourceTreeViewToolbar::_onFilterTimeoutReached(wxTimerEvent& ev)
 
     if (!filterText.empty() && !filterResult)
     {
-        // No match, set the text to red for user feedback
-        _filterEntry->SetForegroundColour(wxColor(220, 0, 0));
+        // No match, set the text to a visible red for user feedback (works on dark theme)
+        _filterEntry->SetForegroundColour(wxColor(255, 100, 100));
     }
     else
     {

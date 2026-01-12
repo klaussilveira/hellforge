@@ -4,6 +4,7 @@
 #include <wx/sizer.h>
 #include <wx/frame.h>
 #include "ui/imainframe.h"
+#include "../UIThemeManager.h"
 
 #include "AutoSaveRequestBlocker.h"
 
@@ -87,6 +88,9 @@ int DialogBase::ShowModal()
     AutoSaveRequestBlocker blocker("Modal Dialog is active");
 
     _windowState.restore();
+
+    // Apply dark theme to the dialog and all its children
+    GlobalUIThemeManager().applyTheme(this);
 
     auto returnCode = wxDialog::ShowModal();
 
