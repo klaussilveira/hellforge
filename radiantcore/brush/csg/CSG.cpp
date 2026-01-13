@@ -245,6 +245,298 @@ bool Brush_intersect(BrushNodePtr& brush, const Brush& clipper)
     return !brush->getBrush().empty();
 }
 
+void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
+{
+    UndoableCommand undo("brushMakePassable");
+
+    // Collect the brushes that make up the passable volume
+    BrushPtrVector selected = selection::algorithm::getSelectedBrushes();
+
+    if (selected.empty())
+    {
+        throw cmd::ExecutionNotPossible(_("CSG Make Passable: No brushes selected."));
+    }
+
+    // Clone the selected brushes so we can subtract them later
+    BrushPtrVector volumeClones;
+    volumeClones.reserve(selected.size());
+
+    for (const auto& b : selected)
+    {
+        BrushNodePtr clone = std::dynamic_pointer_cast<BrushNode>(b->clone());
+        assert(clone);
+        volumeClones.emplace_back(clone);
+    }
+
+    // Create "room shell" pieces for one brush, collecting created wall nodes
+    auto createRoomShellPieces =
+        [&](const BrushNodePtr& sourceBrush, BrushPtrVector& outCreatedWalls)
+    {
+        // Hollow the brush using current grid, but keep the outer shell
+        sourceBrush->getBrush().forEachFace(
+            [&](Face& face)
+            {
+                if (!face.contributes())
+                {
+                    return;
+                }
+
+                scene::INodePtr parent = sourceBrush->getParent();
+                assert(parent);
+
+                scene::INodePtr newNode = GlobalBrushCreator().createBrush();
+                BrushNodePtr wallNode = std::dynamic_pointer_cast<BrushNode>(newNode);
+                assert(wallNode);
+
+                float offset = GlobalGrid().getGridSize();
+
+                // Temporarily offset this face outward in the source to "make room" for thickness
+                face.getPlane().offset(offset);
+
+                // Add the wall brush node as child
+                parent->addChildNode(wallNode);
+
+                // Match layers with the source
+                wallNode->assignToLayers(sourceBrush->getLayers());
+
+                // Copy source brush geometry (with the temporarily offset face)
+                wallNode->getBrush().copy(sourceBrush->getBrush());
+
+                // Restore source face plane
+                face.getPlane().offset(-offset);
+
+                // Ensure created wall piece is selected and tracked
+                Node_setSelected(wallNode, true);
+                outCreatedWalls.emplace_back(wallNode);
+
+                FacePtr newFace = wallNode->getBrush().addFace(face);
+                if (newFace != 0)
+                {
+                    newFace->flipWinding();
+                    newFace->planeChanged();
+                }
+
+                wallNode->getBrush().removeEmptyFaces();
+            });
+
+        scene::removeNodeFromParent(sourceBrush);
+    };
+
+    BrushPtrVector createdWalls;
+    createdWalls.reserve(selected.size() * 6);
+
+    for (const auto& b : selected)
+    {
+        createRoomShellPieces(b, createdWalls);
+    }
+
+    // Subtract all volumes from a wall piece and replace if changed
+    auto subtractVolumesFromWall = [&](const BrushNodePtr& wallNode)
+    {
+        if (!wallNode || !wallNode->getParent())
+        {
+            return;
+        }
+
+        scene::INodePtr parent = wallNode->getParent();
+        assert(parent);
+
+        BrushPtrVector buffer[2];
+        std::size_t swap = 0;
+
+        BrushNodePtr original = std::dynamic_pointer_cast<BrushNode>(wallNode->clone());
+        assert(original);
+
+        buffer[swap].push_back(original);
+
+        for (const auto& vol : volumeClones)
+        {
+            const Brush& volBrush = vol->getBrush();
+
+            for (const auto& target : buffer[swap])
+            {
+                if (!target->getBrush().localAABB().intersects(volBrush.localAABB()))
+                {
+                    buffer[1 - swap].push_back(target);
+                    continue;
+                }
+
+                if (!Brush_subtract(target, volBrush, buffer[1 - swap]))
+                {
+                    buffer[1 - swap].push_back(target);
+                }
+            }
+
+            buffer[swap].clear();
+            swap = 1 - swap;
+
+            if (buffer[swap].empty())
+            {
+                break;
+            }
+        }
+
+        BrushPtrVector& out = buffer[swap];
+
+        if (out.size() == 1 && out.back() == original)
+        {
+            return;
+        }
+
+        if (out.empty())
+        {
+            scene::removeNodeFromParent(wallNode);
+            return;
+        }
+
+        for (const auto& piece : out)
+        {
+            Brush& pieceBrush = piece->getBrush();
+            pieceBrush.removeEmptyFaces();
+
+            if (pieceBrush.empty())
+            {
+                continue;
+            }
+
+            scene::INodePtr newBrushNode = GlobalBrushCreator().createBrush();
+            parent->addChildNode(newBrushNode);
+
+            newBrushNode->assignToLayers(wallNode->getLayers());
+
+            Node_getBrush(newBrushNode)->copy(pieceBrush);
+            Node_setSelected(newBrushNode, true);
+        }
+
+        scene::removeNodeFromParent(wallNode);
+    };
+
+    for (const auto& wall : createdWalls)
+    {
+        subtractVolumesFromWall(wall);
+    }
+
+    SceneChangeNotify();
+}
+
+void makeShellForSelectedBrushes(const cmd::ArgumentList& args)
+{
+    UndoableCommand undo("brushMakeShell");
+
+    BrushPtrVector selected = selection::algorithm::getSelectedBrushes();
+
+    if (selected.empty())
+    {
+        throw cmd::ExecutionNotPossible(_("CSG Make Shell: No brushes selected."));
+    }
+
+    const float grid = GlobalGrid().getGridSize();
+    auto snapDeltaToGrid = [&](float d) -> float
+    {
+        if (grid <= 0.0f)
+        {
+            return d;
+        }
+
+        return std::round(d / grid) * grid;
+    };
+
+    auto applyTranslation = [&](const BrushNodePtr& node, const Vector3& delta)
+    { node->translate(delta); };
+
+    BrushPtrVector fixed;
+    fixed.reserve(selected.size());
+
+    const int kMaxResolveIterationsPerBrush = 16;
+    for (const auto& mover : selected)
+    {
+        if (!mover)
+        {
+            continue;
+        }
+
+        for (int iter = 0; iter < kMaxResolveIterationsPerBrush; ++iter)
+        {
+            bool movedThisIteration = false;
+
+            AABB a = mover->getBrush().localAABB();
+            for (const auto& other : fixed)
+            {
+                if (!other)
+                {
+                    continue;
+                }
+
+                AABB b = other->getBrush().localAABB();
+
+                if (!a.intersects(b))
+                {
+                    continue;
+                }
+
+                // Compute overlap along axes using AABB
+                const Vector3 aMin = a.origin - a.extents;
+                const Vector3 aMax = a.origin + a.extents;
+                const Vector3 bMin = b.origin - b.extents;
+                const Vector3 bMax = b.origin + b.extents;
+
+                const float ox = std::min(aMax.x(), bMax.x()) - std::max(aMin.x(), bMin.x());
+                const float oy = std::min(aMax.y(), bMax.y()) - std::max(aMin.y(), bMin.y());
+                const float oz = std::min(aMax.z(), bMax.z()) - std::max(aMin.z(), bMin.z());
+
+                if (ox <= 0 || oy <= 0 || oz <= 0)
+                {
+                    continue;
+                }
+
+                Vector3 delta(0, 0, 0);
+                const Vector3 ac = a.origin;
+                const Vector3 bc = b.origin;
+
+                if (ox <= oy && ox <= oz)
+                {
+                    float d = (ac.x() < bc.x()) ? -ox : ox;
+                    delta.x() = snapDeltaToGrid(d);
+                }
+                else if (oy <= ox && oy <= oz)
+                {
+                    float d = (ac.y() < bc.y()) ? -oy : oy;
+                    delta.y() = snapDeltaToGrid(d);
+                }
+                else
+                {
+                    float d = (ac.z() < bc.z()) ? -oz : oz;
+                    delta.z() = snapDeltaToGrid(d);
+                }
+
+                // If snapping made it zero, push at least one grid
+                if (delta.getLengthSquared() == 0.0f)
+                {
+                    if (ox <= oy && ox <= oz)
+                        delta.x() = (ac.x() < bc.x()) ? -grid : grid;
+                    else if (oy <= ox && oy <= oz)
+                        delta.y() = (ac.y() < bc.y()) ? -grid : grid;
+                    else
+                        delta.z() = (ac.z() < bc.z()) ? -grid : grid;
+                }
+
+                applyTranslation(mover, delta);
+                a = mover->getBrush().localAABB();
+                movedThisIteration = true;
+            }
+
+            if (!movedThisIteration)
+            {
+                break;
+            }
+        }
+
+        fixed.push_back(mover);
+    }
+
+    makePassableForSelectedBrushes(args);
+}
+
 class SubtractBrushesFromUnselected : public scene::NodeVisitor
 {
     const BrushPtrVector& _brushlist;
@@ -711,6 +1003,8 @@ void registerCommands()
     GlobalCommandSystem().addWithCheck("CSGIntersect", intersectSelectedBrushes, haveBrush);
     GlobalCommandSystem().addWithCheck("CSGHollow", hollowSelectedBrushes, haveBrush);
     GlobalCommandSystem().addWithCheck("CSGRoom", makeRoomForSelectedBrushes, haveBrush);
+    GlobalCommandSystem().addWithCheck("CSGPassable", makePassableForSelectedBrushes, haveBrush);
+    GlobalCommandSystem().addWithCheck("CSGShell", makeShellForSelectedBrushes, haveBrush);
 }
 
 } // namespace algorithm
