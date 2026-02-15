@@ -649,44 +649,107 @@ void CamWnd::ensureFont()
 
 void CamWnd::drawGrid()
 {
-    static double GRID_MAX_DIM = 2048;
-    auto GRID_STEP = getCameraSettings()->gridSpacing();
+    constexpr double GRID_MAX_DIM = 2048.0;
+
+    const double step = getCameraSettings()->gridSpacing();
+    const int majorEvery = 8;
 
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_1D);
     glEnable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
 
-    glLineWidth(1);
-    glColor3f(0.5f, 0.5f, 0.5f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glPushMatrix();
+    GlobalRenderingQualitySettings().applyLineSmoothing();
 
-    // The grid is following the camera, but will always be in the z = 0 plane
-    auto origin = _camera->getCameraOrigin().getSnapped(GRID_STEP);
-    glTranslated(origin.x(), origin.y(), 0);
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    glPolygonOffset(-1.0f, -1.0f);
 
+    // Grid follows camera in XY, locked to Z=0
+    auto origin = _camera->getCameraOrigin().getSnapped(step);
+    const double skipVerticalAtX   = -origin.x();
+    const double skipHorizontalAtY = -origin.y();
+
+    auto isSameLine = [](double a, double b)
+    {
+        return std::abs(a - b) < 1e-9;
+    };
+
+    // Axes in world space
+    glLineWidth(2.0f);
     glBegin(GL_LINES);
 
-    for (double x = -GRID_MAX_DIM; x <= GRID_MAX_DIM; x += GRID_STEP)
-    {
-        Vector3 start(x, -GRID_MAX_DIM, 0);
-        Vector3 end(x, GRID_MAX_DIM, 0);
+    glColor4f(0.85f, 0.25f, 0.25f, 0.8f);
+    glVertex3d(-GRID_MAX_DIM, 0.0, 0.0);
+    glVertex3d( GRID_MAX_DIM, 0.0, 0.0);
 
-        Vector3 start2(GRID_MAX_DIM, x, 0);
-        Vector3 end2(-GRID_MAX_DIM, x, 0);
-
-        glVertex2dv(start.data());
-        glVertex2dv(end.data());
-
-        glVertex2dv(start2.data());
-        glVertex2dv(end2.data());
-    }
+    glColor4f(0.25f, 0.85f, 0.25f, 0.8f);
+    glVertex3d(0.0, -GRID_MAX_DIM, 0.0);
+    glVertex3d(0.0,  GRID_MAX_DIM, 0.0);
 
     glEnd();
 
+    glPushMatrix();
+    glTranslated(origin.x(), origin.y(), 0.0);
+
+    const double fadeStart = GRID_MAX_DIM * 0.25;
+    const double fadeEnd = GRID_MAX_DIM * 1.00;
+
+    auto alphaFor = [&](double d)
+    {
+        if (d <= fadeStart) {
+            return 1.0f;
+        }
+
+        if (d >= fadeEnd) {
+            return 0.0f;
+        }
+
+        double t = (d - fadeStart) / (fadeEnd - fadeStart);
+        t = t * t * (3.0 - 2.0 * t);
+
+        return float(1.0 - t);
+    };
+
+    auto drawLine = [&](double x1, double y1, double x2, double y2)
+    {
+        glVertex3d(x1, y1, 0.0);
+        glVertex3d(x2, y2, 0.0);
+    };
+
+    glLineWidth(1.0f);
+    glBegin(GL_LINES);
+
+    for (double x = -GRID_MAX_DIM; x <= GRID_MAX_DIM + 1e-6; x += step) {
+        const int idx = int(std::llround(x / step));
+        const bool isMajor = (idx % majorEvery) == 0;
+        const float a = alphaFor(std::abs(x));
+
+        if (!isMajor) {
+            glColor4f(0.55f, 0.55f, 0.55f, 0.20f * a);
+        } else {
+            glColor4f(0.60f, 0.60f, 0.60f, 0.45f * a);
+        }
+
+        // Vertical line X
+        if (!isSameLine(x, skipVerticalAtX)) {
+            drawLine(x, -GRID_MAX_DIM, x, GRID_MAX_DIM);
+        }
+
+        // Horizontal line Y
+        if (!isSameLine(x, skipHorizontalAtY)) {
+            drawLine(-GRID_MAX_DIM, x, GRID_MAX_DIM, x);
+        }
+    }
+
+    glEnd();
     glPopMatrix();
 
+    // Clear grid state
+    glDisable(GL_POLYGON_OFFSET_LINE);
+    GlobalRenderingQualitySettings().disableSmoothing();
+    glDisable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
 }
 
