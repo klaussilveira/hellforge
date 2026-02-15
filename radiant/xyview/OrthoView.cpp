@@ -33,6 +33,7 @@
 #include "scenelib.h"
 #include "maplib.h"
 #include "render/RenderableCollectionWalker.h"
+#include "settings/RenderingQualitySettings.h"
 
 #include <wx/frame.h>
 #include <fmt/format.h>
@@ -732,7 +733,7 @@ void OrthoView::drawGrid()
 
                 case GRIDLOOK_BIGDOTS:
                     glPointSize(3);
-                    glEnable(GL_POINT_SMOOTH);
+                    GlobalRenderingQualitySettings().applyPointSmoothing();
                     glBegin (GL_POINTS);
                     for (double x = xb ; x < xe ; x += cur_step)
                     {
@@ -742,7 +743,7 @@ void OrthoView::drawGrid()
                         }
                     }
                     glEnd();
-                    glDisable(GL_POINT_SMOOTH);
+                    GlobalRenderingQualitySettings().disableSmoothing();
                     glPointSize(1);
                     break;
 
@@ -1409,7 +1410,7 @@ void OrthoView::draw()
 
     glLoadMatrixd(_modelView);
 
-    unsigned int flagsMask = RENDER_VERTEX_COLOUR | RENDER_BLEND;
+    unsigned int flagsMask = RENDER_VERTEX_COLOUR | RENDER_BLEND | RENDER_POINT_SMOOTH;
 
     if (!getCameraSettings()->solidSelectionBoxes())
     {

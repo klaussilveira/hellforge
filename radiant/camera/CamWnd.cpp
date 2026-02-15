@@ -19,6 +19,7 @@
 #include "gamelib.h"
 #include "CameraSettings.h"
 #include "CameraWndManager.h"
+#include "settings/RenderingQualitySettings.h"
 #include "render/RenderableCollectionWalker.h"
 #include "wxutil/MouseButton.h"
 #include "registry/adaptors.h"
@@ -837,7 +838,9 @@ void CamWnd::Cam_Draw()
                                      | RENDER_BLEND
                                      | RENDER_CULLFACE
                                      | RENDER_OFFSETLINE
-                                     | RENDER_VERTEX_COLOUR;
+                                     | RENDER_VERTEX_COLOUR
+                                     | RENDER_LINE_SMOOTH
+                                     | RENDER_POINT_SMOOTH;
 
     // Add mode-specific render flags
     switch (getCameraSettings()->getRenderMode())

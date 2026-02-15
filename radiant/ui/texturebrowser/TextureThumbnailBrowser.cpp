@@ -49,6 +49,9 @@ namespace
 
     constexpr int VIEWPORT_BORDER = 12;
     constexpr int TILE_BORDER = 2;
+
+    const std::string RKEY_LINE_ANTIALIASING = "user/ui/renderingQuality/lineAntialiasing";
+    const std::string RKEY_MULTISAMPLE_ENABLED = "user/ui/renderingQuality/multisampleEnabled";
 }
 
 class TextureThumbnailBrowser::TextureTile
@@ -744,10 +747,26 @@ void TextureThumbnailBrowser::draw()
     glEnable (GL_TEXTURE_2D);
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
+    if (registry::getValue<bool>(RKEY_MULTISAMPLE_ENABLED, true))
+    {
+        glEnable(GL_MULTISAMPLE);
+    }
+
+    if (registry::getValue<bool>(RKEY_LINE_ANTIALIASING, true))
+    {
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
     for (const auto& tile : _tiles)
     {
         tile->render(_showNamesKey.get());
     }
+
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_MULTISAMPLE);
 
 	debug::assertNoGlErrors();
 

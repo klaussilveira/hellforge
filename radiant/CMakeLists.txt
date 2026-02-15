@@ -22,6 +22,7 @@ add_executable(darkradiant
                selection/SelectionMouseTools.cpp
                settings/LocalisationModule.cpp
                settings/LocalisationProvider.cpp
+               settings/RenderingQualitySettings.cpp
                settings/Win32Registry.cpp
                textool/tools/TextureToolManipulateMouseTool.cpp
                textool/TexTool.cpp

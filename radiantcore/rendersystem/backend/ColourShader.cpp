@@ -41,6 +41,8 @@ void ColourShader::construct()
         {
             state.setRenderFlag(RENDER_FILL);
         }
+
+        state.setRenderFlag(RENDER_LINE_SMOOTH);
         state.setRenderFlag(RENDER_LIGHTING);
         state.setRenderFlag(RENDER_DEPTHTEST);
         state.setRenderFlag(RENDER_CULLFACE);
@@ -112,6 +114,7 @@ void ColourShader::construct()
             state.setRenderFlag(RENDER_FILL);
         }
 
+        state.setRenderFlag(RENDER_LINE_SMOOTH);
         state.setRenderFlag(RENDER_LIGHTING);
         state.setRenderFlag(RENDER_DEPTHTEST);
         state.setRenderFlag(RENDER_CULLFACE);

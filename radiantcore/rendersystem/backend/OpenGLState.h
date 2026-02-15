@@ -388,6 +388,36 @@ public:
             setState(requiredState, changingBitsMask, RENDER_LINESTIPPLE, GL_LINE_STIPPLE);
             setState(requiredState, changingBitsMask, RENDER_POLYGONSTIPPLE, GL_POLYGON_STIPPLE);
 
+            if (changingBitsMask & requiredState & RENDER_LINE_SMOOTH)
+            {
+                glEnable(GL_MULTISAMPLE);
+                glEnable(GL_LINE_SMOOTH);
+                glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                debug::assertNoGlErrors();
+            }
+            else if (changingBitsMask & ~requiredState & RENDER_LINE_SMOOTH)
+            {
+                glDisable(GL_LINE_SMOOTH);
+                glDisable(GL_MULTISAMPLE);
+                debug::assertNoGlErrors();
+            }
+
+            if (changingBitsMask & requiredState & RENDER_POINT_SMOOTH)
+            {
+                glEnable(GL_POINT_SMOOTH);
+                glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                debug::assertNoGlErrors();
+            }
+            else if (changingBitsMask & ~requiredState & RENDER_POINT_SMOOTH)
+            {
+                glDisable(GL_POINT_SMOOTH);
+                debug::assertNoGlErrors();
+            }
+
         } // end of changingBitsMask-dependent changes
 
         // Set depth function

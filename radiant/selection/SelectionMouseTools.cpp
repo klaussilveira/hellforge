@@ -17,6 +17,9 @@ namespace ui
 namespace
 {
     const char* const RKEY_SELECT_EPSILON = "user/ui/selectionEpsilon";
+
+    const std::string RKEY_LINE_ANTIALIASING = "user/ui/renderingQuality/lineAntialiasing";
+    const std::string RKEY_MULTISAMPLE_ENABLED = "user/ui/renderingQuality/multisampleEnabled";
 }
 
 SelectMouseTool::SelectMouseTool() :
@@ -98,6 +101,17 @@ BasicSelectionTool::Result BasicSelectionTool::onCancel(IInteractiveView& view)
 
 void BasicSelectionTool::renderOverlay()
 {
+    if (registry::getValue<bool>(RKEY_MULTISAMPLE_ENABLED, true))
+    {
+        glEnable(GL_MULTISAMPLE);
+    }
+
+    if (registry::getValue<bool>(RKEY_LINE_ANTIALIASING, true))
+    {
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    }
+
     // Define the blend function for transparency
     glEnable(GL_BLEND);
     glBlendColor(0, 0, 0, 0.2f);
@@ -116,7 +130,10 @@ void BasicSelectionTool::renderOverlay()
     glEnd();
 
     // The solid borders
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendColor(0, 0, 0, 0.8f);
+    glColor4f(static_cast<float>(dragBoxColour.x()), static_cast<float>(dragBoxColour.y()),
+              static_cast<float>(dragBoxColour.z()), 0.8f);
     glBegin(GL_LINE_LOOP);
     glVertex2f(_dragSelectionRect.min.x(), _dragSelectionRect.min.y());
     glVertex2f(_dragSelectionRect.max.x(), _dragSelectionRect.min.y());
@@ -125,6 +142,8 @@ void BasicSelectionTool::renderOverlay()
     glEnd();
 
     glDisable(GL_BLEND);
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_MULTISAMPLE);
 }
 
 void BasicSelectionTool::performSelectionTest(SelectionVolume& volume, SelectionType type, MouseTool::Event& ev)

@@ -44,6 +44,9 @@ namespace
     const std::string RKEY_ROTATE_ANGLE = RKEY_TEXTOOL_ROOT + "rotateAngle";
 
 	constexpr float ZOOM_MODIFIER = 1.25f;
+
+    const std::string RKEY_LINE_ANTIALIASING = "user/ui/renderingQuality/lineAntialiasing";
+    const std::string RKEY_MULTISAMPLE_ENABLED = "user/ui/renderingQuality/multisampleEnabled";
 }
 
 TexTool::TexTool(wxWindow* parent) : 
@@ -543,6 +546,19 @@ void TexTool::drawUVCoords()
 
 void TexTool::drawGrid()
 {
+    if (registry::getValue<bool>(RKEY_MULTISAMPLE_ENABLED, true))
+    {
+        glEnable(GL_MULTISAMPLE);
+    }
+
+    if (registry::getValue<bool>(RKEY_LINE_ANTIALIASING, true))
+    {
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
     auto gridSpacing = GlobalGrid().getGridSize(grid::Space::Texture);
 
 	const auto& texSpaceAABB = getVisibleTexSpace();
@@ -675,6 +691,9 @@ void TexTool::drawGrid()
 		auto xcoordStr = fmt::format("{0:.1f}", trunc(x));
 		GlobalOpenGL().drawString(xcoordStr);
 	}
+
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_MULTISAMPLE);
 }
 
 double TexTool::getTextureAspectRatio()

@@ -2,6 +2,7 @@
 
 #include "ifilter.h"
 #include "i18n.h"
+#include "igl.h"
 #include "icameraview.h"
 #include "iscenegraphfactory.h"
 #include "irendersystemfactory.h"
@@ -9,6 +10,7 @@
 #include "math/AABB.h"
 #include "util/ScopedBoolLock.h"
 #include "registry/registry.h"
+
 #include "render/CamRenderer.h"
 #include "render/CameraView.h"
 #include "render/SceneRenderWalker.h"
@@ -41,6 +43,9 @@ namespace
     const std::string RKEY_RENDERPREVIEW_SHOWGRID("user/ui/renderPreview/showGrid");
     const std::string RKEY_RENDERPREVIEW_FONTSIZE("user/ui/renderPreview/fontSize");
     const std::string RKEY_RENDERPREVIEW_FONTSTYLE("user/ui/renderPreview/fontStyle");
+
+    const std::string RKEY_LINE_ANTIALIASING("user/ui/renderingQuality/lineAntialiasing");
+    const std::string RKEY_MULTISAMPLE_ENABLED("user/ui/renderingQuality/multisampleEnabled");
 }
 
 RenderPreview::RenderPreview(wxWindow* parent, bool enableAnimation):
@@ -414,7 +419,8 @@ RenderStateFlags RenderPreview::getRenderFlagsFill()
             RENDER_FILL |
             RENDER_TEXTURE_CUBEMAP |
             RENDER_BUMP |
-            RENDER_PROGRAM;
+            RENDER_PROGRAM |
+            RENDER_LINE_SMOOTH;
 }
 
 RenderStateFlags RenderPreview::getRenderFlagsWireframe()
@@ -430,7 +436,8 @@ RenderStateFlags RenderPreview::getRenderFlagsWireframe()
            RENDER_SCALED |
            RENDER_TEXTURE_CUBEMAP |
            RENDER_BUMP |
-           RENDER_PROGRAM;
+           RENDER_PROGRAM |
+           RENDER_LINE_SMOOTH;
 }
 
 bool RenderPreview::drawPreview()
@@ -811,6 +818,19 @@ void RenderPreview::drawGrid()
     glDepthFunc(GL_LEQUAL);
     glDisable(GL_BLEND);
 
+    if (registry::getValue<bool>(RKEY_MULTISAMPLE_ENABLED, true))
+    {
+        glEnable(GL_MULTISAMPLE);
+    }
+
+    if (registry::getValue<bool>(RKEY_LINE_ANTIALIASING, true))
+    {
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
     glLineWidth(1);
     glColor3f(0.7f, 0.7f, 0.7f);
 
@@ -839,6 +859,8 @@ void RenderPreview::drawGrid()
     glEnd();
 
     glPopMatrix();
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_MULTISAMPLE);
 }
 
 void RenderPreview::drawInfoText()

@@ -2,7 +2,14 @@
 
 #include "string/convert.h"
 #include "icolourscheme.h"
+#include "registry/registry.h"
 #include "../OpenGLRenderSystem.h"
+
+namespace
+{
+    const std::string RKEY_VERTEX_POINT_SIZE = "user/ui/renderingQuality/vertexPointSize";
+    const std::string RKEY_VERTEX_POINT_SMOOTH = "user/ui/renderingQuality/vertexPointSmooth";
+}
 
 namespace render
 {
@@ -148,9 +155,19 @@ void BuiltInShader::construct()
 
     case BuiltInShaderType::ManipulatorWireframe:
     {
-        pass.setRenderFlags(RENDER_OVERRIDE | RENDER_VERTEX_COLOUR);
+        pass.setRenderFlags(RENDER_DEPTHTEST | RENDER_DEPTHWRITE | RENDER_OVERRIDE | RENDER_VERTEX_COLOUR | RENDER_LINE_SMOOTH);
         pass.setSortPosition(OpenGLState::SORT_GUI1);
+        pass.setDepthFunc(GL_LEQUAL);
         pass.lineWidth = 2;
+
+        // Hidden line pass for gizmos behind geometry
+        OpenGLState& hiddenLine = appendDefaultPass();
+        hiddenLine.setName(getName() + "_Hidden");
+        hiddenLine.setRenderFlags(RENDER_DEPTHTEST | RENDER_OVERRIDE | RENDER_VERTEX_COLOUR | RENDER_LINESTIPPLE | RENDER_LINE_SMOOTH);
+        hiddenLine.setSortPosition(OpenGLState::SORT_GUI0);
+        hiddenLine.setDepthFunc(GL_GREATER);
+        hiddenLine.lineWidth = 1;
+        hiddenLine.m_linestipple_factor = 2;
 
         enableViewType(RenderViewType::Camera);
         enableViewType(RenderViewType::OrthoView);
@@ -195,7 +212,7 @@ void BuiltInShader::construct()
         // activated using GL_LESS, whereas the second pass
         // draws the hidden lines in stippled appearance
         // with its depth test using GL_GREATER.
-        pass.setRenderFlags(RENDER_OFFSETLINE | RENDER_DEPTHTEST);
+        pass.setRenderFlags(RENDER_OFFSETLINE | RENDER_DEPTHTEST | RENDER_LINE_SMOOTH);
         pass.setSortPosition(OpenGLState::SORT_OVERLAY_LAST);
 
         // Second pass for hidden lines
@@ -204,7 +221,8 @@ void BuiltInShader::construct()
         hiddenLine.setRenderFlags(RENDER_CULLFACE
             | RENDER_DEPTHTEST
             | RENDER_OFFSETLINE
-            | RENDER_LINESTIPPLE);
+            | RENDER_LINESTIPPLE
+            | RENDER_LINE_SMOOTH);
         hiddenLine.setSortPosition(OpenGLState::SORT_OVERLAY_FIRST);
         hiddenLine.setDepthFunc(GL_GREATER);
         hiddenLine.m_linestipple_factor = 2;
@@ -233,20 +251,23 @@ void BuiltInShader::construct()
 
     case BuiltInShaderType::BigPoint:
     {
-        constructPointShader(pass, 6, OpenGLState::SORT_POINT_FIRST);
+        int pointSize = registry::getValue<int>(RKEY_VERTEX_POINT_SIZE, 8);
+        if (pointSize < 4) pointSize = 4;
+        if (pointSize > 16) pointSize = 16;
+        constructPointShader(pass, static_cast<float>(pointSize), OpenGLState::SORT_POINT_FIRST);
         break;
     }
 
     case BuiltInShaderType::Pivot:
     {
-        pass.setRenderFlags(RENDER_DEPTHTEST | RENDER_DEPTHWRITE);
+        pass.setRenderFlags(RENDER_DEPTHTEST | RENDER_DEPTHWRITE | RENDER_LINE_SMOOTH);
         pass.setSortPosition(OpenGLState::SORT_GUI0);
         pass.lineWidth = 2;
         pass.setDepthFunc(GL_LEQUAL);
 
         OpenGLState& hiddenLine = appendDefaultPass();
         hiddenLine.setName(getName() + "_Hidden");
-        hiddenLine.setRenderFlags(RENDER_DEPTHTEST | RENDER_LINESTIPPLE);
+        hiddenLine.setRenderFlags(RENDER_DEPTHTEST | RENDER_LINESTIPPLE | RENDER_LINE_SMOOTH);
         hiddenLine.setSortPosition(OpenGLState::SORT_GUI0);
         hiddenLine.lineWidth = 2;
         hiddenLine.setDepthFunc(GL_GREATER);
@@ -392,6 +413,7 @@ void BuiltInShader::constructCameraMergeActionOverlay(OpenGLState& pass, const C
 void BuiltInShader::constructPointShader(OpenGLState& pass, float pointSize, OpenGLState::SortPosition sort)
 {
     pass.setRenderFlag(RENDER_DEPTHWRITE);
+    pass.setRenderFlag(RENDER_POINT_SMOOTH);
 
     pass.setSortPosition(sort);
     pass.m_pointsize = pointSize;

@@ -109,6 +109,13 @@ const unsigned RENDER_BUMP = 1 << 19;
 const unsigned RENDER_PROGRAM = 1 << 20;
 
 const unsigned RENDER_OVERRIDE = 1 << 21;
+
+/// Enable GL_LINE_SMOOTH for antialiased lines
+const unsigned RENDER_LINE_SMOOTH = 1 << 22;
+
+/// Enable GL_POINT_SMOOTH for circular points (instead of squares)
+const unsigned RENDER_POINT_SMOOTH = 1 << 23;
+
 typedef unsigned RenderStateFlags;
 ///@}
 

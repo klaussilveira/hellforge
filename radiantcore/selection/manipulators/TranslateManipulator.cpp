@@ -98,7 +98,7 @@ void TranslateManipulator::onPreRender(const RenderSystemPtr& renderSystem, cons
         _arrowHeadZ.clear();
     }
 
-    _quadScreen.update(_lineShader);
+    _quadScreen.update(_arrowHeadShader);
 }
 
 void TranslateManipulator::clearRenderables()
@@ -135,7 +135,8 @@ void TranslateManipulator::testSelect(SelectionTest& test, const Matrix4& pivot2
 
       {
         SelectionIntersection best;
-        Quad_BestPoint(local2view, eClipCullCW, &_quadScreen.getRawPoints().front(), best);
+        const auto& circlePoints = _quadScreen.getRawPoints();
+        Circle_BestPoint(local2view, eClipCullCW, circlePoints.data(), circlePoints.size(), best);
         if(best.isValid())
         {
           best = SelectionIntersection(0, 0);
