@@ -113,6 +113,12 @@ public:
     // Prints the list of possible mouse actions to the statusbar
     virtual void updateStatusbar(unsigned int mouseState) = 0;
 
+    // Show a hint popup for an active tool (e.g., modifier key hints during drag operations)
+    virtual void showToolHint(const std::string& hint) = 0;
+
+    // Hide the active tool hint popup
+    virtual void hideToolHint() = 0;
+
     // Reverts all mappings to the defaults as defined in the stock input.xml
     virtual void resetBindingsToDefault() = 0;
 };

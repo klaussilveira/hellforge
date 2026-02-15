@@ -1414,15 +1414,12 @@ void RadiantSelectionSystem::deselectCmd(const cmd::ArgumentList& args)
 
     if (getSelectionMode() == SelectionMode::Component)
 	{
-		if (countSelectedComponents() != 0)
-		{
-			setSelectedAllComponents(false);
-		}
-		else
-		{
-			activateDefaultMode();
-			onComponentModeChanged();
-		}
+		// In component mode, a single ESC should fully deselect and exit component mode
+		// This provides a cleaner workflow, especially after double-click face selection
+		setSelectedAllComponents(false);
+		setSelectedAll(false);
+		activateDefaultMode();
+		onComponentModeChanged();
 	}
 	else
 	{

@@ -25,6 +25,8 @@
 #include "registry/adaptors.h"
 #include "selection/Device.h"
 #include "selection/SelectionVolume.h"
+#include "Rectangle.h"
+#include "registry/registry.h"
 #include "FloorHeightWalker.h"
 
 #include "debugging/debugging.h"
@@ -1219,7 +1221,7 @@ CameraMouseToolEvent CamWnd::createMouseEvent(const Vector2& point, const Vector
     Vector2 normalisedDeviceCoords = device_constrained(
         window_to_normalised_device(actualPoint, _camera->getDeviceWidth(), _camera->getDeviceHeight()));
 
-    return CameraMouseToolEvent(*_camera, *this, normalisedDeviceCoords, delta);
+    return CameraMouseToolEvent(*_camera, *this, normalisedDeviceCoords, delta, _isDoubleClick);
 }
 
 MouseTool::Result CamWnd::processMouseDownEvent(const MouseToolPtr& tool, const Vector2& point)
@@ -1320,8 +1322,51 @@ void CamWnd::onGLMouseButtonPress(wxMouseEvent& ev)
     // Set this camwnd to active
     _owner.setActiveCamWnd(_id);
 
+    // Handle double-click face selection with high priority (before other tools)
+    if (ev.LeftDClick())
+    {
+        // Perform face selection on double-click
+        Vector2 point(ev.GetX(), ev.GetY());
+        Vector2 normalisedDeviceCoords = device_constrained(
+            window_to_normalised_device(point, _camera->getDeviceWidth(), _camera->getDeviceHeight()));
+
+        float selectEpsilon = registry::getValue<float>("user/ui/selectionEpsilon");
+        Vector2 epsilon(
+            selectEpsilon / getDeviceWidth(),
+            selectEpsilon / getDeviceHeight()
+        );
+
+        render::View view(_view);
+        render::View scissored(view);
+        ConstructSelectionTest(scissored,
+            selection::Rectangle::ConstructFromPoint(normalisedDeviceCoords, epsilon));
+
+        SelectionVolume volume(scissored);
+
+        // Deselect any currently selected primitives first to avoid stacked selections
+        GlobalSelectionSystem().setSelectedAll(false);
+
+        // Select the primitive (brush) under the cursor first - this is required for
+        // component mode to work properly (checkComponentModeSelectionMode requires countSelected > 0)
+        GlobalSelectionSystem().selectPoint(volume, selection::SelectionSystem::eToggle, false);
+
+        // Switch to component/face mode and select the face
+        GlobalSelectionSystem().SetComponentMode(selection::ComponentSelectionMode::Face);
+        GlobalSelectionSystem().setSelectionMode(selection::SelectionMode::Component);
+        GlobalSelectionSystem().selectPoint(volume, selection::SelectionSystem::eToggle, true);
+
+        queueDraw();
+        return; // Don't pass to other tools
+    }
+
+    // Track if this is a double-click for the event handlers
+    _isDoubleClick = ev.LeftDClick() || ev.RightDClick() || ev.MiddleDClick();
+
     // Pass the call to the actual handler
     MouseToolHandler::onGLMouseButtonPress(ev);
+
+    // Reset the flag after processing
+    _isDoubleClick = false;
 }
 
 void CamWnd::onGLMouseButtonRelease(wxMouseEvent& ev)

@@ -645,7 +645,10 @@ AABB getCurrentComponentSelectionBounds()
 {
 	AABB bounds;
 
-	GlobalSelectionSystem().foreachSelected([&] (const scene::INodePtr& node)
+	// Use foreachSelectedComponent to iterate over nodes that have selected components
+	// This correctly handles the case where components are selected but the parent
+	// primitive is not (e.g., double-click face selection in the 3D view)
+	GlobalSelectionSystem().foreachSelectedComponent([&] (const scene::INodePtr& node)
 	{
 		ComponentEditablePtr componentEditable = Node_getComponentEditable(node);
 

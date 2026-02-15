@@ -11,24 +11,33 @@ class CameraMouseToolEvent :
     public MouseToolEvent
 {
     camera::ICameraView& _camView;
+    bool _isDoubleClick;
 
 public:
     CameraMouseToolEvent(camera::ICameraView& camView, IInteractiveView& iView,
-                         const Vector2& devicePos) :
+                         const Vector2& devicePos, bool isDoubleClick = false) :
         MouseToolEvent(iView, devicePos),
-        _camView(camView)
+        _camView(camView),
+        _isDoubleClick(isDoubleClick)
     {}
 
     CameraMouseToolEvent(camera::ICameraView& camView, IInteractiveView& iView,
-                         const Vector2& devicePos, const Vector2& delta) :
+                         const Vector2& devicePos, const Vector2& delta, bool isDoubleClick = false) :
         MouseToolEvent(iView, devicePos, delta),
-        _camView(camView)
+        _camView(camView),
+        _isDoubleClick(isDoubleClick)
     {}
 
     /// Return the ICameraView which generated this event
     camera::ICameraView& getView()
     {
         return _camView;
+    }
+
+    /// Returns true if this event was triggered by a double-click
+    bool isDoubleClick() const
+    {
+        return _isDoubleClick;
     }
 };
 

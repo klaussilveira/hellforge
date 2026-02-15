@@ -128,13 +128,15 @@ public:
             if (GlobalSelectionSystem().getSelectionMode() != selection::SelectionMode::Component)
             {
                 setHighlightFlag(Highlight::Faces, true);
+                setHighlightFlag(Highlight::Primitives, true);
             }
             else
             {
+                // In component mode, don't highlight the whole primitive -
+                // only selected components (faces/vertices/edges) should be highlighted
                 setHighlightFlag(Highlight::Faces, false);
+                setHighlightFlag(Highlight::Primitives, false);
             }
-
-            setHighlightFlag(Highlight::Primitives, true);
 
             // Pass on the info about whether we have a group member selected
             if (highlightFlags & Renderable::Highlight::GroupMember)
@@ -154,7 +156,8 @@ public:
         }
 
         // If this node should be highlighted, ask it to submit the corresponding geometry
-        if (hasHighlightFlags())
+        // Also call renderHighlights when Selected is set (for component mode highlighting)
+        if (hasHighlightFlags() || (highlightFlags & Renderable::Highlight::Selected))
         {
             node->renderHighlights(*this, volume);
         }

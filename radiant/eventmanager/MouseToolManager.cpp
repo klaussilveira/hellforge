@@ -266,6 +266,35 @@ void MouseToolManager::closeHintPopup()
     requestIdleCallback();
 }
 
+void MouseToolManager::showToolHint(const std::string& hint)
+{
+    if (hint.empty())
+    {
+        hideToolHint();
+        return;
+    }
+
+    // Ensure the popup exists, but we need to have a valid main frame window
+    auto mainParent = GlobalMainFrame().getWxTopLevelWindow();
+
+    if (mainParent == nullptr)
+    {
+        return;
+    }
+
+    if (!_hintPopup)
+    {
+        _hintPopup = new ModifierHintPopup(mainParent, *this);
+    }
+
+    _hintPopup->SetText(hint);
+}
+
+void MouseToolManager::hideToolHint()
+{
+    closeHintPopup();
+}
+
 void MouseToolManager::onIdle()
 {
     if (!_shouldClosePopup) return;

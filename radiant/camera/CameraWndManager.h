@@ -34,6 +34,10 @@ private:
     float _strafeSpeed;
     float _forwardStrafeFactor;
 
+    // Brush creation modifier keys
+    unsigned int _brushSquareModifierFlags;
+    unsigned int _brushHeightModifierFlags;
+
 public:
 	// Constructor
 	CameraWndManager();
@@ -89,6 +93,10 @@ public:
     unsigned int getStrafeModifierFlags();
     unsigned int getStrafeForwardModifierFlags();
 
+    // Brush creation modifier keys
+    unsigned int getBrushSquareModifierFlags();
+    unsigned int getBrushHeightModifierFlags();
+
     MouseToolStack getMouseToolsForEvent(wxMouseEvent& ev);
     void foreachMouseTool(const std::function<void(const MouseToolPtr&)>& func);
 
@@ -113,6 +121,7 @@ private:
 	// greebo: The construct method registers all the commands
 	void registerCommands();
     void loadCameraStrafeDefinitions();
+    void loadBrushCreationDefinitions();
 
 	void doWithActiveCamWnd(const std::function<void(CamWnd&)>& action);
 };

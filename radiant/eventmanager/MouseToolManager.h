@@ -49,7 +49,10 @@ public:
 
     MouseToolStack getMouseToolsForEvent(IMouseToolGroup::Type group, unsigned int mouseState);
 
-    void updateStatusbar(unsigned int newState);
+    void updateStatusbar(unsigned int newState) override;
+
+    void showToolHint(const std::string& hint) override;
+    void hideToolHint() override;
 
     void resetBindingsToDefault();
     void closeHintPopup();

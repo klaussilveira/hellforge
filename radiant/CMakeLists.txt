@@ -2,6 +2,7 @@ add_executable(darkradiant
                camera/CameraSettings.cpp
                camera/CamWnd.cpp
                camera/CameraWndManager.cpp
+               camera/tools/CameraBrushCreatorTool.cpp
                camera/tools/DecalShooterTool.cpp
                camera/tools/FaceIntersectionFinder.cpp
                clipboard/ClipboardModule.cpp

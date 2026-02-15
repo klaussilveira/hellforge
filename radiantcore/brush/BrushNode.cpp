@@ -426,6 +426,7 @@ void BrushNode::renderHighlights(IRenderableCollector& collector, const VolumeTe
     bool isInMergeMode = collector.hasHighlightFlag(IRenderableCollector::Highlight::MergeAction);
     bool forceVisible = isForcedVisible() || isInMergeMode;
     bool wholeBrushSelected = isSelected() || Node_isSelected(getParent());
+    bool inComponentMode = GlobalSelectionSystem().getSelectionMode() == selection::SelectionMode::Component;
 
     // Don't touch the primitive highlight flag in merge mode
     if (!isInMergeMode)
@@ -442,7 +443,11 @@ void BrushNode::renderHighlights(IRenderableCollector& collector, const VolumeTe
         Face& face = faceInstance.getFace();
         if (face.intersectVolume(volume))
         {
-            bool highlight = wholeBrushSelected || forceVisible || faceInstance.selectedComponents();
+            // In component mode, only highlight faces that are actually selected as components
+            // Don't use forceVisible or wholeBrushSelected to highlight ALL faces
+            bool highlight = inComponentMode ?
+                faceInstance.selectedComponents() :
+                (wholeBrushSelected || forceVisible || faceInstance.selectedComponents());
 
             if (!highlight) continue;
 

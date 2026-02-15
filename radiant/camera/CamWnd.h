@@ -80,6 +80,9 @@ private:
     // Update of this window in the next idle event loop
     bool _updateRequested = false;
 
+    // True if the current mouse press is a double-click
+    bool _isDoubleClick = false;
+
     // The GL widget
     wxutil::GLWidget* _wxGLWidget;
 

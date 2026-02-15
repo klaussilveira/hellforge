@@ -40,7 +40,10 @@ MouseTool::Result BrushCreatorTool::onMouseDown(Event& ev)
         // We only operate on XY view events, so attempt to cast
         XYMouseToolEvent& xyEvent = dynamic_cast<XYMouseToolEvent&>(ev);
 
-        if (GlobalSelectionSystem().countSelected() == 0)
+        // Only start brush creation if nothing is selected (neither primitives nor components)
+        // This allows the manipulate tool to handle clicks when only components (e.g., faces) are selected
+        if (GlobalSelectionSystem().countSelected() == 0 &&
+            GlobalSelectionSystem().countSelectedComponents() == 0)
         {
             _brush.reset();
             _startPos = xyEvent.getWorldPos();

@@ -17,6 +17,7 @@
 #include "tools/FreeMoveTool.h"
 #include "tools/PanViewTool.h"
 #include "tools/DecalShooterTool.h"
+#include "tools/CameraBrushCreatorTool.h"
 
 #include <functional>
 
@@ -71,7 +72,9 @@ CameraWndManager::CameraWndManager() :
     _toggleStrafeModifierFlags(wxutil::Modifier::NONE),
     _toggleStrafeForwardModifierFlags(wxutil::Modifier::NONE),
     _strafeSpeed(DEFAULT_STRAFE_SPEED),
-    _forwardStrafeFactor(DEFAULT_FORWARD_STRAFE_FACTOR)
+    _forwardStrafeFactor(DEFAULT_FORWARD_STRAFE_FACTOR),
+    _brushSquareModifierFlags(wxutil::Modifier::SHIFT),
+    _brushHeightModifierFlags(wxutil::Modifier::ALT)
 {}
 
 void CameraWndManager::registerCommands()
@@ -420,6 +423,16 @@ unsigned int CameraWndManager::getStrafeForwardModifierFlags()
     return _toggleStrafeForwardModifierFlags;
 }
 
+unsigned int CameraWndManager::getBrushSquareModifierFlags()
+{
+    return _brushSquareModifierFlags;
+}
+
+unsigned int CameraWndManager::getBrushHeightModifierFlags()
+{
+    return _brushHeightModifierFlags;
+}
+
 ui::MouseToolStack CameraWndManager::getMouseToolsForEvent(wxMouseEvent& ev)
 {
     unsigned int state = wxutil::MouseButton::GetButtonStateChangeForMouseEvent(ev);
@@ -452,6 +465,22 @@ void CameraWndManager::loadCameraStrafeDefinitions()
         // No Camera strafe definitions found!
         rWarning() << "CameraWndManager: No camera strafe definitions found!" << std::endl;
     }
+}
+
+void CameraWndManager::loadBrushCreationDefinitions()
+{
+    // Find the brush creation definitions
+    xml::NodeList brushList = GlobalRegistry().findXPath("user/ui/input/cameraview/brushcreation");
+
+    if (!brushList.empty())
+    {
+        const xml::Node& node = brushList[0];
+
+        // Get the modifier flags for brush creation behaviors
+        _brushSquareModifierFlags = wxutil::Modifier::GetStateFromModifierString(node.getAttributeValue("squareModifier"));
+        _brushHeightModifierFlags = wxutil::Modifier::GetStateFromModifierString(node.getAttributeValue("heightModifier"));
+    }
+    // If not found, keep the defaults (SHIFT for square, ALT for height)
 }
 
 // RegisterableModule implementation
@@ -491,6 +520,7 @@ void CameraWndManager::initialiseModule(const IApplicationContext& ctx)
 
 	registerCommands();
     loadCameraStrafeDefinitions();
+    loadBrushCreationDefinitions();
 
 	CamWnd::captureStates();
 
@@ -506,6 +536,7 @@ void CameraWndManager::initialiseModule(const IApplicationContext& ctx)
     toolGroup.registerMouseTool(std::make_shared<PasteShaderNameTool>());
     toolGroup.registerMouseTool(std::make_shared<JumpToObjectTool>());
     toolGroup.registerMouseTool(std::make_shared<DecalShooterTool>());
+    toolGroup.registerMouseTool(std::make_shared<CameraBrushCreatorTool>());
 
     GlobalUserInterface().registerControl(std::make_shared<CameraControl>(*this));
 
