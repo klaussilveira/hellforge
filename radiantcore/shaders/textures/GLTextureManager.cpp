@@ -6,7 +6,7 @@
 
 namespace
 {
-    const std::string SHADER_NOT_FOUND = "notex.bmp";
+    const std::string SHADER_NOT_FOUND = "notexture.png";
 }
 
 namespace shaders {

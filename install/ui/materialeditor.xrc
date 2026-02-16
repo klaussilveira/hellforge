@@ -501,7 +501,7 @@
 															<border>1</border>
 															<object class="wxPanel" name="m_panel41">
 																<style>wxTAB_TRAVERSAL</style>
-																<bg>#e3e3e3</bg>
+
 																<hidden>1</hidden>
 																<object class="wxBoxSizer">
 																	<orient>wxVERTICAL</orient>

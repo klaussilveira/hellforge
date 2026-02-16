@@ -2,7 +2,7 @@
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
 	<object class="wxPanel" name="TextureToolManipulatorPanel">
 		<style>wxTAB_TRAVERSAL</style>
-		<bg>#ababab</bg>
+
 		<object class="wxBoxSizer">
 			<orient>wxVERTICAL</orient>
 			<object class="sizeritem">
@@ -11,7 +11,7 @@
 				<border>0</border>
 				<object class="wxPanel" name="m_panel12">
 					<size>-1,1</size>
-					<bg>#303030</bg>
+
 					<enabled>0</enabled>
 				</object>
 			</object>
@@ -93,7 +93,7 @@
 				<border>0</border>
 				<object class="wxPanel" name="m_panel1">
 					<size>-1,1</size>
-					<bg>#303030</bg>
+
 					<enabled>0</enabled>
 				</object>
 			</object>
@@ -217,7 +217,7 @@
 				<border>0</border>
 				<object class="wxPanel" name="m_panel11">
 					<size>-1,1</size>
-					<bg>#303030</bg>
+
 					<enabled>0</enabled>
 				</object>
 			</object>
@@ -294,7 +294,7 @@
 				<border>0</border>
 				<object class="wxPanel" name="m_panel111">
 					<size>-1,1</size>
-					<bg>#303030</bg>
+
 					<enabled>0</enabled>
 				</object>
 			</object>
