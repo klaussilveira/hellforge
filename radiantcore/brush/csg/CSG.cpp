@@ -268,11 +268,28 @@ void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
         volumeClones.emplace_back(clone);
     }
 
-    // Create "room shell" pieces for one brush, collecting created wall nodes
-    auto createRoomShellPieces =
-        [&](const BrushNodePtr& sourceBrush, BrushPtrVector& outCreatedWalls)
+    // Info about a wall piece: the brush geometry + where to place the result
+    struct WallPiece
     {
-        // Hollow the brush using current grid, but keep the outer shell
+        BrushNodePtr node;
+        scene::INodePtr parent;
+        scene::LayerList layers;
+    };
+
+    std::vector<WallPiece> wallPieces;
+    wallPieces.reserve(selected.size() * 6);
+
+    // Create wall pieces OFF-SCENE to avoid registering them with the undo system.
+    // These are intermediate geometry that will be subtracted and replaced by
+    // final result nodes. If they were added to the scene, their Brush objects
+    // would be captured in the undo snapshot, but then destroyed when the function
+    // returns, leaving dangling references that crash on Ctrl+Z.
+    for (const auto& sourceBrush : selected)
+    {
+        scene::INodePtr parent = sourceBrush->getParent();
+        assert(parent);
+        scene::LayerList layers = sourceBrush->getLayers();
+
         sourceBrush->getBrush().forEachFace(
             [&](Face& face)
             {
@@ -280,9 +297,6 @@ void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
                 {
                     return;
                 }
-
-                scene::INodePtr parent = sourceBrush->getParent();
-                assert(parent);
 
                 scene::INodePtr newNode = GlobalBrushCreator().createBrush();
                 BrushNodePtr wallNode = std::dynamic_pointer_cast<BrushNode>(newNode);
@@ -293,21 +307,12 @@ void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
                 // Temporarily offset this face outward in the source to "make room" for thickness
                 face.getPlane().offset(offset);
 
-                // Add the wall brush node as child
-                parent->addChildNode(wallNode);
-
-                // Match layers with the source
-                wallNode->assignToLayers(sourceBrush->getLayers());
-
                 // Copy source brush geometry (with the temporarily offset face)
+                // Wall node is NOT in the scene, so no undo state is recorded
                 wallNode->getBrush().copy(sourceBrush->getBrush());
 
                 // Restore source face plane
                 face.getPlane().offset(-offset);
-
-                // Ensure created wall piece is selected and tracked
-                Node_setSelected(wallNode, true);
-                outCreatedWalls.emplace_back(wallNode);
 
                 FacePtr newFace = wallNode->getBrush().addFace(face);
                 if (newFace != 0)
@@ -317,34 +322,21 @@ void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
                 }
 
                 wallNode->getBrush().removeEmptyFaces();
+
+                wallPieces.push_back({ wallNode, parent, layers });
             });
 
         scene::removeNodeFromParent(sourceBrush);
-    };
-
-    BrushPtrVector createdWalls;
-    createdWalls.reserve(selected.size() * 6);
-
-    for (const auto& b : selected)
-    {
-        createRoomShellPieces(b, createdWalls);
     }
 
-    // Subtract all volumes from a wall piece and replace if changed
-    auto subtractVolumesFromWall = [&](const BrushNodePtr& wallNode)
+    // Subtract all volumes from each wall piece and add final results to scene
+    for (const auto& wall : wallPieces)
     {
-        if (!wallNode || !wallNode->getParent())
-        {
-            return;
-        }
-
-        scene::INodePtr parent = wallNode->getParent();
-        assert(parent);
-
         BrushPtrVector buffer[2];
         std::size_t swap = 0;
 
-        BrushNodePtr original = std::dynamic_pointer_cast<BrushNode>(wallNode->clone());
+        // Start with a clone of the wall geometry (also off-scene)
+        BrushNodePtr original = std::dynamic_pointer_cast<BrushNode>(wall.node->clone());
         assert(original);
 
         buffer[swap].push_back(original);
@@ -378,17 +370,12 @@ void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
 
         BrushPtrVector& out = buffer[swap];
 
-        if (out.size() == 1 && out.back() == original)
-        {
-            return;
-        }
-
         if (out.empty())
         {
-            scene::removeNodeFromParent(wallNode);
-            return;
+            continue;
         }
 
+        // Add all result pieces to the scene as final output
         for (const auto& piece : out)
         {
             Brush& pieceBrush = piece->getBrush();
@@ -400,20 +387,13 @@ void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
             }
 
             scene::INodePtr newBrushNode = GlobalBrushCreator().createBrush();
-            parent->addChildNode(newBrushNode);
+            wall.parent->addChildNode(newBrushNode);
 
-            newBrushNode->assignToLayers(wallNode->getLayers());
+            newBrushNode->assignToLayers(wall.layers);
 
             Node_getBrush(newBrushNode)->copy(pieceBrush);
             Node_setSelected(newBrushNode, true);
         }
-
-        scene::removeNodeFromParent(wallNode);
-    };
-
-    for (const auto& wall : createdWalls)
-    {
-        subtractVolumesFromWall(wall);
     }
 
     SceneChangeNotify();
