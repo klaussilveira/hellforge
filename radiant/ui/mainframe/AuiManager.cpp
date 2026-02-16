@@ -7,7 +7,7 @@ namespace ui
 {
 
 AuiManager::AuiManager(AuiLayout* layout) :
-    wxAuiManager(nullptr, wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_VENETIAN_BLINDS_HINT | wxAUI_MGR_LIVE_RESIZE),
+    wxAuiManager(nullptr, wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_RECTANGLE_HINT | wxAUI_MGR_LIVE_RESIZE),
     _layout(layout),
     _notebook(nullptr)
 {}

@@ -27,6 +27,10 @@ GLWidget::GLWidget(wxWindow *parent, const std::function<bool()>& renderCallback
     _privateContext(nullptr)
 {
     Bind(wxEVT_PAINT, &GLWidget::OnPaint, this);
+    Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent&) {
+        // needs to be empty
+        // see: https://forums.wxwidgets.org/viewtopic.php?t=24461
+    });
 }
 
 void GLWidget::SetHasPrivateContext(bool hasPrivateContext)
