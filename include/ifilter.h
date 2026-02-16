@@ -119,6 +119,19 @@ public:
      */
     virtual bool isEntityVisible(const Entity& entity) const = 0;
 
+    /**
+     * @brief Tests whether a given texture name would be hidden by any
+     * available filter's texture rules, regardless of whether that filter
+     * is currently active.
+     *
+     * This is used to identify "utility" textures (clip, caulk, trigger, etc.)
+     * for purposes such as rendering them with reduced opacity.
+     *
+     * @param name The texture name to test.
+     * @return True if any filter has a texture rule that would hide this name.
+     */
+    virtual bool isFilteredTexture(const std::string& name) const = 0;
+
     // ===== API for Filter Management and Editing =====
 
     /**

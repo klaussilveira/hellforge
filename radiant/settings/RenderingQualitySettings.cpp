@@ -2,6 +2,7 @@
 
 #include "i18n.h"
 #include "igl.h"
+#include "irender.h"
 #include "ipreferencesystem.h"
 #include "registry/registry.h"
 
@@ -14,7 +15,8 @@ RenderingQualitySettings::RenderingQualitySettings() :
     _pointAntialiasing(registry::getValue<bool>(RKEY_POINT_ANTIALIASING, true)),
     _multisampleEnabled(registry::getValue<bool>(RKEY_MULTISAMPLE_ENABLED, true)),
     _vertexPointSize(registry::getValue<int>(RKEY_VERTEX_POINT_SIZE, 8)),
-    _vertexPointSmooth(registry::getValue<bool>(RKEY_VERTEX_POINT_SMOOTH, true))
+    _vertexPointSmooth(registry::getValue<bool>(RKEY_VERTEX_POINT_SMOOTH, true)),
+    _utilityTextureAlpha(registry::getValue<float>(RKEY_UTILITY_TEXTURE_ALPHA, 1.0f))
 {
     // Observe registry keys for changes
     observeKey(RKEY_LINE_ANTIALIASING);
@@ -23,6 +25,7 @@ RenderingQualitySettings::RenderingQualitySettings() :
     observeKey(RKEY_MULTISAMPLE_ENABLED);
     observeKey(RKEY_VERTEX_POINT_SIZE);
     observeKey(RKEY_VERTEX_POINT_SMOOTH);
+    observeKey(RKEY_UTILITY_TEXTURE_ALPHA);
 
     // Build preferences page
     constructPreferencePage();
@@ -44,9 +47,21 @@ void RenderingQualitySettings::keyChanged()
     _vertexPointSize = registry::getValue<int>(RKEY_VERTEX_POINT_SIZE, 8);
     _vertexPointSmooth = registry::getValue<bool>(RKEY_VERTEX_POINT_SMOOTH, true);
 
+    float newUtilityAlpha = registry::getValue<float>(RKEY_UTILITY_TEXTURE_ALPHA, 1.0f);
+    bool utilityAlphaChanged = (_utilityTextureAlpha != newUtilityAlpha);
+    _utilityTextureAlpha = newUtilityAlpha;
+
     // Clamp point size
     if (_vertexPointSize < 4) _vertexPointSize = 4;
     if (_vertexPointSize > 16) _vertexPointSize = 16;
+
+    // If utility texture alpha changed, force a full shader rebuild
+    // so that all passes are reconstructed with the new alpha value
+    if (utilityAlphaChanged)
+    {
+        GlobalRenderSystem().unrealise();
+        GlobalRenderSystem().realise();
+    }
 
     _sigSettingsChanged.emit();
 }
@@ -122,6 +137,9 @@ void RenderingQualitySettings::constructPreferencePage()
     pointSizes.push_back("12");
     pointSizes.push_back("16");
     page.appendCombo(_("Vertex point size"), RKEY_VERTEX_POINT_SIZE, pointSizes, true);
+
+    IPreferencePage& texPage = GlobalPreferenceSystem().getPage(_("Textures"));
+    texPage.appendSlider(_("Utility texture opacity"), RKEY_UTILITY_TEXTURE_ALPHA, 0.0, 1.0, 0.05, 0.1);
 }
 
 } // namespace ui

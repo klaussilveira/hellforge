@@ -67,6 +67,7 @@ public:
     void setFilterState(const std::string& filter, bool state) override;
     bool isVisible(const FilterType type, const std::string& name) override;
     bool isEntityVisible(const Entity& entity) const override;
+    bool isFilteredTexture(const std::string& name) const override;
     bool addFilter(const std::string& filterName, const FilterRules& ruleSet) override;
     bool removeFilter(const std::string& filter) override;
     bool renameFilter(const std::string& oldFilterName, const std::string& newFilterName) override;

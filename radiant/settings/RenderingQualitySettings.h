@@ -24,6 +24,9 @@ namespace
     // Point sizes for vertex handles
     const std::string RKEY_VERTEX_POINT_SIZE = RKEY_RENDERING_QUALITY_ROOT + "/vertexPointSize";
     const std::string RKEY_VERTEX_POINT_SMOOTH = RKEY_RENDERING_QUALITY_ROOT + "/vertexPointSmooth";
+
+    // Utility texture opacity
+    const std::string RKEY_UTILITY_TEXTURE_ALPHA = RKEY_RENDERING_QUALITY_ROOT + "/utilityTextureAlpha";
 }
 
 /**
@@ -51,6 +54,7 @@ private:
     bool _multisampleEnabled;
     int _vertexPointSize;
     bool _vertexPointSmooth;
+    float _utilityTextureAlpha;
 
     sigc::signal<void> _sigSettingsChanged;
 

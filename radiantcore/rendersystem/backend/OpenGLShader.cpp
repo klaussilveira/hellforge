@@ -10,6 +10,7 @@
 #include "ifilter.h"
 #include "irender.h"
 #include "texturelib.h"
+#include "registry/registry.h"
 
 #include <functional>
 
@@ -18,6 +19,8 @@ namespace render
 
 namespace
 {
+    const std::string RKEY_UTILITY_TEXTURE_ALPHA = "user/ui/renderingQuality/utilityTextureAlpha";
+
     TexturePtr getDefaultInteractionTexture(IShaderLayer::Type type)
     {
         return GlobalMaterialManager().getDefaultInteractionTexture(type);
@@ -568,6 +571,18 @@ void OpenGLShader::constructEditorPreviewPassFromMaterial()
 
     // Polygon offset
     previewPass.polygonOffset = _material->getPolygonOffset();
+
+    // Apply translucency to utility textures (clip, caulk, trigger, etc.)
+    float utilityAlpha = registry::getValue<float>(RKEY_UTILITY_TEXTURE_ALPHA, 1.0f);
+    if (utilityAlpha < 1.0f && GlobalFilterSystem().isFilteredTexture(_name))
+    {
+        previewPass.setRenderFlag(RENDER_BLEND);
+        previewPass.clearRenderFlag(RENDER_DEPTHWRITE);
+        previewPass.m_blend_src = GL_SRC_ALPHA;
+        previewPass.m_blend_dst = GL_ONE_MINUS_SRC_ALPHA;
+        previewPass.setColour(Colour4(1, 1, 1, utilityAlpha));
+        previewPass.setSortPosition(OpenGLState::SORT_TRANSLUCENT);
+    }
 }
 
 // Append a blend (non-interaction) layer

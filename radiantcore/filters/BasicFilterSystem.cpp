@@ -453,6 +453,21 @@ bool BasicFilterSystem::isEntityVisible(const Entity& entity) const
     return true;
 }
 
+bool BasicFilterSystem::isFilteredTexture(const std::string& name) const
+{
+    // Check all available filters (not just active ones) to see if any
+    // texture-type rule would hide this texture name
+    for (const auto& [filterName, filter] : _availableFilters)
+    {
+        if (!filter->isVisible(FilterType::TEXTURE, name))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 FilterRules BasicFilterSystem::getRuleSet(const std::string& filter)
 {
     auto f = _availableFilters.find(filter);
