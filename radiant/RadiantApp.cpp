@@ -295,7 +295,7 @@ bool RadiantApp::OnExceptionInMainLoop()
     }
     catch (const std::exception& ex) {
         rError() << "Unhandled Exception: " << ex.what() << std::endl;
-        radiant::PopupErrorHandler::HandleError(_("Real Hard DarkRadiant Failure"),
+        radiant::PopupErrorHandler::HandleError(_("Real Hard HellForge Failure"),
             std::string(ex.what()) + "\n\n" + _("Break into the debugger?"));
     }
     return wxApp::OnExceptionInMainLoop();

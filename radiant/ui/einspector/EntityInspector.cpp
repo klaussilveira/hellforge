@@ -595,8 +595,7 @@ wxWindow* EntityInspector::createTreeViewPane(wxWindow* parent)
     _keyEntry = new wxTextCtrl(treeViewPanel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     _valEntry = new wxTextCtrl(treeViewPanel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 
-    wxBitmap icon = wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_MENU);
-    _setButton = new wxBitmapButton(treeViewPanel, wxID_APPLY, icon);
+    _setButton = new wxBitmapButton(treeViewPanel, wxID_APPLY, wxutil::GetLocalBitmap("check.png"));
 
     buttonHbox->Add(_valEntry, 1, wxEXPAND);
     buttonHbox->Add(_setButton, 0, wxEXPAND);

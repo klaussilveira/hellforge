@@ -21,7 +21,7 @@ namespace ui {
 #if WIN32
 		const char* const RKEY_SHOW_BUILD_TIME = "user/showBuildTime";
 #endif
-		const char* const WINDOW_TITLE = N_("About DarkRadiant");
+		const char* const WINDOW_TITLE = N_("About HellForge");
 	}
 
 AboutDialog::AboutDialog() :

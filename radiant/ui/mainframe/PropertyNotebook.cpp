@@ -32,7 +32,7 @@ PropertyNotebook::PropertyNotebook(wxWindow* parent, AuiLayout& owner) :
 {
     SetName("PropertyNotebook");
 
-    _imageList.reset(new wxImageList(16, 16));
+    _imageList.reset(new wxImageList(24, 24));
     SetImageList(_imageList.get());
 
     Bind(wxEVT_AUINOTEBOOK_PAGE_CHANGED, &PropertyNotebook::onPageSwitch, this);

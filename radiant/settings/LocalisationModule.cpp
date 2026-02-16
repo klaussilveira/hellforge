@@ -48,7 +48,7 @@ void LocalisationModule::initialiseModule(const IApplicationContext& ctx)
 	// Add Preferences
 	IPreferencePage& page = GlobalPreferenceSystem().getPage(_("User Interface"));
 	page.appendCombo(_("Language"), registryKey, langs);
-	page.appendLabel(_("<b>Note:</b> You'll need to restart DarkRadiant\nafter changing the language setting."));
+	page.appendLabel(_("<b>Note:</b> You'll need to restart HellForge\nafter changing the language setting."));
 }
 
 void LocalisationModule::shutdownModule()

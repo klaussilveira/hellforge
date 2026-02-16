@@ -33,7 +33,7 @@ MapInfoDialog::MapInfoDialog() :
 
 void MapInfoDialog::populateWindow()
 {
-	_imageList.reset(new wxImageList(16, 16));
+	_imageList.reset(new wxImageList(24, 24));
 	
 	SetSizer(new wxBoxSizer(wxVERTICAL));
 	

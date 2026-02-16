@@ -48,7 +48,7 @@ FavouritesBrowser::FavouritesBrowser(wxWindow* parent) :
     _listView->Bind(wxEVT_CONTEXT_MENU, &FavouritesBrowser::onContextMenu, this);
     _listView->Bind(wxEVT_LIST_ITEM_ACTIVATED, &FavouritesBrowser::onItemActivated, this);
 
-    _iconList.reset(new wxImageList(16, 16));
+    _iconList.reset(new wxImageList(24, 24));
     _listView->SetImageList(_iconList.get(), wxIMAGE_LIST_SMALL);
 
     setupCategories();

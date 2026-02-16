@@ -561,7 +561,7 @@
 												<flag>wxBOTTOM|wxTOP</flag>
 												<border>6</border>
 												<object class="wxCheckBox" name="KeepSelectionGroupsIntact">
-													<tooltip>With this option checked, DarkRadiant will attempt to keep all links between selection groups intact. There&apos;s no guarantee that this will work 100%, since it&apos;s usually problematic when both maps have seen changes to the same elements and their grouping.</tooltip>
+													<tooltip>With this option checked, HellForge will attempt to keep all links between selection groups intact. There&apos;s no guarantee that this will work 100%, since it&apos;s usually problematic when both maps have seen changes to the same elements and their grouping.</tooltip>
 													<label>Merge Selection Group Information</label>
 													<checked>0</checked>
 												</object>

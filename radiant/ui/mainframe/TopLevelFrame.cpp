@@ -17,7 +17,7 @@ namespace ui
 {
 
 TopLevelFrame::TopLevelFrame() :
-	wxFrame(nullptr, wxID_ANY, wxT("DarkRadiant")),
+	wxFrame(nullptr, wxID_ANY, wxT("HellForge")),
 	_topLevelContainer(nullptr),
 	_mainContainer(nullptr)
 {

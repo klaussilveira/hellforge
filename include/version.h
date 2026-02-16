@@ -4,10 +4,10 @@
 #include <config.h>
 #define RADIANT_VERSION PACKAGE_VERSION
 #else
-#define RADIANT_VERSION "3.10.0"
+#define RADIANT_VERSION "1.0.0"
 #endif
 
-#define RADIANT_APPNAME "DarkRadiant"
+#define RADIANT_APPNAME "HellForge"
 #define RADIANT_BLANK " "
 
 #if defined(_M_X64) || defined(__amd64__) || defined(_WIN64)

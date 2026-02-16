@@ -66,7 +66,7 @@ void wxImagePanel::render(wxDC&  dc)
 }
 
 Splash::Splash() :
-	wxFrame(nullptr, wxID_ANY, wxT("DarkRadiant"), wxDefaultPosition, wxDefaultSize, wxCENTRE),
+	wxFrame(nullptr, wxID_ANY, wxT("HellForge"), wxDefaultPosition, wxDefaultSize, wxCENTRE),
 	_progressBar(nullptr)
 {
     const auto& ctx = module::GlobalModuleRegistry().getApplicationContext();
