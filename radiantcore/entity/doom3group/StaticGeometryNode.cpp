@@ -2,6 +2,7 @@
 
 #include <functional>
 #include "../curve/CurveControlPointFunctors.h"
+#include "string/convert.h"
 
 #include "Translatable.h"
 
@@ -13,6 +14,8 @@ StaticGeometryNode::StaticGeometryNode(const scene::EntityClass::Ptr& eclass) :
 	m_originKey(std::bind(&StaticGeometryNode::originChanged, this)),
 	m_origin(ORIGINKEY_IDENTITY),
 	m_rotationKey(std::bind(&StaticGeometryNode::rotationChanged, this)),
+	m_baseModelScale(1.0f),
+	m_modelScale(1.0f),
 	_renderOrigin(m_origin),
 	m_isModel(false),
 	m_curveNURBS(*this, std::bind(&scene::Node::boundsChanged, this)),
@@ -38,6 +41,8 @@ StaticGeometryNode::StaticGeometryNode(const StaticGeometryNode& other) :
 	m_originKey(std::bind(&StaticGeometryNode::originChanged, this)),
 	m_origin(other.m_origin),
 	m_rotationKey(std::bind(&StaticGeometryNode::rotationChanged, this)),
+	m_baseModelScale(other.m_baseModelScale),
+	m_modelScale(other.m_modelScale),
 	_renderOrigin(m_origin),
 	m_isModel(other.m_isModel),
 	m_curveNURBS(*this, std::bind(&scene::Node::boundsChanged, this)),
@@ -80,6 +85,7 @@ void StaticGeometryNode::construct()
     observeKey("origin", sigc::mem_fun(m_originKey, &OriginKey::onKeyValueChanged));
     observeKey("angle", sigc::mem_fun(m_rotationKey, &RotationKey::angleChanged));
     observeKey("rotation", sigc::mem_fun(m_rotationKey, &RotationKey::rotationChanged));
+    observeKey("modelscale", sigc::mem_fun(this, &StaticGeometryNode::modelScaleChanged));
     observeKey("name", sigc::mem_fun(this, &StaticGeometryNode::nameChanged));
 
     // Observe curve-related spawnargs
@@ -577,7 +583,7 @@ void StaticGeometryNode::rotate(const Quaternion& rotation)
 	}
 }
 
-void StaticGeometryNode::scale(const Vector3& scale)
+void StaticGeometryNode::scale(const Vector3& scaleFactor)
 {
 	if (!isModel())
 	{
@@ -585,11 +591,22 @@ void StaticGeometryNode::scale(const Vector3& scale)
 		scene::forEachTransformable(*this, [&] (ITransformable& child)
 		{
 			child.setType(TRANSFORM_PRIMITIVE);
-			child.setScale(scale);
+			child.setScale(scaleFactor);
 		});
 
-        m_origin *= scale;
+        m_origin *= scaleFactor;
         _renderOrigin.queueUpdate();
+	}
+	else
+	{
+		// Model entities only support uniform scale via the modelscale spawnarg.
+		// Pick the axis that deviates most from 1.0 (i.e. the one being changed)
+		Vector3 delta = scaleFactor - Vector3(1, 1, 1);
+		int axis = fabs(delta.y()) > fabs(delta.x())
+			? (fabs(delta.z()) > fabs(delta.y()) ? 2 : 1)
+			: (fabs(delta.z()) > fabs(delta.x()) ? 2 : 0);
+
+		m_modelScale *= scaleFactor[axis];
 	}
 }
 
@@ -606,6 +623,7 @@ void StaticGeometryNode::revertTransformInternal()
 	if (isModel())
     {
 		m_rotation = m_rotationKey.m_rotation;
+		m_modelScale = m_baseModelScale;
 	}
 
     _renderOrigin.queueUpdate();
@@ -629,6 +647,17 @@ void StaticGeometryNode::freezeTransformInternal()
 	{
 		m_rotationKey.m_rotation = m_rotation;
 		m_rotationKey.write(&_spawnArgs, isModel());
+
+		// Write modelscale spawnarg
+		m_baseModelScale = m_modelScale;
+		if (m_modelScale != 1.0f)
+		{
+			_spawnArgs.setKeyValue("modelscale", string::to_string(m_modelScale));
+		}
+		else
+		{
+			_spawnArgs.setKeyValue("modelscale", "");
+		}
 	}
 
 	m_curveNURBS.freezeTransform();
@@ -728,11 +757,22 @@ void StaticGeometryNode::modelChanged(const std::string& value)
 void StaticGeometryNode::updateTransform()
 {
     if (isModel())
-        setLocalToParent(Matrix4::getTranslation(m_origin) * m_rotation.getMatrix4());
-    else
-        setLocalToParent(Matrix4::getIdentity());
+    {
+        Matrix4 transform = Matrix4::getTranslation(m_origin) * m_rotation.getMatrix4();
 
-    // Notify the Node about this transformation change	to update the local2World matrix
+        if (m_modelScale != 1.0f)
+        {
+            transform.multiplyBy(Matrix4::getScale(Vector3(m_modelScale, m_modelScale, m_modelScale)));
+        }
+
+        setLocalToParent(transform);
+    }
+    else
+    {
+        setLocalToParent(Matrix4::getIdentity());
+    }
+
+    // Notify the Node about this transformation change to update the local2World matrix
     transformChanged();
 }
 
@@ -760,6 +800,13 @@ void StaticGeometryNode::originChanged()
 
 void StaticGeometryNode::rotationChanged() {
 	m_rotation = m_rotationKey.m_rotation;
+	updateTransform();
+}
+
+void StaticGeometryNode::modelScaleChanged(const std::string& value)
+{
+	m_baseModelScale = value.empty() ? 1.0f : static_cast<float>(string::convert<double>(value, 1.0));
+	m_modelScale = m_baseModelScale;
 	updateTransform();
 }
 

@@ -33,8 +33,6 @@ public:
 
     const IModel& getIModel() const override;
     IModel& getIModel() override;
-    bool hasModifiedScale() override;
-    Vector3 getModelScale() override;
 
     void testSelect(Selector& selector, SelectionTest& test) override;
 

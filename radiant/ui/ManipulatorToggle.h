@@ -43,11 +43,6 @@ public:
 			GlobalCommandSystem().executeCommand("ToggleManipulatorMode", { "Drag" });
 		});
 
-		GlobalEventManager().addToggle("ToggleModelScaleManipulator", [this](bool)
-		{
-			GlobalCommandSystem().executeCommand("ToggleManipulatorMode", { "ModelScale" });
-		});
-
 		onActiveManipulatorChanged(GlobalSelectionSystem().getActiveManipulatorType());
 	}
 
@@ -63,7 +58,6 @@ private:
 		GlobalEventManager().setToggled("MouseTranslate", type == selection::IManipulator::Translate);
 		GlobalEventManager().setToggled("MouseRotate", type == selection::IManipulator::Rotate);
 		GlobalEventManager().setToggled("MouseDrag", type == selection::IManipulator::Drag);
-		GlobalEventManager().setToggled("ToggleModelScaleManipulator", type == selection::IManipulator::ModelScale);
 	}
 };
 

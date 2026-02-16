@@ -189,7 +189,14 @@ public:
 	void transform(const Matrix4& pivot2world, const VolumeTest& view, const Vector2& devicePoint, unsigned int constraints) override;
 };
 
-class ModelScaleComponent :
+// ========= Entity Scale ================================================
+
+/**
+ * Manipulator component that handles uniform scaling of model entities
+ * by dragging AABB corner points. Applies scale via the entity's
+ * ITransformable which sets the "modelscale" spawnarg.
+ */
+class EntityScaleComponent :
 	public ManipulatorComponentBase
 {
 private:
@@ -206,9 +213,6 @@ private:
 	Vector3 _startOrigin;
 
 public:
-	ModelScaleComponent()
-	{}
-
 	void setEntityNode(const scene::INodePtr& node);
 	void setScalePivot(const Vector3& scalePivot);
 

@@ -1,8 +1,8 @@
 #include "ManipulatorComponents.h"
 
-#include "scene/EntityNode.h"
 #include "itransformable.h"
 #include "igrid.h"
+#include "scene/Entity.h"
 #include "math/FloatTools.h"
 #include "math/Ray.h"
 #include "pivot.h"
@@ -262,71 +262,61 @@ void ScaleFree::transform(const Matrix4& pivot2world, const VolumeTest& view, co
     _scalable.scale(scale);
 }
 
-void ModelScaleComponent::setEntityNode(const scene::INodePtr& node)
+// ===============================================================================================
+
+void EntityScaleComponent::setEntityNode(const scene::INodePtr& node)
 {
 	_entityNode = node;
 }
 
-void ModelScaleComponent::setScalePivot(const Vector3& scalePivot)
+void EntityScaleComponent::setScalePivot(const Vector3& scalePivot)
 {
 	_scalePivot2World = Matrix4::getTranslation(scalePivot);
 }
 
-void ModelScaleComponent::beginTransformation(const Matrix4& pivot2world, const VolumeTest& view, const Vector2& devicePoint)
+void EntityScaleComponent::beginTransformation(const Matrix4& pivot2world, const VolumeTest& view, const Vector2& devicePoint)
 {
-	// We ignore the incoming pivot2world matrix, since we have our own pivot which is set
-	// by the owning Manipulator class
+	// Use our own pivot (the opposite AABB corner), not the incoming pivot2world
 	_start = getPlaneProjectedPoint(_scalePivot2World, view, devicePoint);
 
 	assert(!_entityNode.expired());
 
 	Entity* entity = _entityNode.lock()->tryGetEntity();
-
 	_startOrigin = string::convert<Vector3>(entity->getKeyValue("origin"));
 }
 
-void ModelScaleComponent::transform(const Matrix4& pivot2world, const VolumeTest& view, const Vector2& devicePoint, unsigned int constraintFlags)
+void EntityScaleComponent::transform(const Matrix4& pivot2world, const VolumeTest& view, const Vector2& devicePoint, unsigned int constraintFlags)
 {
 	Vector3 current = getPlaneProjectedPoint(_scalePivot2World, view, devicePoint);
-
 	Vector3 start = _start;
 
-	if (constraintFlags & Component::Constraint::Grid)
+	if (constraintFlags & Constraint::Grid)
 	{
-		// When grid snapping is on, snap the starting point too
-		// otherwise we don't detect the zero-axis-movements below
 		start.snap(GlobalGrid().getGridSize());
 		current.snap(GlobalGrid().getGridSize());
 	}
 
-	// In Orthographic views it's entirely possible that the starting point
-	// is in the same plane as the pivot, so check for zero divisions
+	// Calculate per-axis scale, guarding against zero divisions
 	Vector3 scale(
 		start[0] != 0 ? fabs(current[0]) / fabs(start[0]) : 1,
 		start[1] != 0 ? fabs(current[1]) / fabs(start[1]) : 1,
 		start[2] != 0 ? fabs(current[2]) / fabs(start[2]) : 1
 	);
 
-	// Default to uniform scale, use to the value deviating most from the 1.0 scale
-	if (!(constraintFlags & Constraint::Type1))
-	{
-		Vector3 delta = scale - Vector3(1.0, 1.0, 1.0);
+	// Uniform scale: pick the axis deviating most from 1.0
+	Vector3 delta = scale - Vector3(1.0, 1.0, 1.0);
 
-		int largestIndex = fabs(delta.y()) > fabs(delta.x()) ?
-			(fabs(delta.z()) > fabs(delta.y()) ? 2 : 1) :
-			(fabs(delta.z()) > fabs(delta.x()) ? 2 : 0);
+	int largestIndex = fabs(delta.y()) > fabs(delta.x()) ?
+		(fabs(delta.z()) > fabs(delta.y()) ? 2 : 1) :
+		(fabs(delta.z()) > fabs(delta.x()) ? 2 : 0);
 
-		scale.x() = scale.y() = scale.z() = scale[largestIndex];
-	}
+	scale.x() = scale.y() = scale.z() = scale[largestIndex];
 
-	// Calculate the origin relative to the pivot
+	// Calculate origin translation to maintain the scale pivot position
 	Vector3 relOrigin = _startOrigin - _scalePivot2World.translation();
+	Vector3 translation = relOrigin * scale - relOrigin;
 
-	Vector3 relOriginScaled = relOrigin * scale;
-
-	Vector3 translation = relOriginScaled - relOrigin;
-
-	// Apply the translation
+	// Apply scale and translation to the entity
 	assert(!_entityNode.expired());
 
 	scene::INodePtr entityNode = _entityNode.lock();
@@ -335,25 +325,14 @@ void ModelScaleComponent::transform(const Matrix4& pivot2world, const VolumeTest
 	if (transformable)
 	{
 		transformable->setType(TRANSFORM_PRIMITIVE);
+		transformable->setScale(scale);
 		transformable->setTranslation(translation);
 	}
 
-	// Apply the scale to the model beneath the entity
-	entityNode->foreachNode([&](const scene::INodePtr& node)
-	{
-		ITransformablePtr transformable = scene::node_cast<ITransformable>(node);
-
-		if (transformable)
-		{
-			transformable->setType(TRANSFORM_PRIMITIVE);
-			transformable->setScale(scale);
-		}
-
-		return true;
-	});
-
 	SceneChangeNotify();
 }
+
+// ===============================================================================================
 
 SelectionTranslator::SelectionTranslator(const TranslationCallback& onTranslation) :
 	_onTranslation(onTranslation)

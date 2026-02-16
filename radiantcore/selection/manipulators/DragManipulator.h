@@ -7,15 +7,21 @@
 #include "selection/BasicSelectable.h"
 #include "selection/ManipulationPivot.h"
 
+#include "Renderables.h"
+#include "render/RenderableBoundingBoxes.h"
+
 namespace selection
 {
 
 /**
- * The DragManipulator operates on all the currently selected map objects. 
+ * The DragManipulator operates on all the currently selected map objects.
  *
- * It is a multi-purpose manipulator that can be used either to drag 
- * all the objects around (freely) or to resize applicable PlaneSelectables 
+ * It is a multi-purpose manipulator that can be used either to drag
+ * all the objects around (freely) or to resize applicable PlaneSelectables
  * which are among the selection.
+ *
+ * For model entities, it displays AABB corner handles that can be dragged
+ * to uniformly scale the entity via the "modelscale" spawnarg.
  *
  * It may report two different Manipulator::Components to the calling code:
  * The "free resize" component or the "free drag" component. Both components
@@ -25,11 +31,11 @@ namespace selection
  * The "free drag" component will invoke the DragTranslatable::translate() method
  * which passes the translation to all selected objects or components, respectively.
  *
- * The "free resize" component will apply the translation to the component of the 
+ * The "free resize" component will apply the translation to the component of the
  * successfully selected PlaneSelectable objects. This might resize lights, brushes
  * or patches, for example.
  */
-class DragManipulator : 
+class DragManipulator :
 	public ManipulatorBase
 {
 private:
@@ -49,14 +55,30 @@ private:
 	SelectionTranslator _dragTranslatable;
 	BasicSelectable _dragSelectable;
 
+	// Entity scale component (for model entities)
+	EntityScaleComponent _entityScaleComponent;
+	bool _entityScaleModeActive;
+	scene::INodePtr _curScaleEntity;
+
+	// Renderables for entity AABB display
+	std::vector<AABB> _entityAABBs;
+	render::RenderableBoundingBoxes _renderableEntityAABBs;
+	RenderableCornerPoints _renderableEntityCornerPoints;
+	ShaderPtr _pointShader;
+	ShaderPtr _lineShader;
+
 public:
 	DragManipulator(ManipulationPivot& pivot, SelectionSystem& selectionSystem, ISceneSelectionTesterFactory& factory);
+	~DragManipulator();
 
 	Type getType() const override;
 	Component* getActiveComponent() override;
 	void testSelect(SelectionTest& view, const Matrix4& pivot2world) override;
 	void setSelected(bool select) override;
 	bool isSelected() const override;
+
+	void onPreRender(const RenderSystemPtr& renderSystem, const VolumeTest& volume) override;
+	void clearRenderables() override;
 
 private:
     bool testSelectedItemsInScene(SelectionMode mode, const VolumeTest& view, SelectionTest& test);
@@ -65,6 +87,9 @@ private:
 	void testSelectGroupPartMode(const VolumeTest& view, SelectionTest& test, SelectionPool& selector);
 	void testSelectEntityMode(const VolumeTest& view, SelectionTest& test, SelectionPool& selector);
 	void testSelectComponentMode(const VolumeTest& view, SelectionTest& test, SelectionPool& selector);
+
+	// Check if any model entity corner point is hit by the selection test
+	bool testSelectEntityScale(SelectionTest& test);
 };
 
 }

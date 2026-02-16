@@ -39,7 +39,6 @@
 #include "scene/Traverse.h"
 #include "map/algorithm/MapExporter.h"
 #include "model/export/ModelExporter.h"
-#include "model/export/ModelScalePreserver.h"
 #include "messages/ScopedLongRunningOperation.h"
 #include "messages/FileOverwriteConfirmation.h"
 #include "messages/FileSaveConfirmation.h"
@@ -1530,8 +1529,6 @@ void Map::initialiseModule(const IApplicationContext& ctx)
     // Add the Map-related commands to the EventManager
     registerCommands();
 
-    _scaledModelExporter.initialise();
-    _modelScalePreserver.reset(new ModelScalePreserver);
 
     // Construct point trace and connect it to map signals
     _pointTrace.reset(new PointFile());
@@ -1564,11 +1561,7 @@ void Map::shutdownModule()
 
     GlobalRadiantCore().getMessageBus().removeListener(_shutdownListener);
 
-    _scaledModelExporter.shutdown();
-
 	GlobalSceneGraph().removeSceneObserver(this);
-
-    _modelScalePreserver.reset();
 	_mapPositionManager.reset();
 }
 

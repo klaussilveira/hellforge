@@ -106,7 +106,12 @@ void TransformPanel::populateWindow()
 	// Create the scale label (bold font)
 	wxStaticText* scaleLabel = new wxStaticText(_scalePanel, wxID_ANY, _(LABEL_SCALE));
 	scaleLabel->SetFont(scaleLabel->GetFont().Bold());
-	
+
+	// Info label shown when entities are selected
+	_scaleInfoLabel = new wxStaticText(_scalePanel, wxID_ANY,
+		_("Entities only support uniform scaling."));
+	_scaleInfoLabel->Hide();
+
 	// Arrange label and control rows
 	wxFlexGridSizer* rotateTable = new wxFlexGridSizer(3, 4, 3, 6);
 	wxFlexGridSizer* scaleTable = new wxFlexGridSizer(3, 4, 3, 6);
@@ -115,6 +120,7 @@ void TransformPanel::populateWindow()
 	_rotatePanel->GetSizer()->Add(rotateTable, 1, wxEXPAND | wxLEFT, 6);
 
 	_scalePanel->GetSizer()->Add(scaleLabel, 0, wxTOP | wxBOTTOM, 6);
+	_scalePanel->GetSizer()->Add(_scaleInfoLabel, 0, wxLEFT | wxBOTTOM, 6);
 	_scalePanel->GetSizer()->Add(scaleTable, 1, wxEXPAND | wxLEFT, 6);
 
     _entries["rotateX"] = createEntryRow(_(LABEL_ROTX), rotateTable, true, 0);
@@ -200,15 +206,15 @@ TransformPanel::EntryRow TransformPanel::createEntryRow(
 void TransformPanel::update()
 {
 	// Check if there is anything selected
-	bool rotSensitive = (_selectionInfo.totalCount > 0);
-	bool scaleSensitive = (_selectionInfo.totalCount > 0 && _selectionInfo.entityCount == 0);
+	bool hasSelection = (_selectionInfo.totalCount > 0);
+	bool hasEntities = (_selectionInfo.entityCount > 0);
 
-	// set the sensitivity of the scale/rotation widgets
-	_rotatePanel->Enable(rotSensitive);
-	_rotatePanel->Enable(rotSensitive);
+	_rotatePanel->Enable(hasSelection);
+	_scalePanel->Enable(hasSelection);
 
-	_scalePanel->Enable(scaleSensitive);
-	_scalePanel->Enable(scaleSensitive);
+	// Show info label when entities are selected (uniform scale only)
+	_scaleInfoLabel->Show(hasEntities && hasSelection);
+	_scalePanel->Layout();
 }
 
 void TransformPanel::onClickLarger(wxCommandEvent& ev, EntryRow* row)

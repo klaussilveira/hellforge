@@ -39,7 +39,6 @@ public:
 		Translate,
 		Rotate,
 		Clip,
-		ModelScale,
 		Custom
 	};
 

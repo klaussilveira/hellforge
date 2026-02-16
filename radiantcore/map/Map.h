@@ -11,8 +11,6 @@
 #include "imodule.h"
 #include "math/Vector3.h"
 
-#include "model/export/ScaledModelExporter.h"
-#include "model/export/ModelScalePreserver.h"
 #include "MapPositionManager.h"
 #include "PointFile.h"
 #include "messages/ApplicationShutdownRequest.h"
@@ -27,7 +25,6 @@ class TextInputStream;
 namespace map
 {
 
-class ModelScalePreserver;
 class DiffStatus;
 
 /// Main class representing the current map
@@ -59,10 +56,7 @@ private:
 
 	bool _saveInProgress;
 
-	// A local helper object, observing the radiant module
-	ScaledModelExporter _scaledModelExporter;
 	std::unique_ptr<MapPositionManager> _mapPositionManager;
-	std::unique_ptr<ModelScalePreserver> _modelScalePreserver;
 
     // Map save timer, for displaying "changes from last n minutes will be lost"
     // messages

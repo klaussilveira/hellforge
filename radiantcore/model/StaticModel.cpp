@@ -8,15 +8,11 @@
 #include "imodelsurface.h"
 #include "VolumeIntersectionValue.h"
 #include "math/Ray.h"
-#include "BasicUndoMemento.h"
 
 namespace model
 {
 
-StaticModel::StaticModel(const std::vector<StaticModelSurfacePtr>& surfaces) :
-    _scaleTransformed(1, 1, 1),
-    _scale(1, 1, 1),
-    _undoStateSaver(nullptr)
+StaticModel::StaticModel(const std::vector<StaticModelSurfacePtr>& surfaces)
 {
     for (const auto& surface : surfaces)
     {
@@ -29,12 +25,9 @@ StaticModel::StaticModel(const std::vector<StaticModelSurfacePtr>& surfaces) :
 
 StaticModel::StaticModel(const StaticModel& other) :
     _surfaces(other._surfaces.size()),
-    _scaleTransformed(other._scaleTransformed),
-    _scale(other._scale), // use scale of other model
     _localAABB(other._localAABB),
     _filename(other._filename),
-    _modelPath(other._modelPath),
-    _undoStateSaver(nullptr)
+    _modelPath(other._modelPath)
 {
     // Copy the other model's surfaces, but not its shaders, revert to default
     for (std::size_t i = 0; i < other._surfaces.size(); ++i)
@@ -44,21 +37,6 @@ StaticModel::StaticModel(const StaticModel& other) :
         _surfaces[i].originalSurface = other._surfaces[i].originalSurface;
         _surfaces[i].surface->setActiveMaterial(_surfaces[i].surface->getDefaultMaterial());
     }
-}
-
-void StaticModel::connectUndoSystem(IUndoSystem& undoSystem)
-{
-    assert(_undoStateSaver == nullptr);
-
-    _undoStateSaver = undoSystem.getStateSaver(*this);
-}
-
-void StaticModel::disconnectUndoSystem(IUndoSystem& undoSystem)
-{
-    assert(_undoStateSaver != nullptr);
-
-    _undoStateSaver = nullptr;
-    undoSystem.releaseStateSaver(*this);
 }
 
 void StaticModel::setRenderSystem(const RenderSystemPtr& renderSystem)
@@ -166,11 +144,6 @@ sigc::signal<void>& StaticModel::signal_ShadersChanged()
     return _sigShadersChanged;
 }
 
-sigc::signal<void>& StaticModel::signal_SurfaceScaleApplied()
-{
-    return _sigSurfaceScaleApplied;
-}
-
 // Update the list of active materials
 void StaticModel::updateMaterialList() const
 {
@@ -259,85 +232,6 @@ std::string StaticModel::getModelPath() const
 void StaticModel::setModelPath(const std::string& modelPath)
 {
     _modelPath = modelPath;
-}
-
-bool StaticModel::revertScale()
-{
-    if (_scaleTransformed == _scale) return false;
-
-    _scaleTransformed = _scale;
-    return true;
-}
-
-void StaticModel::evaluateScale(const Vector3& scale)
-{
-    _scaleTransformed *= scale;
-
-    applyScaleToSurfaces();
-}
-
-void StaticModel::applyScaleToSurfaces()
-{
-    _localAABB = AABB();
-
-    // Apply the scale to each surface
-    for (Surface& surf : _surfaces)
-    {
-        // Are we still using the original surface? If yes,
-        // it's now time to create a working copy
-        if (surf.surface == surf.originalSurface)
-        {
-            // Copy-construct the surface
-            surf.surface = std::make_shared<StaticModelSurface>(*surf.originalSurface);
-        }
-
-        // Apply the scale, on top of the original surface, this should save us from
-        // reverting the transformation each time the scale changes
-        surf.surface->applyScale(_scaleTransformed, *(surf.originalSurface));
-
-        // Extend the model AABB to include the surface's AABB
-        _localAABB.includeAABB(surf.surface->getAABB());
-    }
-
-    // Notify the model node to queue a renderable update
-    _sigSurfaceScaleApplied.emit();
-}
-
-// Freeze transform, move the applied scale to the original model
-void StaticModel::freezeScale()
-{
-    undoSave();
-
-    // Apply the scale to each surface
-    _scale = _scaleTransformed;
-}
-
-void StaticModel::undoSave()
-{
-    if (_undoStateSaver != nullptr)
-    {
-        _undoStateSaver->saveState();
-    }
-}
-
-IUndoMementoPtr StaticModel::exportState() const
-{
-    return IUndoMementoPtr(new undo::BasicUndoMemento<Vector3>(_scale));
-}
-
-void StaticModel::importState(const IUndoMementoPtr& state)
-{
-    undoSave();
-
-    _scale = std::static_pointer_cast< undo::BasicUndoMemento<Vector3> >(state)->data();
-    _scaleTransformed = _scale;
-
-    applyScaleToSurfaces();
-}
-
-const Vector3& StaticModel::getScale() const
-{
-    return _scale;
 }
 
 void StaticModel::foreachSurface(const std::function<void(const StaticModelSurface&)>& func) const

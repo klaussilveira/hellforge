@@ -36,16 +36,6 @@ model::IModel& MD5ModelNode::getIModel()
     return *_model;
 }
 
-bool MD5ModelNode::hasModifiedScale()
-{
-    return false; // not supported
-}
-
-Vector3 MD5ModelNode::getModelScale()
-{
-	return Vector3(1, 1, 1); // not supported
-}
-
 void MD5ModelNode::setModel(const MD5ModelPtr& model)
 {
     _model = model;

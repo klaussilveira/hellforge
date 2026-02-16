@@ -1,5 +1,6 @@
 #include "DragManipulator.h"
 
+#include "scene/Entity.h"
 #include "selection/SelectionPool.h"
 #include "selection/SelectionTestWalkers.h"
 #include "selection/algorithm/Planes.h"
@@ -23,25 +24,47 @@ DragManipulator::DragManipulator(ManipulationPivot& pivot, SelectionSystem& sele
     _freeResizeComponent(_resizeTranslatable),
     _resizeModeActive(false),
     _freeDragComponent(_dragTranslatable),
-    _dragTranslatable(SelectionTranslator::TranslationCallback())
+    _dragTranslatable(SelectionTranslator::TranslationCallback()),
+    _entityScaleModeActive(false),
+    _renderableEntityAABBs(_entityAABBs),
+    _renderableEntityCornerPoints(_entityAABBs)
 {}
+
+DragManipulator::~DragManipulator()
+{
+    clearRenderables();
+}
 
 DragManipulator::Type DragManipulator::getType() const
 {
 	return Drag;
 }
 
-DragManipulator::Component* DragManipulator::getActiveComponent() 
+DragManipulator::Component* DragManipulator::getActiveComponent()
 {
+    if (_entityScaleModeActive)
+    {
+        return &_entityScaleComponent;
+    }
+
     return _dragSelectable.isSelected() ? &_freeDragComponent : &_freeResizeComponent;
 }
 
 void DragManipulator::testSelect(SelectionTest& test, const Matrix4& pivot2world)
 {
 	_resizeModeActive = false;
+	_entityScaleModeActive = false;
+	_curScaleEntity.reset();
 
     // No drag manipulation in merge mode
     if (_selectionSystem.getSelectionMode() == SelectionMode::MergeAction) return;
+
+    // First, check if a model entity corner point is hit (for scaling)
+    if (testSelectEntityScale(test))
+    {
+        _entityScaleModeActive = true;
+        return;
+    }
 
     SelectionPool selector;
 
@@ -137,15 +160,114 @@ void DragManipulator::testSelectComponentMode(const VolumeTest& view, SelectionT
     });
 }
 
-void DragManipulator::setSelected(bool select) 
+bool DragManipulator::testSelectEntityScale(SelectionTest& test)
+{
+	bool found = false;
+
+	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+	{
+		if (found) return;
+
+		Entity* entity = node->tryGetEntity();
+		if (!entity || !entity->isModel()) return;
+
+		const AABB& aabb = node->worldAABB();
+
+		Vector3 points[8];
+		aabb.getCorners(points);
+
+		for (std::size_t i = 0; i < 8; ++i)
+		{
+			if (test.getVolume().TestPoint(points[i]))
+			{
+				_curScaleEntity = node;
+
+				// Use the opposite corner as scale pivot
+				Vector3 scalePivot = aabb.origin * 2 - points[i];
+
+				_entityScaleComponent.setEntityNode(node);
+				_entityScaleComponent.setScalePivot(scalePivot);
+
+				found = true;
+				break;
+			}
+		}
+	});
+
+	return found;
+}
+
+void DragManipulator::setSelected(bool select)
 {
     _resizeModeActive = select;
+    _entityScaleModeActive = select;
     _dragSelectable.setSelected(select);
+
+    if (!select)
+    {
+        _curScaleEntity.reset();
+    }
 }
 
 bool DragManipulator::isSelected() const
 {
-	return _resizeModeActive || _dragSelectable.isSelected();
+	return _entityScaleModeActive || _resizeModeActive || _dragSelectable.isSelected();
+}
+
+void DragManipulator::onPreRender(const RenderSystemPtr& renderSystem, const VolumeTest& volume)
+{
+    if (!renderSystem)
+    {
+        clearRenderables();
+        _entityAABBs.clear();
+        return;
+    }
+
+    if (!_lineShader)
+    {
+        _lineShader = renderSystem->capture(BuiltInShaderType::ManipulatorWireframe);
+    }
+
+    if (!_pointShader)
+    {
+        _pointShader = renderSystem->capture(BuiltInShaderType::BigPoint);
+    }
+
+    _entityAABBs.clear();
+
+    // Collect AABBs from selected model entities
+    GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+    {
+        Entity* entity = node->tryGetEntity();
+
+        if (entity && entity->isModel())
+        {
+            _entityAABBs.push_back(node->worldAABB());
+        }
+    });
+
+    if (!_entityAABBs.empty())
+    {
+        _renderableEntityCornerPoints.setColour(_curScaleEntity ? COLOUR_SELECTED() : COLOUR_SCREEN());
+        _renderableEntityCornerPoints.queueUpdate();
+        _renderableEntityAABBs.queueUpdate();
+
+        _renderableEntityAABBs.update(_lineShader);
+        _renderableEntityCornerPoints.update(_pointShader);
+    }
+    else
+    {
+        _renderableEntityCornerPoints.clear();
+        _renderableEntityAABBs.clear();
+    }
+}
+
+void DragManipulator::clearRenderables()
+{
+    _renderableEntityCornerPoints.clear();
+    _renderableEntityAABBs.clear();
+    _lineShader.reset();
+    _pointShader.reset();
 }
 
 }

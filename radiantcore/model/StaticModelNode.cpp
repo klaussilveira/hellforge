@@ -3,7 +3,6 @@
 #include "StaticModelSurface.h"
 #include "ishaders.h"
 #include "iscenegraph.h"
-#include "imap.h"
 
 namespace model
 {
@@ -13,7 +12,6 @@ StaticModelNode::StaticModelNode(const StaticModelPtr& picoModel) :
     _name(picoModel->getFilename())
 {
     _model->signal_ShadersChanged().connect(sigc::mem_fun(*this, &StaticModelNode::onModelShadersChanged));
-    _model->signal_SurfaceScaleApplied().connect(sigc::mem_fun(*this, &StaticModelNode::onModelScaleApplied));
 
     // Update the skin
     skinChanged("");
@@ -34,15 +32,11 @@ void StaticModelNode::createRenderableSurfaces()
 
 void StaticModelNode::onInsertIntoScene(scene::IMapRootNode& root)
 {
-    _model->connectUndoSystem(root.getUndoSystem());
-
     ModelNodeBase::onInsertIntoScene(root);
 }
 
 void StaticModelNode::onRemoveFromScene(scene::IMapRootNode& root)
 {
-    _model->disconnectUndoSystem(root.getUndoSystem());
-
     ModelNodeBase::onRemoveFromScene(root);
 }
 
@@ -54,16 +48,6 @@ const IModel& StaticModelNode::getIModel() const
 IModel& StaticModelNode::getIModel()
 {
     return *_model;
-}
-
-bool StaticModelNode::hasModifiedScale()
-{
-    return _model->getScale() != Vector3(1, 1, 1);
-}
-
-Vector3 StaticModelNode::getModelScale()
-{
-	return _model->getScale();
 }
 
 AABB StaticModelNode::localAABB() const {
@@ -129,41 +113,6 @@ std::string StaticModelNode::getSkin() const
 void StaticModelNode::setDefaultSkin(const std::string& defaultSkin)
 {
     _defaultSkin = defaultSkin;
-}
-
-void StaticModelNode::_onTransformationChanged()
-{
-    // Always revert to our original state before evaluating
-    if (getTransformationType() & TransformationType::Scale)
-    {
-        _model->revertScale();
-        _model->evaluateScale(getScale());
-    }
-    else if (getTransformationType() == TransformationType::NoTransform)
-    {
-        // Transformation has been changed but no transform mode is set,
-        // so the reason we got here is a cancelTransform() call, revert everything
-        if (_model->revertScale())
-        {
-            // revertScale returned true, the scale has actually been modified
-            _model->evaluateScale(Vector3(1,1,1));
-        }
-    }
-}
-
-void StaticModelNode::_applyTransformation()
-{
-    if (getTransformationType() & TransformationType::Scale)
-    {
-        _model->revertScale();
-        _model->evaluateScale(getScale());
-        _model->freezeScale();
-    }
-}
-
-void StaticModelNode::onModelScaleApplied()
-{
-    queueRenderableUpdate();
 }
 
 } // namespace model

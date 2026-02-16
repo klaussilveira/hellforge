@@ -6,7 +6,6 @@
 #include "irenderable.h"
 
 #include "ModelNodeBase.h"
-#include "Transformable.h"
 #include "StaticModel.h"
 
 namespace model
@@ -26,8 +25,7 @@ class StaticModelNode final :
 	public ModelNode,
 	public SelectionTestable,
 	public SkinnedModel,
-	public ITraceable,
-    public Transformable
+	public ITraceable
 {
 private:
 	// The actual model
@@ -53,8 +51,6 @@ public:
 	// ModelNode implementation
 	const IModel& getIModel() const override;
 	IModel& getIModel() override;
-	bool hasModifiedScale() override;
-	Vector3 getModelScale() override;
 
 	// SkinnedModel implementation
 	// Skin changed notify
@@ -80,15 +76,8 @@ public:
 	// Traceable implementation
 	bool getIntersection(const Ray& ray, Vector3& intersection) override;
 
-    // Called when the contained model has applied the scale to its surfaces
-    // The Node listens to this and queues a renderable update
-    void onModelScaleApplied();
-
 protected:
     void createRenderableSurfaces() override;
-
-	void _onTransformationChanged() override;
-	void _applyTransformation() override;
 
 private:
     void onModelShadersChanged();

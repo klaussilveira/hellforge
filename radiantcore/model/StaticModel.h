@@ -1,6 +1,5 @@
 #pragma once
 
-#include "iundo.h"
 #include "imodel.h"
 #include "math/AABB.h"
 #include "imodelsurface.h"
@@ -32,7 +31,7 @@ namespace model
  * StaticModel involves rendering all of its surfaces, submitting their geometry
  * via OpenGL calls.
  */
-class StaticModel: public IModel, public IUndoable
+class StaticModel: public IModel
 {
     // greebo: StaticModelSurfaces are shared objects, the actual shaders 
     // and the model skin handling are managed by the nodes/imodels referencing them
@@ -62,12 +61,6 @@ class StaticModel: public IModel, public IUndoable
     // Vector of renderable surfaces for this model
     SurfaceList _surfaces;
 
-    // The current working scale
-    Vector3 _scaleTransformed;
-
-    // The scale for this model (is 1,1,1 for an unmodified one)
-    Vector3 _scale;
-
     // Local AABB for this model
     AABB _localAABB;
 
@@ -83,11 +76,7 @@ class StaticModel: public IModel, public IUndoable
     // We need to keep a reference for skin swapping
     RenderSystemWeakPtr _renderSystem;
 
-    // Undoable stuff
-    IUndoStateSaver* _undoStateSaver;
-
     sigc::signal<void> _sigShadersChanged;
-    sigc::signal<void> _sigSurfaceScaleApplied;
 
 private:
 
@@ -97,10 +86,6 @@ private:
 
     // Ensure all shaders for the active materials
     void captureShaders();
-
-    void undoSave();
-
-    void applyScaleToSurfaces();
 
 public:
 
@@ -113,16 +98,10 @@ public:
      */
     StaticModel(const StaticModel& other);
 
-    void connectUndoSystem(IUndoSystem& undoSystem);
-    void disconnectUndoSystem(IUndoSystem& undoSystem);
-
     void setRenderSystem(const RenderSystemPtr& renderSystem);
 
     // A signal that is emitted after the captured shaders have been changed (or cleared)
     sigc::signal<void>& signal_ShadersChanged();
-
-    // Signal emitted when any surface scale has been changed
-    sigc::signal<void>& signal_SurfaceScaleApplied();
 
     /// Return the number of surfaces in this model.
     int getSurfaceCount() const override
@@ -186,22 +165,6 @@ public:
 
     /// Return the list of StaticModelSurface objects.
     const SurfaceList& getSurfaces() const;
-
-    // Revert to base scale (returns true if the scale was actually changed by this call)
-    bool revertScale();
-
-    // TransformationChanged, apply the given scale to the "working copy"
-    void evaluateScale(const Vector3& scale);
-
-    // Freeze transform, store new base scale
-    void freezeScale();
-
-    // Undoable implementation
-    IUndoMementoPtr exportState() const override;
-    void importState(const IUndoMementoPtr& state) override;
-
-    // Returns the current base scale of this model
-    const Vector3& getScale() const;
 
     void foreachSurface(const std::function<void(const StaticModelSurface&)>& func) const;
 };

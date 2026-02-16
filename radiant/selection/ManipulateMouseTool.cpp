@@ -201,11 +201,6 @@ void ManipulateMouseTool::endMove()
 		{
 			command << "dragTool";
 		}
-		else if (activeManipulator->getType() == selection::IManipulator::ModelScale)
-		{
-			command << "modelScaleTool";
-		}
-
 		_undoBegun = false;
 
 		// Finish the undo move

@@ -24,7 +24,6 @@
 #include "manipulators/ClipManipulator.h"
 #include "manipulators/RotateManipulator.h"
 #include "manipulators/TranslateManipulator.h"
-#include "manipulators/ModelScaleManipulator.h"
 
 #include <functional>
 
@@ -996,7 +995,6 @@ void RadiantSelectionSystem::initialiseModule(const IApplicationContext& ctx)
 	registerManipulator(std::make_shared<ClipManipulator>());
 	registerManipulator(std::make_shared<TranslateManipulator>(_pivot, 2, 64.0f));
 	registerManipulator(std::make_shared<RotateManipulator>(_pivot, 8, 64.0f));
-	registerManipulator(std::make_shared<ModelScaleManipulator>(_pivot));
 
 	_defaultManipulatorType = IManipulator::Drag;
 	setActiveManipulator(_defaultManipulatorType);
@@ -1155,7 +1153,6 @@ void RadiantSelectionSystem::toggleManipulatorModeCmd(const cmd::ArgumentList& a
         rWarning() << "      Translate" << std::endl;
         rWarning() << "      Rotate" << std::endl;
         rWarning() << "      Clip" << std::endl;
-        rWarning() << "      ModelScale" << std::endl;
         return;
     }
 
@@ -1177,10 +1174,6 @@ void RadiantSelectionSystem::toggleManipulatorModeCmd(const cmd::ArgumentList& a
     else if (manip == "clip")
     {
         type = IManipulator::Clip;
-    }
-    else if (manip == "modelscale")
-    {
-        type = IManipulator::ModelScale;
     }
     else
     {

@@ -90,29 +90,7 @@ void EntityNode::construct()
 }
 
 void EntityNode::constructClone(const EntityNode& original)
-{
-    // We just got cloned, it's possible that this node is the parent of a scaled model node
-    auto originalChildModel = original.getModelKey().getNode();
-
-    if (originalChildModel)
-    {
-        model::ModelNodePtr originalModel = Node_getModel(originalChildModel);
-
-        // Check if the original model node is scaled
-        if (originalModel && originalModel->hasModifiedScale())
-        {
-            assert(getModelKey().getNode()); // clone should have a child model like the original
-            auto transformable = scene::node_cast<ITransformable>(getModelKey().getNode());
-
-            if (transformable)
-            {
-                transformable->setType(TRANSFORM_PRIMITIVE);
-                transformable->setScale(originalModel->getModelScale());
-                transformable->freezeTransform();
-            }
-        }
-    }
-}
+{}
 
 void EntityNode::destruct()
 {

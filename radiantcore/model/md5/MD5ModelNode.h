@@ -44,8 +44,6 @@ public:
 	// ModelNode implementation
 	const model::IModel& getIModel() const override;
 	model::IModel& getIModel() override;
-	bool hasModifiedScale() override;
-	Vector3 getModelScale() override;
 
 	// returns the contained model
 	void setModel(const MD5ModelPtr& model);

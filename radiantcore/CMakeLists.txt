@@ -128,9 +128,7 @@ add_library(radiantcore MODULE
             model/export/Lwo2Chunk.cpp
             model/export/Lwo2Exporter.cpp
             model/export/ModelExporter.cpp
-            model/export/ModelScalePreserver.cpp
             model/export/PatchSurface.cpp
-            model/export/ScaledModelExporter.cpp
             model/export/WavefrontExporter.cpp
             model/md5/MD5AnimationCache.cpp
             model/md5/MD5Anim.cpp
@@ -247,7 +245,6 @@ add_library(radiantcore MODULE
             selection/manipulators/DragManipulator.cpp
             selection/manipulators/ManipulatorBase.cpp
             selection/manipulators/ManipulatorComponents.cpp
-            selection/manipulators/ModelScaleManipulator.cpp
             selection/manipulators/RotateManipulator.cpp
             selection/manipulators/TranslateManipulator.cpp
             selection/RadiantSelectionSystem.cpp

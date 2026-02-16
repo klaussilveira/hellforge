@@ -15,7 +15,7 @@ class wxTextCtrl;
  * The panel providing the Free Transform functionality.
  *
  * Gets notified upon selection change and updates the widget sensitivity accordingly.
- * E.g. if any entity is part of the selection, the scale widgets get disabled.
+ * When entities are selected, only uniform scaling is available.
  */
 namespace ui
 {
@@ -43,6 +43,7 @@ private:
 
 	wxPanel* _rotatePanel;
 	wxPanel* _scalePanel;
+	wxStaticText* _scaleInfoLabel;
 
 	sigc::connection _selectionChanged;
 

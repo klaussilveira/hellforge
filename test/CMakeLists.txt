@@ -41,7 +41,6 @@ add_executable(drtest
                math/Vector.cpp
                MessageBus.cpp
                ModelExport.cpp
-               ModelScale.cpp
                Models.cpp
                Particles.cpp
                Patch.cpp

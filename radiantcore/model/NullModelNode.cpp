@@ -31,16 +31,6 @@ IModel& NullModelNode::getIModel()
 	return *_nullModel;
 }
 
-bool NullModelNode::hasModifiedScale()
-{
-	return false;
-}
-
-Vector3 NullModelNode::getModelScale()
-{
-	return Vector3(1,1,1);
-}
-
 void NullModelNode::testSelect(Selector& selector, SelectionTest& test)
 {
     test.BeginMesh(localToWorld());

@@ -45,6 +45,11 @@ class StaticGeometryNode :
 	RotationKey m_rotationKey;
 	RotationMatrix m_rotation;
 
+	// The committed/base modelscale value (from spawnarg)
+	float m_baseModelScale;
+	// The working modelscale value (during live manipulation)
+	float m_modelScale;
+
 	render::RenderablePivot _renderOrigin;
 
 	mutable AABB m_curveBounds;
@@ -201,6 +206,7 @@ public:
 
 	void nameChanged(const std::string& value);
 	void modelChanged(const std::string& value);
+	void modelScaleChanged(const std::string& value);
 	void updateTransform();
 	void originChanged();
 	void rotationChanged();
