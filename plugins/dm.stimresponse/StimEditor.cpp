@@ -434,9 +434,9 @@ void StimEditor::createContextMenu()
 	_contextMenu.disable = 
 		_contextMenu.menu->Append(new wxutil::IconTextMenuItem(_("Deactivate"), "sr_stim_inactive.png"));
 	_contextMenu.duplicate =
-		_contextMenu.menu->Append(new wxutil::StockIconTextMenuItem(_("Duplicate"), wxART_COPY));
-	_contextMenu.remove = 
-		_contextMenu.menu->Append(new wxutil::StockIconTextMenuItem(_("Delete"), wxART_DELETE));
+		_contextMenu.menu->Append(new wxutil::IconTextMenuItem(_("Duplicate"), "copy.png"));
+	_contextMenu.remove =
+		_contextMenu.menu->Append(new wxutil::IconTextMenuItem(_("Delete"), "delete.png"));
 
 	// Connect up the signals
 	_contextMenu.menu->Connect(_contextMenu.remove->GetId(), wxEVT_MENU, 

@@ -429,24 +429,24 @@ void ResponseEditor::createContextMenu()
 	_contextMenu.disable = _contextMenu.menu->Append(
 		new wxutil::IconTextMenuItem(_("Deactivate"), "sr_response_inactive.png"));
 	_contextMenu.duplicate = _contextMenu.menu->Append(
-		new wxutil::StockIconTextMenuItem(_("Duplicate"), wxART_COPY));
+		new wxutil::IconTextMenuItem(_("Duplicate"), "copy.png"));
 	_contextMenu.remove = _contextMenu.menu->Append(
-		new wxutil::StockIconTextMenuItem(_("Delete"), wxART_DELETE));
+		new wxutil::IconTextMenuItem(_("Delete"), "delete.png"));
 
 	_effectWidgets.contextMenu.reset(new wxMenu);
 
 	_effectWidgets.addMenuItem = _effectWidgets.contextMenu->Append(
-		new wxutil::StockIconTextMenuItem(_("Add new Effect"), wxART_PLUS));
+		new wxutil::IconTextMenuItem(_("Add new Effect"), "add.png"));
 	_effectWidgets.editMenuItem = _effectWidgets.contextMenu->Append(
 		new wxutil::IconTextMenuItem(_("Edit"), "edit.png"));
 	
 	_effectWidgets.upMenuItem = _effectWidgets.contextMenu->Append(
-		new wxutil::StockIconTextMenuItem(_("Move Up"), wxART_GO_UP));
+		new wxutil::IconTextMenuItem(_("Move Up"), "arrow_up_blue.png"));
 	_effectWidgets.downMenuItem = _effectWidgets.contextMenu->Append(
-		new wxutil::StockIconTextMenuItem(_("Move Down"), wxART_GO_DOWN));
+		new wxutil::IconTextMenuItem(_("Move Down"), "arrow_down_blue.png"));
 
 	_effectWidgets.deleteMenuItem = _effectWidgets.contextMenu->Append(
-		new wxutil::StockIconTextMenuItem(_("Delete"), wxART_DELETE));
+		new wxutil::IconTextMenuItem(_("Delete"), "delete.png"));
 
 	// Connect up the signals
 	_contextMenu.menu->Connect(_contextMenu.remove->GetId(), wxEVT_MENU, 

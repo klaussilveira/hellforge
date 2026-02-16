@@ -1,0 +1,9 @@
+<!-- From Tabler: https://tabler.io/icons -->
+<svg class="icon icon-tabler icons-tabler-outline icon-tabler-view-360-arrow" width="24" height="24" fill="none" stroke="{{xAxis}}" stroke-linecap="round" stroke-linejoin="round" stroke-width="{{strokeWidth}}" version="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+ <path d="m0 2.7266h24v24h-24z" fill="none" stroke="none"/>
+ <path d="m16.507 18.515c2.176-0.64723 3.6057-1.7488 3.6057-3 0-1.9922-3.6328-3.6057-8.1129-3.6057s-8.1129 1.6136-8.1129 3.6057 3.6328 3.6057 8.1129 3.6057" stroke-width="{{strokeWidth}}"/>
+ <path d="m9.2957 16.417 2.7043 2.7043-2.7043 2.7043" stroke-width="{{strokeWidth}}"/>
+ <g fill="{{xAxis}}" stroke="{{xAxis}}" aria-label="x">
+  <path d="m14.168 9.7089q-0.176-0.352-0.432-0.784t-0.56-0.88q-0.304-0.464-0.624-0.912t-0.624-0.848q-0.304 0.4-0.624 0.864-0.32 0.448-0.624 0.912-0.288 0.448-0.544 0.88-0.256 0.432-0.432 0.768h-1.536q0.56-1.088 1.328-2.208 0.784-1.136 1.552-2.16l-2.752-3.952h1.68l1.984 2.912 2-2.912h1.584l-2.688 3.856q0.768 1.04 1.568 2.208 0.816 1.152 1.376 2.256z" fill="{{xAxis}}" stroke="none"/>
+ </g>
+</svg>

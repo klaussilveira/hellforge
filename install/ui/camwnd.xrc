@@ -75,7 +75,7 @@
 								<label>clipPlaneToggleButton</label>
 								<tooltip>Enable or disable far clip plane</tooltip>
 								<longhelp></longhelp>
-								<bitmap>../bitmaps/view_cubicclipping.png</bitmap>
+								<bitmap stock_id="darkradiant:view_cubicclipping.png" stock_client="wxART_TOOLBAR">undefined.png</bitmap>
 								<toggle>1</toggle>
 							</object>
 							<object class="tool" name="clipPlaneInButton">

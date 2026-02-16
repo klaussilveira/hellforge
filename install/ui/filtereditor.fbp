@@ -356,7 +356,7 @@
                         <property name="auth_needed">0</property>
                         <property name="best_size"></property>
                         <property name="bg"></property>
-                        <property name="bitmap">Load From File; ../bitmaps/add.png</property>
+                        <property name="bitmap">Load From Art Provider; darkradiant:add.png; </property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>
@@ -430,7 +430,7 @@
                         <property name="auth_needed">0</property>
                         <property name="best_size"></property>
                         <property name="bg"></property>
-                        <property name="bitmap">Load From File; ../bitmaps/arrow_up_blue.png</property>
+                        <property name="bitmap">Load From Art Provider; darkradiant:arrow_up_blue.png; </property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>
@@ -504,7 +504,7 @@
                         <property name="auth_needed">0</property>
                         <property name="best_size"></property>
                         <property name="bg"></property>
-                        <property name="bitmap">Load From File; ../bitmaps/arrow_down_blue.png</property>
+                        <property name="bitmap">Load From Art Provider; darkradiant:arrow_down_blue.png; </property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>
@@ -578,7 +578,7 @@
                         <property name="auth_needed">0</property>
                         <property name="best_size"></property>
                         <property name="bg"></property>
-                        <property name="bitmap">Load From File; ../bitmaps/delete.png</property>
+                        <property name="bitmap">Load From Art Provider; darkradiant:delete.png; </property>
                         <property name="caption"></property>
                         <property name="caption_visible">1</property>
                         <property name="center_pane">0</property>

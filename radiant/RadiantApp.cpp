@@ -11,6 +11,7 @@
 #include "module/StaticModule.h"
 #include "settings/LocalisationProvider.h"
 #include "log/PopupErrorHandler.h"
+#include "wxutil/UIThemeManager.h"
 
 #include <wx/wxprec.h>
 #include <wx/event.h>
@@ -82,8 +83,16 @@ public:
         // We listen only to "darkradiant" art IDs
         if (string::starts_with(filename, prefix))
         {
-            auto filePath = _searchPath + filename.substr(prefix.length());
+            auto name = filename.substr(prefix.length());
 
+            // Try themed subfolder first (e.g. dark/ or light/)
+            auto themedPath = _searchPath + wxutil::GlobalUIThemeManager().getIconThemeFolder() + name;
+            if (os::fileOrDirExists(themedPath)) {
+                return wxBitmap(wxImage(themedPath));
+            }
+
+            // Fall back to base bitmaps directory
+            auto filePath = _searchPath + name;
             if (os::fileOrDirExists(filePath)) {
                 return wxBitmap(wxImage(filePath));
             }

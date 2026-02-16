@@ -1,0 +1,10 @@
+<!-- From Tabler: https://tabler.io/icons -->
+<svg class="icon icon-tabler icons-tabler-outline icon-tabler-view-360-arrow" width="24" height="24" fill="none" stroke="{{yAxis}}" stroke-linecap="round" stroke-linejoin="round" stroke-width="{{strokeWidth}}" version="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+ <path d="m0 2.7266h24v24h-24z" fill="none" stroke="none"/>
+ <path d="m16.507 18.515c2.176-0.64723 3.6057-1.7488 3.6057-3 0-1.9922-3.6328-3.6057-8.1129-3.6057s-8.1129 1.6136-8.1129 3.6057 3.6328 3.6057 8.1129 3.6057" stroke-width="{{strokeWidth}}"/>
+ <path d="m9.2957 16.417 2.7043 2.7043-2.7043 2.7043" stroke-width="{{strokeWidth}}"/>
+ <g fill="#f00" stroke="{{yAxis}}" stroke-width="{{strokeWidth}}" aria-label="Y">
+  <path d="m11.386 9.6911v-3.3345q-0.82763-1.2834-1.5593-2.5309-0.73167-1.2474-1.3794-2.4469h1.3674q0.45579 0.98356 1.0195 2.0031 0.56375 1.0075 1.1635 1.9431 0.58774-0.93558 1.1515-1.9431 0.56375-1.0195 1.0315-2.0031h1.2954q-0.64771 1.1995-1.3794 2.4469-0.73167 1.2354-1.5473 2.5069v3.3585z" fill="{{yAxis}}" stroke="none"/>
+ </g>
+ <text x="11.961868" y="9.6911459" display="none" fill="none" font-family="'Bebas Neue'" font-size="11.995px" stroke="{{yAxis}}" stroke-width="{{strokeWidth}}" text-align="center" text-anchor="middle" xml:space="preserve"><tspan x="11.961868" y="9.6911459" fill="{{yAxis}}" font-family="Ubuntu" font-size="11.995px" stroke="none" stroke-width="{{strokeWidth}}">Z</tspan></text>
+</svg>

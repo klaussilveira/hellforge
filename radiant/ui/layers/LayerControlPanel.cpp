@@ -137,7 +137,7 @@ void LayerControlPanel::createButtons()
     auto topRow = new wxBoxSizer(wxHORIZONTAL);
 
 	auto createButton = new wxButton(this, wxID_ANY, _("New"));
-	createButton->SetBitmap(wxArtProvider::GetBitmap(wxART_PLUS));
+	createButton->SetBitmap(wxutil::GetLocalBitmap("add.png"));
 	wxutil::button::connectToCommand(createButton, "CreateNewLayerDialog");
 
     _deleteButton = new wxBitmapButton(this, wxID_ANY, wxutil::GetLocalBitmap("delete.png"));

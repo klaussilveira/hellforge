@@ -1,0 +1,24 @@
+<!-- From Tabler: https://tabler.io/icons -->
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="{{iconStroke}}"
+   stroke-width="{{strokeWidth}}"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   version="1.1"
+   id="svg6378"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6382" />
+  <path
+     d="M16 16v2a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2h2v-2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-2"
+     id="path6368" />
+  <path
+     stroke="{{iconPrimary}}"
+     d="M 7.9783341,7.9903052 H 15.978334 V 15.990305 H 7.9783341 V 7.9903052"
+     id="path1364" />
+</svg>

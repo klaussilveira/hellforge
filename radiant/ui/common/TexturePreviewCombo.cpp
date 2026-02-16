@@ -38,7 +38,7 @@ TexturePreviewCombo::TexturePreviewCombo(wxWindow* parent) :
 
     // Construct the context menu
     _contextMenu->addItem(
-		new wxutil::StockIconTextMenuItem(_("Copy shader name"), wxART_COPY),
+		new wxutil::IconTextMenuItem(_("Copy shader name"), "copy.png"),
         std::bind(&TexturePreviewCombo::_onCopyTexName, this)
     );
 

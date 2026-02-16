@@ -199,7 +199,7 @@ void ResourceTreeView::PopulateContextMenu(wxutil::PopupMenu& popupMenu)
     popupMenu.addSeparator();
 
     popupMenu.addItem(
-        new wxutil::StockIconTextMenuItem(_("Copy Resource Path"), wxART_COPY),
+        new wxutil::IconTextMenuItem(_("Copy Resource Path"), "copy.png"),
         std::bind(&ResourceTreeView::_onCopyResourcePath, this),
         std::bind(&ResourceTreeView::_copyResourcePathEnabled, this),
         std::bind(&ResourceTreeView::_copyResourcePathVisible, this)

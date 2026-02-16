@@ -48,9 +48,9 @@ void CustomStimEditor::createContextMenu()
 	_contextMenu.menu.reset(new wxMenu);
 
 	_contextMenu.add = 
-		_contextMenu.menu->Append(new wxutil::StockIconTextMenuItem(_("Add"), wxART_PLUS));
-	_contextMenu.remove = 
-		_contextMenu.menu->Append(new wxutil::StockIconTextMenuItem(_("Delete"), wxART_MINUS));
+		_contextMenu.menu->Append(new wxutil::IconTextMenuItem(_("Add"), "add.png"));
+	_contextMenu.remove =
+		_contextMenu.menu->Append(new wxutil::IconTextMenuItem(_("Delete"), "delete.png"));
 
 	// Connect up the signals
 	_contextMenu.menu->Connect(_contextMenu.remove->GetId(), wxEVT_MENU, 

@@ -40,7 +40,7 @@
                   <default>0</default>
                   <auth_needed>0</auth_needed>
                   <markup>0</markup>
-                  <bitmap>../bitmaps/add.png</bitmap>
+                  <bitmap stock_id="darkradiant:add.png" stock_client="">undefined.png</bitmap>
                 </object>
               </object>
               <object class="spacer">
@@ -60,7 +60,7 @@
                   <default>0</default>
                   <auth_needed>0</auth_needed>
                   <markup>0</markup>
-                  <bitmap>../bitmaps/delete.png</bitmap>
+                  <bitmap stock_id="darkradiant:delete.png" stock_client="">undefined.png</bitmap>
                 </object>
               </object>
               <object class="spacer">
@@ -80,7 +80,7 @@
                   <default>0</default>
                   <auth_needed>0</auth_needed>
                   <markup>0</markup>
-                  <bitmap>../bitmaps/refresh.png</bitmap>
+                  <bitmap stock_id="darkradiant:refresh.png" stock_client="">undefined.png</bitmap>
                 </object>
               </object>
             </object>

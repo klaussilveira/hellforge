@@ -213,7 +213,7 @@
                                     <property name="permission">protected</property>
                                 </object>
                                 <object class="tool" expanded="1">
-                                    <property name="bitmap">Load From File; ../bitmaps/view_cubicclipping.png</property>
+                                    <property name="bitmap">Load From Art Provider; darkradiant:view_cubicclipping.png; wxART_TOOLBAR</property>
                                     <property name="context_menu">0</property>
                                     <property name="id">wxID_ANY</property>
                                     <property name="kind">wxITEM_CHECK</property>

@@ -1,0 +1,12 @@
+<!-- From Tabler: https://tabler.io/icons -->
+<svg class="icon icon-tabler icons-tabler-outline icon-tabler-view-360-arrow" width="24" height="24" fill="none" stroke="{{zAxis}}" stroke-linecap="round" stroke-linejoin="round" stroke-width="{{strokeWidth}}" version="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+ <path d="m0 2.7266h24v24h-24z" fill="none" stroke="none"/>
+ <path d="m16.507 18.515c2.176-0.64723 3.6057-1.7488 3.6057-3 0-1.9922-3.6328-3.6057-8.1129-3.6057s-8.1129 1.6136-8.1129 3.6057 3.6328 3.6057 8.1129 3.6057" stroke-width="{{strokeWidth}}"/>
+ <path d="m9.2957 16.417 2.7043 2.7043-2.7043 2.7043" stroke-width="{{strokeWidth}}"/>
+ <g display="none" fill="none" stroke="{{zAxis}}" stroke-width="{{strokeWidth}}" aria-label="Y">
+  <path d="m11.386 9.6911v-3.3345q-0.82763-1.2834-1.5593-2.5309-0.73167-1.2474-1.3794-2.4469h1.3674q0.45579 0.98356 1.0195 2.0031 0.56375 1.0075 1.1635 1.9431 0.58774-0.93558 1.1515-1.9431 0.56375-1.0195 1.0315-2.0031h1.2954q-0.64771 1.1995-1.3794 2.4469-0.73167 1.2354-1.5473 2.5069v3.3585z" fill="{{zAxis}}" stroke="none"/>
+ </g>
+ <g fill="none" stroke="{{zAxis}}" stroke-width="{{strokeWidth}}" aria-label="Z">
+  <path d="m14.835 2.3025q-0.27588 0.31186-0.64771 0.75566-0.35984 0.43181-0.76766 0.97156-0.40782 0.52776-0.83962 1.1275-0.4318 0.58774-0.85162 1.1995-0.40782 0.59973-0.77965 1.1995-0.37183 0.59973-0.6717 1.1395h4.6779v0.99555h-6.0333v-0.77965q0.25189-0.47978 0.58774-1.0555 0.34784-0.57574 0.73167-1.1755 0.39582-0.59973 0.81563-1.2115t0.82763-1.1755q0.41981-0.56375 0.80364-1.0555 0.39582-0.49178 0.71968-0.86361h-4.2701v-0.99555h5.6974z" fill="{{zAxis}}" stroke="none"/>
+ </g>
+</svg>

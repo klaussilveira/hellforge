@@ -1,0 +1,69 @@
+<!-- From Tabler: https://tabler.io/icons -->
+<svg
+   class="icon icon-tabler icons-tabler-outline icon-tabler-video"
+   width="24"
+   height="24"
+   fill="none"
+   stroke="{{iconStroke}}"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   stroke-width="{{strokeWidth}}"
+   version="1.1"
+   viewBox="0 0 24 24"
+   id="svg16"
+   sodipodi:docname="view_change.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs20" />
+  <sodipodi:namedview
+     id="namedview18"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="42.791667"
+     inkscape:cx="13.437196"
+     inkscape:cy="12.911392"
+     inkscape:window-width="1720"
+     inkscape:window-height="1386"
+     inkscape:window-x="1720"
+     inkscape:window-y="54"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg16" />
+  <path
+     d="M -2.3078477,-2.3078477 H 26.307847 V 26.307847 H -2.3078477 Z"
+     fill="none"
+     stroke="none"
+     id="path2"
+     style="stroke-width:1.19232" />
+  <path
+     d="m 15.576962,9.6153587 5.428635,-2.7137218 a 1.1923206,1.1923206 0 0 1 1.725288,1.0659347 v 8.0648564 a 1.1923206,1.1923206 0 0 1 -1.725288,1.065935 L 15.576962,14.384641 V 9.6153587"
+     id="path4"
+     style="stroke-width:1.19232" />
+  <path
+     d="M 1.2691142,7.2307174 A 2.3846413,2.3846413 0 0 1 3.6537555,4.8460761 h 9.5385655 a 2.3846413,2.3846413 0 0 1 2.384641,2.3846413 v 9.5385656 a 2.3846413,2.3846413 0 0 1 -2.384641,2.384641 H 3.6537555 A 2.3846413,2.3846413 0 0 1 1.2691142,16.769283 V 7.2307174"
+     id="path6"
+     style="stroke-width:1.19232" />
+  <g
+     stroke-width="1.4957"
+     id="g14"
+     transform="matrix(1.1923206,0,0,1.1923206,-2.3078477,-2.3078477)">
+    <path
+       d="m 8.3205,14.18 a 2.2435,2.2435 0 0 0 2.8081,-2.1717 M 9.446,9.8358 a 2.2435,2.2435 0 0 0 -2.8044,2.1725"
+       id="path8" />
+    <path
+       d="m 10.381,12.008 h 1.4957 v 1.4957"
+       id="path10" />
+    <path
+       d="M 7.3895,12.008 H 5.8938 v -1.4957"
+       id="path12" />
+  </g>
+</svg>

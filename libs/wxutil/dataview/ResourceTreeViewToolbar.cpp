@@ -42,7 +42,7 @@ ResourceTreeViewToolbar::ResourceTreeViewToolbar(wxWindow* parent, ResourceTreeV
     // Filter text entry box
     _rightSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    auto* filterImage = new wxStaticBitmap(this, wxID_ANY, wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR, wxSize(16, 16)));
+    auto* filterImage = new wxStaticBitmap(this, wxID_ANY, wxutil::GetLocalBitmap("search.png"));
 
     _filterEntry = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
     _filterEntry->SetMinSize(wxSize(100, -1));

@@ -137,12 +137,12 @@ void MissionInfoEditDialog::populateWindow()
 	_missionTitlesContextMenu.reset(new wxutil::PopupMenu);
 
 	_missionTitlesContextMenu->addItem(
-		new wxutil::StockIconTextMenuItem(_("Add Title"), wxART_PLUS),
+		new wxutil::IconTextMenuItem(_("Add Title"), "add.png"),
 		std::bind(&MissionInfoEditDialog::onAddTitle, this)
 	);
 
 	_missionTitlesContextMenu->addItem(
-		new wxutil::StockIconTextMenuItem(_("Delete Title"), wxART_MINUS),
+		new wxutil::IconTextMenuItem(_("Delete Title"), "delete.png"),
 		std::bind(&MissionInfoEditDialog::onDeleteTitle, this),
 		std::bind(&MissionInfoEditDialog::testDeleteTitle, this)
 	);

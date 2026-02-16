@@ -84,6 +84,15 @@ public:
      */
     void setDarkThemeEnabled(bool enabled);
 
+    /**
+     * @brief Get the icon theme subfolder for the current theme.
+     * @return "dark/" when dark theme is active, "light/" otherwise.
+     */
+    std::string getIconThemeFolder() const
+    {
+        return _darkThemeEnabled ? "dark/" : "light/";
+    }
+
 private:
     UIThemeManager();
     ~UIThemeManager() = default;

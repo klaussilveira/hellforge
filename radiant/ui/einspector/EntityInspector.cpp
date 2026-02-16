@@ -366,12 +366,12 @@ void EntityInspector::createContextMenu()
     _contextMenu.reset(new wxutil::PopupMenu);
 
     _contextMenu->addItem(
-        new wxutil::StockIconTextMenuItem(_("Add property..."), wxART_PLUS),
+        new wxutil::IconTextMenuItem(_("Add property..."), "add.png"),
         std::bind(&EntityInspector::_onAddKey, this),
         std::bind(&EntityInspector::_testAddKey, this)
     );
     _contextMenu->addItem(
-        new wxutil::StockIconTextMenuItem(_("Delete property"), wxART_MINUS),
+        new wxutil::IconTextMenuItem(_("Delete property"), "delete.png"),
         std::bind(&EntityInspector::_onDeleteKey, this),
         std::bind(&EntityInspector::_testDeleteKey, this)
     );
@@ -379,7 +379,7 @@ void EntityInspector::createContextMenu()
     _contextMenu->addSeparator();
 
     _contextMenu->addItem(
-        new wxutil::StockIconTextMenuItem(_("Copy Spawnarg(s)"), wxART_COPY),
+        new wxutil::IconTextMenuItem(_("Copy Spawnarg(s)"), "copy.png"),
         std::bind(&EntityInspector::_onCopyKey, this),
         std::bind(&EntityInspector::_testCopyKey, this)
     );
