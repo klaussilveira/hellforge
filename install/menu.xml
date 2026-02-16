@@ -215,6 +215,7 @@
 		<subMenu name="csg" caption="CSG">
 			<menuItem name="hollow" caption="Make &amp;Hollow" command="CSGHollow" icon="selection_makehollow.png" />
 			<menuItem name="makeRoom" caption="Make &amp;Room" command="CSGRoom" icon="selection_makeroom.png" />
+			<menuItem name="csgSeal" caption="&amp;Seal" command="CSGSeal" />
 			<menuItem name="makePassable" caption="Make &amp;Passable" command="CSGPassable" icon="selection_makeroom.png" />
 			<menuItem name="makeShell" caption="Make &amp;Shell" command="CSGShell" icon="selection_makeroom.png" />
 			<menuItem name="csgSubtract" caption="CSG &amp;Subtract" command="CSGSubtract" icon="selection_csgsubtract.png" />

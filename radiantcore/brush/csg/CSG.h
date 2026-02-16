@@ -50,6 +50,13 @@ void mergeSelectedBrushes(const cmd::ArgumentList& args);
 void intersectSelectedBrushes(const cmd::ArgumentList& args);
 
 /**
+ * Creates a sealed room (6 wall brushes) around the current selection.
+ * Computes the bounding box of all selected nodes, expands it by one
+ * grid unit, creates a cuboid brush, and applies the Make Room algorithm.
+ */
+void sealSelectedEntities(const cmd::ArgumentList& args);
+
+/**
  * Connect the various events to the functions in this namespace
  */
 void registerCommands();

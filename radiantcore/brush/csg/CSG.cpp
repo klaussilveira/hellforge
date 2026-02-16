@@ -7,6 +7,7 @@
 #include "iundo.h"
 #include "igrid.h"
 #include "iselection.h"
+#include "imap.h"
 #include "scene/Entity.h"
 
 #include "scenelib.h"
@@ -19,6 +20,7 @@
 #include "brush/BrushNode.h"
 #include "brush/BrushVisit.h"
 #include "selection/algorithm/Primitives.h"
+#include "scene/PrefabBoundsAccumulator.h"
 #include "messages/NotificationMessage.h"
 #include "command/ExecutionNotPossible.h"
 
@@ -974,6 +976,88 @@ void intersectSelectedBrushes(const cmd::ArgumentList& args)
     SceneChangeNotify();
 }
 
+void sealSelectedEntities(const cmd::ArgumentList& args)
+{
+	UndoableCommand undo("sealSelection");
+
+	// Accumulate AABB from all selected nodes
+	AABB bounds;
+	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node) {
+		bounds.includeAABB(scene::PrefabBoundsAccumulator::GetNodeBounds(node));
+	});
+
+	if (!bounds.isValid())
+	{
+		throw cmd::ExecutionNotPossible(_("No valid selection to seal."));
+	}
+
+	// Expand by one grid unit so walls don't overlap selection
+	float gridSize = GlobalGrid().getGridSize();
+	bounds.extents += Vector3(gridSize, gridSize, gridSize);
+
+	// Create a temporary cuboid brush as a template (not added to scene,
+	// so the undo system doesn't track its creation and destruction)
+	scene::INodePtr tempNode = GlobalBrushCreator().createBrush();
+	BrushNodePtr tempBrush = std::dynamic_pointer_cast<BrushNode>(tempNode);
+
+	tempBrush->getBrush().constructCuboid(bounds, texdef_name_default());
+	tempBrush->getBrush().evaluateBRep();
+
+	// Build wall brushes fully before inserting into scene,
+	// following the same pattern as PolygonTool and BrushCreatorTool
+	scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+	std::vector<scene::INodePtr> wallNodes;
+
+	tempBrush->getBrush().forEachFace([&](Face& face)
+	{
+		if (!face.contributes())
+		{
+			return;
+		}
+
+		scene::INodePtr newNode = GlobalBrushCreator().createBrush();
+		BrushNodePtr wallBrush = std::dynamic_pointer_cast<BrushNode>(newNode);
+		assert(wallBrush);
+
+		// Offset face outward (Make Room)
+		face.getPlane().offset(gridSize);
+
+		// Copy all faces from the template brush (includes the offset face)
+		wallBrush->getBrush().copy(tempBrush->getBrush());
+
+		// Restore face on template
+		face.getPlane().offset(-gridSize);
+
+		// Add the inner wall face (original face, flipped)
+		FacePtr newFace = wallBrush->getBrush().addFace(face);
+
+		if (newFace != 0)
+		{
+			newFace->flipWinding();
+			newFace->planeChanged();
+		}
+
+		wallBrush->getBrush().removeEmptyFaces();
+
+		wallNodes.push_back(newNode);
+	});
+
+	// Insert completed wall brushes into worldspawn and select them
+	for (const auto& wallNode : wallNodes)
+	{
+		scene::addNodeToContainer(wallNode, worldspawn);
+		Node_setSelected(wallNode, true);
+
+		// Apply default texture scale now that the brush is in the scene
+		// and has a valid render system (needed to query texture dimensions)
+		Node_getBrush(wallNode)->forEachFace([](Face& face) {
+			face.applyDefaultTextureScale();
+		});
+	}
+
+	SceneChangeNotify();
+}
+
 void registerCommands()
 {
     using selection::pred::haveBrush;
@@ -985,6 +1069,8 @@ void registerCommands()
     GlobalCommandSystem().addWithCheck("CSGRoom", makeRoomForSelectedBrushes, haveBrush);
     GlobalCommandSystem().addWithCheck("CSGPassable", makePassableForSelectedBrushes, haveBrush);
     GlobalCommandSystem().addWithCheck("CSGShell", makeShellForSelectedBrushes, haveBrush);
+    GlobalCommandSystem().addWithCheck("CSGSeal", sealSelectedEntities,
+        [] { return GlobalSelectionSystem().getSelectionInfo().totalCount > 0; });
 }
 
 } // namespace algorithm
