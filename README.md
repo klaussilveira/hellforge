@@ -1,9 +1,8 @@
 # HellForge
 [![linux](https://github.com/klaussilveira/hellforge/actions/workflows/linux.yml/badge.svg?branch=master)](https://github.com/klaussilveira/hellforge/actions/workflows/linux.yml)
-[![macos](https://github.com/klaussilveira/hellforge/actions/workflows/macos.yml/badge.svg?branch=master)](https://github.com/klaussilveira/hellforge/actions/workflows/macos.yml)
 [![windows](https://github.com/klaussilveira/hellforge/actions/workflows/windows.yml/badge.svg?branch=master)](https://github.com/klaussilveira/hellforge/actions/workflows/windows.yml)
 [![GitHub Release](https://img.shields.io/github/release/klaussilveira/hellforge.svg)](https://github.com/klaussilveira/hellforge/releases/latest)
-[![License](https://img.shields.io/github/license/klaussilveira/hellforge)](https://github.com/klaussilveira/hellforge/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/klaussilveira/hellforge)](https://github.com/klaussilveira/hellforge/blob/master/GPL)
 
 HellForge is a fork of [DarkRadiant](https://www.darkradiant.net), a level editor for idTech4-based games. While DarkRadiant focuses primarily on The Dark Mod, HellForge is tailored for editing generic maps targeting [HellCore](https://github.com/klaussilveira/hellcore), [RBDOOM-3-BFG](https://github.com/RobertBeckebans/RBDOOM-3-BFG) and [dhewm3](https://github.com/dhewm/dhewm3) engines.
 

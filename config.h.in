@@ -11,15 +11,15 @@
 /* Locale directory */
 #define LOCALEDIR "@CMAKE_INSTALL_FULL_LOCALEDIR@"
 
-/* Package library directory (e.g. /usr/lib/darkradiant) */
+/* Package library directory (e.g. /usr/lib/hellforge) */
 #cmakedefine PKGLIBDIR "@PKGLIBDIR@"
 
-/* Relative library directory from binary (e.g. ../lib/darkradiant). Only
+/* Relative library directory from binary (e.g. ../lib/hellforge). Only
  * defined if ENABLE_RELOCATION is defined. */
 #cmakedefine RELATIVE_LIBDIR "@RELATIVE_LIBDIR@"
 
-/* Package data directory (e.g. /usr/share/darkradiant) */
+/* Package data directory (e.g. /usr/share/hellforge) */
 #cmakedefine PKGDATADIR "@PKGDATADIR@"
 
-/* HTML directory (e.g. /usr/share/doc/darkradiant) */
+/* HTML directory (e.g. /usr/share/doc/hellforge) */
 #cmakedefine HTMLDIR "@HTMLDIR@"

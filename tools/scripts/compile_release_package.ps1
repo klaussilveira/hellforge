@@ -65,9 +65,9 @@ $target = $Platform
 
 Write-Host ("Compiling for target: {0}" -f $target)
 
-$portableFilenameTemplate = "darkradiant-{0}-$target.portable.7z"
-$pdbFilenameTemplate = "darkradiant-{0}-$target.pdb.7z"
-$innoSetupFilenameTemplate = "darkradiant-{0}-$target.exe"
+$portableFilenameTemplate = "hellforge-{0}-$target.portable.7z"
+$pdbFilenameTemplate = "hellforge-{0}-$target.pdb.7z"
+$innoSetupFilenameTemplate = "hellforge-{0}-$target.exe"
 
 $versionRegex = '#define RADIANT_VERSION "(.+)"'
 $versionIncludeFile = "..\..\include\version.h"
@@ -143,7 +143,7 @@ Get-ChildItem -Path $portableFilesFolder | Remove-Item -Recurse -Force
 Write-Host ("Copying files...")
 
 $installFolder = Get-Item "..\..\install"
-$excludes = @('*.exp', '*.lib', '*.iobj', '*.ipdb', '*.suo', '*.pgd', '*.fbp', 'darkradiant.desktop.in', 'Tests.*')
+$excludes = @('*.exp', '*.lib', '*.iobj', '*.ipdb', '*.suo', '*.pgd', '*.fbp', '*.desktop.in', 'Tests.*')
 
 Get-ChildItem $installFolder -Recurse -Exclude $excludes | Copy-Item -Destination { Join-Path $portableFilesFolder $_.FullName.Substring($installFolder.FullName.Length) }
 

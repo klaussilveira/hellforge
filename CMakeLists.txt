@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Project name and version
-project(darkradiant VERSION 3.10.0)
+project(hellforge VERSION 1.0.0)
 
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -24,12 +24,12 @@ include(GNUInstallDirs)
 
 # Set up core build paths
 set(CORE_MODULE_LIBRARY "libradiantcore")
-set(PKGDATADIR "${CMAKE_INSTALL_FULL_DATADIR}/darkradiant")
-set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/darkradiant")
+set(PKGDATADIR "${CMAKE_INSTALL_FULL_DATADIR}/hellforge")
+set(PKGLIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/hellforge")
 if (${ENABLE_RELOCATION})
-    set(RELATIVE_LIBDIR "../${CMAKE_INSTALL_LIBDIR}/darkradiant")
+    set(RELATIVE_LIBDIR "../${CMAKE_INSTALL_LIBDIR}/hellforge")
 else()
-    set(HTMLDIR "${CMAKE_INSTALL_FULL_DATADIR}/doc/darkradiant")
+    set(HTMLDIR "${CMAKE_INSTALL_FULL_DATADIR}/doc/hellforge")
 endif()
 
 # Build shared libraries by default
@@ -98,11 +98,11 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # Set up a usable installation tree within the binary dir so developers don't
 # have to install to a temporary location
-set(DR_STAGING_ROOT "${CMAKE_BINARY_DIR}/darkradiant")
-set(DR_STAGING_LIBDIR "${DR_STAGING_ROOT}/lib/darkradiant")
+set(DR_STAGING_ROOT "${CMAKE_BINARY_DIR}/hellforge")
+set(DR_STAGING_LIBDIR "${DR_STAGING_ROOT}/lib/hellforge")
 set(DR_STAGING_MODULESDIR "${DR_STAGING_LIBDIR}/modules")
 set(DR_STAGING_PLUGINSDIR "${DR_STAGING_LIBDIR}/plugins")
-set(DR_STAGING_DATADIR "${DR_STAGING_ROOT}/share/darkradiant")
+set(DR_STAGING_DATADIR "${DR_STAGING_ROOT}/share/hellforge")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DR_STAGING_ROOT}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DR_STAGING_LIBDIR}")
 

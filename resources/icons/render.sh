@@ -13,7 +13,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-OUTPUT_BASE="../install/bitmaps"
+OUTPUT_BASE="../../install/bitmaps"
 
 # Dark theme: light icons for dark backgrounds (existing scheme)
 declare -A THEME_DARK=(

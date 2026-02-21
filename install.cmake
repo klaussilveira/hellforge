@@ -1,5 +1,5 @@
 # Install main targets
-install(TARGETS darkradiant math xmlutil scene wxutil
+install(TARGETS hellforge math xmlutil scene wxutil
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION ${PKGLIBDIR})
 install(TARGETS radiantcore script sound
@@ -17,8 +17,9 @@ if (ENABLE_GIT_PLUGIN AND LIBGIT_FOUND)
 endif()
 
 # Generate and install the .desktop file
-configure_file(install/darkradiant.desktop.in install/darkradiant.desktop)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/install/darkradiant.desktop
+configure_file(install/io.github.klaussilveira.hellforge.desktop.in
+               install/io.github.klaussilveira.hellforge.desktop)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/install/io.github.klaussilveira.hellforge.desktop
         DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 
 # Install resources
@@ -34,11 +35,11 @@ install(DIRECTORY install/resources DESTINATION ${PKGDATADIR})
 
 install(FILES ${PROJECT_SOURCE_DIR}/install/bitmaps/darkradiant_icon_64x64.png
         DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/64x64/apps
-        RENAME net.darkradiant.DarkRadiant.png)
+        RENAME io.github.klaussilveira.hellforge.png)
 install(FILES ${PROJECT_SOURCE_DIR}/install/bitmaps/darkradiant_icon_128x128.png
         DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/128x128/apps
-        RENAME net.darkradiant.DarkRadiant.png)
-install(FILES ${PROJECT_SOURCE_DIR}/install/net.darkradiant.DarkRadiant.metainfo.xml
+        RENAME io.github.klaussilveira.hellforge.png)
+install(FILES ${PROJECT_SOURCE_DIR}/install/io.github.klaussilveira.hellforge.metainfo.xml
         DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
 
 # Install locale data

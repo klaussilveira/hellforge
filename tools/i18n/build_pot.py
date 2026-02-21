@@ -2,7 +2,7 @@ import os, glob
 import xml.etree.ElementTree as ElementTree
 import shutil
 
-pot_file = "darkradiant.pot"
+pot_file = "hellforge.pot"
 
 if os.path.exists(pot_file):
 	print('Removing existing pot file: ' + pot_file)

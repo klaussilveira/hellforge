@@ -190,6 +190,7 @@
       <Filter>preview</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libs\wxutil\Debug.h" />
+    <ClInclude Include="..\..\libs\wxutil\UIThemeManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libs\wxutil\dialog\MessageBox.cpp">
@@ -216,6 +217,7 @@
     <ClCompile Include="..\..\libs\wxutil\SerialisableWidgets.cpp" />
     <ClCompile Include="..\..\libs\wxutil\WindowPosition.cpp" />
     <ClCompile Include="..\..\libs\wxutil\ConsoleView.cpp" />
+    <ClCompile Include="..\..\libs\wxutil\UIThemeManager.cpp" />
     <ClCompile Include="..\..\libs\wxutil\DirChooser.cpp" />
     <ClCompile Include="..\..\libs\wxutil\FileChooser.cpp" />
     <ClCompile Include="..\..\libs\wxutil\FreezePointer.cpp" />

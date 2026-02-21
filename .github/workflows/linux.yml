@@ -46,5 +46,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: darkradiant-linux-x86_64
+          name: hellforge-linux-x86_64
           path: install-root/

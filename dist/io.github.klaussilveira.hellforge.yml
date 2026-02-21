@@ -1,0 +1,106 @@
+app-id: io.github.klaussilveira.hellforge
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: hellforge
+
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  - --socket=pulseaudio
+  - --filesystem=home
+
+modules:
+  - name: wxwidgets
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DwxBUILD_TOOLKIT=gtk3
+      - -DwxUSE_OPENGL=ON
+      - -DwxUSE_REGEX=builtin
+      - -DwxUSE_WEBVIEW=OFF
+      - -DwxUSE_MEDIACTRL=OFF
+      - -DwxUSE_STC=ON
+    sources:
+      - type: archive
+        url: https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.6/wxWidgets-3.2.6.tar.bz2
+        sha256: 939e5b77ddc5b6092d1d7d29491fe67010a2433cf9b9c0d841ee4d04acb9dce7
+
+  - name: sigc++
+    buildsystem: meson
+    config-opts:
+      - -Dbuild-examples=false
+      - -Dbuild-tests=false
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libsigc++/2.12/libsigc++-2.12.1.tar.xz
+        sha256: a9dbee323351d109b7aee074a9cb89ca3e7bcf8ad8edef1851f4cf359bd50843
+
+  - name: glu
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://archive.mesa3d.org/glu/glu-9.0.3.tar.xz
+        sha256: bd43fe12f374b1192eb15fe20e45ff456b9bc26ab57f0eee919f96ca0f8a330f
+
+  - name: ftgl
+    buildsystem: autotools
+    build-options:
+      cxxflags: -fpermissive
+    sources:
+      - type: archive
+        url: https://github.com/frankheckenbach/ftgl/archive/refs/tags/v2.4.0.tar.gz
+        sha256: aa97da1c3442a8fd3941037655df18016d70b5266381c81d81e8b5335f196ea8
+
+  - name: glew
+    buildsystem: cmake-ninja
+    subdir: build/cmake
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: archive
+        url: https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.tgz
+        sha256: d4fc82893cfb00109578d0a1a2337fb8ca335b3ceccf97b97e5cc7f08e4353e1
+
+  - name: libgit2
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_TESTS=OFF
+    sources:
+      - type: archive
+        url: https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.4.tar.gz
+        sha256: 49d0fc50ab931816f6bfc1ac68f8d74b760450eebdb5374e803ee36550f26774
+
+  - name: openal-soft
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DALSOFT_EXAMPLES=OFF
+      - -DALSOFT_TESTS=OFF
+    sources:
+      - type: archive
+        url: https://github.com/kcat/openal-soft/archive/refs/tags/1.24.1.tar.gz
+        sha256: e1b6ec960e00bfed3d480330274b0f102dc10e4ae0dbb70fd9db80d6978165b1
+
+  - name: eigen
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_TESTING=OFF
+    sources:
+      - type: archive
+        url: https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.bz2
+        sha256: b4c198460eba6f28d34894e3a5710998818515104d6e74e5cc331ce31e46e626
+
+  - name: hellforge
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DENABLE_RELOCATION=ON
+    sources:
+      - type: dir
+        path: ..

@@ -1,4 +1,4 @@
-set(DR_STAGING_DOCDIR "${DR_STAGING_ROOT}/share/doc/darkradiant")
+set(DR_STAGING_DOCDIR "${DR_STAGING_ROOT}/share/doc/hellforge")
 add_custom_command(
     OUTPUT manual.html
     COMMAND ${ASCIIDOCTOR}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.klaussilveira.hellforge</id>
+  <name>HellForge</name>
+  <summary>3D level editor for idTech4-based games</summary>
+  <developer id="io.github.klaussilveira">
+    <name>Klaus Silveira</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <content_rating type="oars-1.1" />
+  <url type="homepage">https://github.com/klaussilveira/hellforge</url>
+  <description>
+    <p>
+      HellForge is a fork of DarkRadiant, a level editor for idTech4-based games. While DarkRadiant focuses primarily on The Dark Mod, HellForge is tailored for editing generic maps targeting HellCore, RBDOOM-3-BFG and dhewm3 engines.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.klaussilveira.hellforge.desktop</launchable>
+  <releases>
+    <release version="1.0.0" date="2025-01-01"/>
+  </releases>
+</component>

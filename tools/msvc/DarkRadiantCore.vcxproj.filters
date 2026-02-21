@@ -811,9 +811,6 @@
     <ClCompile Include="..\..\radiantcore\selection\manipulators\ManipulatorComponents.cpp">
       <Filter>src\selection\manipulators</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\radiantcore\selection\manipulators\ModelScaleManipulator.cpp">
-      <Filter>src\selection\manipulators</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\radiantcore\selection\manipulators\RotateManipulator.cpp">
       <Filter>src\selection\manipulators</Filter>
     </ClCompile>
@@ -890,12 +887,6 @@
       <Filter>src\map</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\model\export\ModelExporter.cpp">
-      <Filter>src\model\export</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\radiantcore\model\export\ModelScalePreserver.cpp">
-      <Filter>src\model\export</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\radiantcore\model\export\ScaledModelExporter.cpp">
       <Filter>src\model\export</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\map\mru\MRU.cpp">
@@ -1872,9 +1863,6 @@
     <ClInclude Include="..\..\radiantcore\selection\manipulators\ManipulatorComponents.h">
       <Filter>src\selection\manipulators</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\radiantcore\selection\manipulators\ModelScaleManipulator.h">
-      <Filter>src\selection\manipulators</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\radiantcore\selection\manipulators\RotateManipulator.h">
       <Filter>src\selection\manipulators</Filter>
     </ClInclude>
@@ -1957,12 +1945,6 @@
       <Filter>src\map</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\model\export\ModelExporter.h">
-      <Filter>src\model\export</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\radiantcore\model\export\ModelScalePreserver.h">
-      <Filter>src\model\export</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\radiantcore\model\export\ScaledModelExporter.h">
       <Filter>src\model\export</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\map\mru\MRU.h">

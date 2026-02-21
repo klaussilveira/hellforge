@@ -1,4 +1,4 @@
-add_executable(darkradiant
+add_executable(hellforge
                camera/CameraSettings.cpp
                camera/CamWnd.cpp
                camera/CameraWndManager.cpp
@@ -190,15 +190,15 @@ add_executable(darkradiant
                xyview/tools/MeasurementTool.cpp
                xyview/tools/PolygonTool.cpp
                xyview/OrthoView.cpp)
-target_compile_options(darkradiant PRIVATE ${FREETYPE_CFLAGS} ${GLIB_CFLAGS})
-target_include_directories(darkradiant PRIVATE .)
-target_link_libraries(darkradiant PRIVATE
+target_compile_options(hellforge PRIVATE ${FREETYPE_CFLAGS} ${GLIB_CFLAGS})
+target_include_directories(hellforge PRIVATE .)
+target_link_libraries(hellforge PRIVATE
                       math xmlutil scene wxutil module
                       ${GLIB_LIBRARIES})
 
 # Enable precompiled header for radiant
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16.0")
-target_precompile_headers(darkradiant PRIVATE
+target_precompile_headers(hellforge PRIVATE
                           "$<$<COMPILE_LANGUAGE:CXX>:precompiled.h>")
 endif()
 
@@ -206,7 +206,7 @@ endif()
 # This copies more than needed but it doesn't matter: this is just for running a
 # developer build out of ${CMAKE_BINARY_DIR}, not for packaging.
 add_custom_command(
-    TARGET darkradiant POST_BUILD
+    TARGET hellforge POST_BUILD
     COMMAND
         ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/install"

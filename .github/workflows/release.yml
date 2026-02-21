@@ -36,12 +36,12 @@ jobs:
       - name: Package artifacts
         run: |
           cd artifacts
-          tar czf darkradiant-linux-x86_64.tar.gz -C darkradiant-linux-x86_64 .
-          cd darkradiant-windows-x64
-          zip -r ../darkradiant-windows-x64.zip .
+          tar czf hellforge-linux-x86_64.tar.gz -C hellforge-linux-x86_64 .
+          cd hellforge-windows-x64
+          zip -r ../hellforge-windows-x64.zip .
           cd ..
-          cp darkradiant-appimage-x86_64/*.AppImage .
-          cp darkradiant-flatpak-x86_64/darkradiant.flatpak .
+          cp hellforge-appimage-x86_64/*.AppImage .
+          cp hellforge-flatpak-x86_64/hellforge.flatpak .
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
@@ -49,7 +49,7 @@ jobs:
           draft: true
           generate_release_notes: true
           files: |
-            artifacts/darkradiant-linux-x86_64.tar.gz
-            artifacts/darkradiant-windows-x64.zip
+            artifacts/hellforge-linux-x86_64.tar.gz
+            artifacts/hellforge-windows-x64.zip
             artifacts/*.AppImage
-            artifacts/darkradiant.flatpak
+            artifacts/hellforge.flatpak

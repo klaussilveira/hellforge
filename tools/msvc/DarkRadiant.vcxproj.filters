@@ -65,6 +65,9 @@
     <Filter Include="src\ui\transform">
       <UniqueIdentifier>{5f2d2354-6f2c-4a2c-a101-7e00b074c825}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\terrain">
+      <UniqueIdentifier>{d3a7f2c1-9b4e-4c8d-a1f5-6e2b3c4d5e6f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\texturebrowser">
       <UniqueIdentifier>{bba8ced9-8962-417f-8958-a77cf55bf2ad}</UniqueIdentifier>
     </Filter>
@@ -218,6 +221,9 @@
       <Filter>src\camera</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\camera\tools\FaceIntersectionFinder.cpp">
+      <Filter>src\camera\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\camera\tools\CameraBrushCreatorTool.cpp">
       <Filter>src\camera\tools</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\camera\tools\DecalShooterTool.cpp">
@@ -484,6 +490,9 @@
     <ClCompile Include="..\..\radiant\ui\filters\FilterContextMenu.cpp">
       <Filter>src\ui\filters</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\settings\RenderingQualitySettings.cpp">
+      <Filter>src\settings</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\settings\Win32Registry.cpp">
       <Filter>src\settings</Filter>
     </ClCompile>
@@ -643,6 +652,9 @@
     <ClCompile Include="..\..\radiant\ui\materials\MaterialPopulator.cpp">
       <Filter>src\ui\materials</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\materials\MaterialThumbnailBrowser.cpp">
+      <Filter>src\ui\materials</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\ui\materials\MaterialTreeView.cpp">
       <Filter>src\ui\materials</Filter>
     </ClCompile>
@@ -750,6 +762,9 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\texturebrowser\MapTextureBrowser.cpp">
       <Filter>src\ui\texturebrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\terrain\TerrainGeneratorDialog.cpp">
+      <Filter>src\ui\terrain</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\texturebrowser\TextureThumbnailBrowser.cpp">
       <Filter>src\ui\texturebrowser</Filter>
@@ -993,6 +1008,9 @@
     <ClInclude Include="..\..\radiant\camera\tools\FaceInterSectionFinder.h">
       <Filter>src\camera\tools</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\radiant\camera\tools\CameraBrushCreatorTool.h">
+      <Filter>src\camera\tools</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\radiant\camera\tools\DecalShooterTool.h">
       <Filter>src\camera\tools</Filter>
     </ClInclude>
@@ -1118,6 +1136,9 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\filters\FilterContextMenu.h">
       <Filter>src\ui\filters</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\settings\RenderingQualitySettings.h">
+      <Filter>src\settings</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\settings\Win32Registry.h">
       <Filter>src\settings</Filter>
@@ -1323,6 +1344,9 @@
     <ClInclude Include="..\..\radiant\ui\materials\MaterialPopulator.h">
       <Filter>src\ui\materials</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\materials\MaterialThumbnailBrowser.h">
+      <Filter>src\ui\materials</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\radiant\ui\materials\MaterialTreeView.h">
       <Filter>src\ui\materials</Filter>
     </ClInclude>
@@ -1523,6 +1547,9 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\texturebrowser\MapTextureBrowser.h">
       <Filter>src\ui\texturebrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\terrain\TerrainGeneratorDialog.h">
+      <Filter>src\ui\terrain</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\texturebrowser\TextureThumbnailBrowser.h">
       <Filter>src\ui\texturebrowser</Filter>

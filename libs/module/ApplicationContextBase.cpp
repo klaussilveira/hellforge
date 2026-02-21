@@ -81,7 +81,7 @@ std::string ApplicationContextBase::getRuntimeDataPath() const
     return path;
 #elif defined(POSIX)
 #   if defined(ENABLE_RELOCATION)
-    return _appPath + "../share/darkradiant/";
+    return _appPath + "../share/hellforge/";
 #   elif defined(PKGDATADIR)
     return std::string(PKGDATADIR) + "/";
 #   else
@@ -98,7 +98,7 @@ std::string ApplicationContextBase::getHTMLPath() const
     return getRuntimeDataPath();
 #elif defined(POSIX)
 #if defined(ENABLE_RELOCATION)
-    return _appPath + "../share/doc/darkradiant/";
+    return _appPath + "../share/doc/hellforge/";
 #elif defined(HTMLDIR)
     return std::string(HTMLDIR) + "/";
 #else
@@ -230,7 +230,7 @@ std::string getXDGPath(const std::string& envVar, const std::string& fallback)
     {
         // Use default path within $HOME/fallback
         static const std::string HOME_DIR = strenv("HOME");
-        return os::standardPathWithSlash(HOME_DIR) + fallback + "/darkradiant/";
+        return os::standardPathWithSlash(HOME_DIR) + fallback + "/hellforge/";
     }
     else
     {
