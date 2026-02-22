@@ -6,6 +6,8 @@
 
 HellForge is a fork of [DarkRadiant](https://www.darkradiant.net), a level editor for idTech4-based games. While DarkRadiant focuses primarily on The Dark Mod, HellForge is tailored for editing generic maps targeting [HellCore](https://github.com/klaussilveira/hellcore), [RBDOOM-3-BFG](https://github.com/RobertBeckebans/RBDOOM-3-BFG) and [dhewm3](https://github.com/dhewm/dhewm3) engines.
 
+<p><img alt="HellForge" src="https://github.com/user-attachments/assets/b54ef820-bcf4-47a4-8eea-8cdbf6d3e213" /></p>
+
 ## Changes from DarkRadiant
 
 HellForge has very opinionated features, keybindings and a different workflow. We contribute back to upstream DarkRadiant for features that are generic, like the array, scatter and polygon tools. However, other features would dramatically change how DarkRadiant operates and we don't want that.
