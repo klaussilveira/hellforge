@@ -149,6 +149,10 @@ void CamWnd::connectEventHandlers()
     auto toggleCameraGridEvent = GlobalEventManager().findEvent("ToggleCameraGrid");
     toggleCameraGridEvent->connectToolItem(gridButton);
 
+    const wxToolBarToolBase* shadowBtn = getToolBarToolByLabel(_camToolbar, "shadowBtn");
+    auto toggleShadowMappingEvent = GlobalEventManager().findEvent("ToggleShadowMapping");
+    toggleShadowMappingEvent->connectToolItem(shadowBtn);
+
     // Refresh the camera view when shadows are enabled/disabled
     _shadowMappingKeyChangedHandler = registry::connect(
         RKEY_ENABLE_SHADOW_MAPPING, sigc::mem_fun(this, &CamWnd::queueDraw)
@@ -164,6 +168,10 @@ void CamWnd::disconnectEventHandlers()
     const wxToolBarToolBase* gridButton = getToolBarToolByLabel(_camToolbar, "drawGridButton");
     auto toggleCameraGridEvent = GlobalEventManager().findEvent("ToggleCameraGrid");
     toggleCameraGridEvent->disconnectToolItem(gridButton);
+
+    const wxToolBarToolBase* shadowBtn = getToolBarToolByLabel(_camToolbar, "shadowBtn");
+    auto toggleShadowMappingEvent = GlobalEventManager().findEvent("ToggleShadowMapping");
+    toggleShadowMappingEvent->disconnectToolItem(shadowBtn);
 
     // Stop the timer, it might still fire even during shutdown
     _timer.Stop();
@@ -206,9 +214,6 @@ void CamWnd::constructToolbar()
         _camToolbar->EnableTool(_btnIDs.lighting, false);
         _camToolbar->EnableTool(_btnIDs.lightingShadow, false);
     }
-
-    auto toggleShadowMappingEvent = GlobalEventManager().findEvent("ToggleShadowMapping");
-    GlobalEventManager().registerToolItem("ToggleShadowMapping", shadowLightingBtn);
 
     // Listen for render-mode changes, and set the correct active button to
     // start with.
