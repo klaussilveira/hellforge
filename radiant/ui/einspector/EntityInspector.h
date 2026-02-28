@@ -6,6 +6,7 @@
 #include "imap.h"
 #include "imapmerge.h"
 #include "iselection.h"
+#include "math/Vector3.h"
 #include "string/string.h"
 #include "wxutil/menu/PopupMenu.h"
 #include "wxutil/PanedPosition.h"
@@ -150,6 +151,14 @@ private:
     bool _inheritedPropertiesNeedUpdate = true;
     bool _helpTextNeedsUpdate = true;
 
+    // Position fields at the top of the inspector
+    wxTextCtrl* _posX = nullptr;
+    wxTextCtrl* _posY = nullptr;
+    wxTextCtrl* _posZ = nullptr;
+    wxPanel* _positionPanel = nullptr;
+    Vector3 _curPosition;
+    sigc::connection _boundsChanged;
+
 private:
     bool canUpdateEntity();
 
@@ -259,6 +268,10 @@ private:
 
     void connectListeners();
     void disconnectListeners();
+
+    void createPositionRow();
+    void updatePositionFields();
+    void onPositionEntryActivate();
 
 protected:
     // Called when the app is idle

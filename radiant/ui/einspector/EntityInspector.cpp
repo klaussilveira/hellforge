@@ -6,6 +6,8 @@
 #include "i18n.h"
 #include "scene/EntityNode.h"
 #include "ideclmanager.h"
+#include "icommandsystem.h"
+#include "iscenegraph.h"
 #include "ieclass.h"
 #include "iregistry.h"
 #include "igame.h"
@@ -41,6 +43,8 @@
 
 #include <functional>
 #include "string/replace.h"
+#include "string/convert.h"
+#include <sstream>
 #include "registry/Widgets.h"
 #include <regex>
 
@@ -80,6 +84,10 @@ void EntityInspector::construct()
 
     SetName("EntityInspector");
     SetSizer(new wxBoxSizer(wxVERTICAL));
+
+    // Position fields at the top
+    createPositionRow();
+    GetSizer()->Add(_positionPanel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 3);
 
     // Construct HBox with the display checkboxes
     wxBoxSizer* optionsHBox = new wxBoxSizer(wxHORIZONTAL);
@@ -438,6 +446,7 @@ void EntityInspector::onPanelActivated()
 {
     connectListeners();
     refresh();
+    updatePositionFields();
 
     _panedPosition.connect(_paned);
     _panedPosition.loadFromPath(RKEY_PANE_STATE);
@@ -465,12 +474,17 @@ void EntityInspector::connectListeners()
     _mapEditModeChangedHandler = GlobalMapModule().signal_editModeChanged().connect(
         sigc::mem_fun(this, &EntityInspector::onMapEditModeChanged)
     );
+
+    _boundsChanged = GlobalSceneGraph().signal_boundsChanged().connect(
+        sigc::mem_fun(this, &EntityInspector::updatePositionFields)
+    );
 }
 
 void EntityInspector::disconnectListeners()
 {
     GlobalSelectionSystem().removeObserver(this);
 
+    _boundsChanged.disconnect();
     _mapEditModeChangedHandler.disconnect();
     _defsReloadedHandler.disconnect();
 }
@@ -859,6 +873,7 @@ void EntityInspector::selectionChanged(const scene::INodePtr& node, bool isCompo
     if (isComponent) return; // ignore component changes
 
     refresh();
+    updatePositionFields();
 }
 
 std::string EntityInspector::cleanInputString(const std::string &input)
@@ -1713,6 +1728,86 @@ void EntityInspector::handleMergeActions(const scene::INodePtr& selectedNode)
     {
         onKeyChange(key, value, false);
     });
+}
+
+void EntityInspector::createPositionRow()
+{
+    _positionPanel = new wxPanel(this, wxID_ANY);
+    auto* sizer = new wxBoxSizer(wxHORIZONTAL);
+    _positionPanel->SetSizer(sizer);
+
+    auto* label = new wxStaticText(_positionPanel, wxID_ANY, _("Pos"));
+    label->SetFont(label->GetFont().Bold());
+    sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 4);
+
+    auto addField = [&](const std::string& axisLabel) -> wxTextCtrl*
+    {
+        auto* lbl = new wxStaticText(_positionPanel, wxID_ANY, axisLabel);
+        sizer->Add(lbl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 4);
+
+        auto* entry = new wxTextCtrl(_positionPanel, wxID_ANY, "",
+            wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        entry->SetMinClientSize(wxSize(entry->GetCharWidth() * 7, -1));
+        sizer->Add(entry, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 2);
+
+        entry->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) { onPositionEntryActivate(); });
+        return entry;
+    };
+
+    _posX = addField("X:");
+    _posY = addField("Y:");
+    _posZ = addField("Z:");
+
+    _positionPanel->Enable(false);
+}
+
+void EntityInspector::updatePositionFields()
+{
+    const auto& selInfo = GlobalSelectionSystem().getSelectionInfo();
+
+    if (selInfo.totalCount == 0)
+    {
+        _posX->ChangeValue("");
+        _posY->ChangeValue("");
+        _posZ->ChangeValue("");
+        _positionPanel->Enable(false);
+        return;
+    }
+
+    _positionPanel->Enable(true);
+    _curPosition = GlobalSelectionSystem().getCurrentSelectionCenter();
+
+    auto fmt = [](double v) -> std::string
+    {
+        std::ostringstream ss;
+        ss << v;
+        return ss.str();
+    };
+
+    _posX->ChangeValue(fmt(_curPosition.x()));
+    _posY->ChangeValue(fmt(_curPosition.y()));
+    _posZ->ChangeValue(fmt(_curPosition.z()));
+}
+
+void EntityInspector::onPositionEntryActivate()
+{
+    if (GlobalSelectionSystem().getSelectionInfo().totalCount == 0)
+        return;
+
+    Vector3 newPos(
+        string::convert<float>(_posX->GetValue().ToStdString(), static_cast<float>(_curPosition.x())),
+        string::convert<float>(_posY->GetValue().ToStdString(), static_cast<float>(_curPosition.y())),
+        string::convert<float>(_posZ->GetValue().ToStdString(), static_cast<float>(_curPosition.z()))
+    );
+
+    Vector3 delta = newPos - _curPosition;
+
+    if (delta.getLengthSquared() < 0.0001)
+        return;
+
+    GlobalCommandSystem().executeCommand("MoveSelection", delta);
+
+    updatePositionFields();
 }
 
 } // namespace ui

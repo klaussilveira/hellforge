@@ -25,7 +25,7 @@ namespace
 
 PropertyNotebook::PropertyNotebook(wxWindow* parent, AuiLayout& owner) :
     wxAuiNotebook(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-        wxNB_TOP | wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS),
+        wxAUI_NB_TAB_MOVE | wxAUI_NB_SCROLL_BUTTONS),
     _layout(owner),
     _dropHint(nullptr),
     _restoreInProgress(false)
