@@ -64,6 +64,7 @@ pkg_check_modules(VORBIS vorbisfile REQUIRED)
 pkg_check_modules(X11 x11 REQUIRED)
 pkg_check_modules(ZLIB zlib REQUIRED)
 pkg_check_modules(GLIB glib-2.0 REQUIRED)
+pkg_check_modules(GTK3 gtk+-3.0 REQUIRED)
 pkg_check_modules(EIGEN eigen3 REQUIRED)
 
 # Locate a packaged pugixml, if installed if not, fall back to embedded code copy.

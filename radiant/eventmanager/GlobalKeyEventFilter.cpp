@@ -14,6 +14,7 @@
 #include "wxutil/dialog/DialogBase.h"
 
 #include "EventManager.h"
+#include "GtkKeyNormalize.h"
 
 namespace ui
 {
@@ -34,9 +35,11 @@ namespace ui
         // needs to be propagated to input controls. Returns false if the shortcut should be propagated.
         bool FilterInTextControls(wxKeyEvent& keyEvent)
         {
-            if (keyEvent.ControlDown() && keyEvent.GetKeyCode() > 32 && keyEvent.GetKeyCode() < 127)
+            int keyCode = normalizeGtkKeyCode(keyEvent.GetKeyCode());
+
+            if (keyEvent.ControlDown() && keyCode > 32 && keyCode < 127)
             {
-                switch (keyEvent.GetKeyCode())
+                switch (keyCode)
                 {
                 case 'C':case 'V':case 'X': // copy/paste
                 case 'Y':case 'Z': // redo/undo
@@ -48,7 +51,7 @@ namespace ui
             }
 
             // For tool windows we let the ESC key propagate, since it's used to de-select stuff.
-            return keyEvent.GetKeyCode() == WXK_ESCAPE;
+            return keyCode == WXK_ESCAPE;
         }
     }
 
@@ -141,7 +144,7 @@ GlobalKeyEventFilter::EventCheckResult GlobalKeyEventFilter::checkEvent(wxKeyEve
     {
         // We have a modifier-less key event in a wxutil::TreeView. It will be passed through
         // in the general case. The ESC key will be caught if the treeview is not search mode.
-        if (keyEvent.GetKeyCode() == WXK_ESCAPE)
+        if (normalizeGtkKeyCode(keyEvent.GetKeyCode()) == WXK_ESCAPE)
         {
             // The ESC key should only be passed to the dataview if the search popup is actually shown
             if (treeView->HasActiveSearchPopup())

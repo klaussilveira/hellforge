@@ -117,6 +117,7 @@ private:
 	void loadAcceleratorFromList(const xml::NodeList& shortcutList);
 
 	void setMenuItemAccelerator(const std::string& command, const std::string& acceleratorStr);
+	void setMenuItemAccelerator(const std::string& command, Accelerator& accel);
 	void setToolItemAccelerator(const std::string& command, const std::string& acceleratorStr);
 
 	bool isModifier(wxKeyEvent& ev);

@@ -10,6 +10,10 @@
 
 #include "string/replace.h"
 
+#ifdef __WXGTK__
+#include "GtkMenuAccel.h"
+#endif
+
 namespace ui
 {
 
@@ -75,6 +79,10 @@ public:
         wxString accelText = accel.getString(true);
 
         setMenuItemAccelerator(item, accelText);
+
+#ifdef __WXGTK__
+        setGtkAccelLabel(item, accel.getKey(), accel.getModifiers());
+#endif
     }
 
     static void setMenuItemAccelerator(wxMenuItem* item, const wxString& accelText)
@@ -89,6 +97,10 @@ public:
     static void clearMenuItemAccelerator(wxMenuItem* item)
     {
         item->SetItemLabel(item->GetItemLabel().BeforeFirst('\t'));
+
+#ifdef __WXGTK__
+        clearGtkAccelLabel(item);
+#endif
     }
 
     static void setToolItemAccelerator(const wxToolBarToolBase* tool, Accelerator& accel)
