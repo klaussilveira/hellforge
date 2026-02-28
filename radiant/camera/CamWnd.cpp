@@ -391,10 +391,8 @@ void CamWnd::onFrame(wxTimerEvent& ev)
 
         GlobalRenderSystem().setTime(GlobalRenderSystem().getTime() + _timer.GetInterval());
 
-        // Queue a repaint without erasing the background (false) to avoid flicker.
-        // The Refresh call posts a paint event that will be processed in the
-        // next event loop iteration, which also processes any pending idle events.
-        _wxGLWidget->Refresh(false);
+        wxTheApp->ProcessIdle();
+        _wxGLWidget->Refresh();
     }
 }
 
