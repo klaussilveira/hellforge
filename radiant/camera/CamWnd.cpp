@@ -8,6 +8,7 @@
 #include "ui/imainframe.h"
 
 #include <functional>
+#include <vector>
 #include <time.h>
 #include <fmt/format.h>
 #include <sigc++/retype_return.h>
@@ -149,10 +150,6 @@ void CamWnd::connectEventHandlers()
     auto toggleCameraGridEvent = GlobalEventManager().findEvent("ToggleCameraGrid");
     toggleCameraGridEvent->connectToolItem(gridButton);
 
-    const wxToolBarToolBase* shadowBtn = getToolBarToolByLabel(_camToolbar, "shadowBtn");
-    auto toggleShadowMappingEvent = GlobalEventManager().findEvent("ToggleShadowMapping");
-    toggleShadowMappingEvent->connectToolItem(shadowBtn);
-
     // Refresh the camera view when shadows are enabled/disabled
     _shadowMappingKeyChangedHandler = registry::connect(
         RKEY_ENABLE_SHADOW_MAPPING, sigc::mem_fun(this, &CamWnd::queueDraw)
@@ -168,10 +165,6 @@ void CamWnd::disconnectEventHandlers()
     const wxToolBarToolBase* gridButton = getToolBarToolByLabel(_camToolbar, "drawGridButton");
     auto toggleCameraGridEvent = GlobalEventManager().findEvent("ToggleCameraGrid");
     toggleCameraGridEvent->disconnectToolItem(gridButton);
-
-    const wxToolBarToolBase* shadowBtn = getToolBarToolByLabel(_camToolbar, "shadowBtn");
-    auto toggleShadowMappingEvent = GlobalEventManager().findEvent("ToggleShadowMapping");
-    toggleShadowMappingEvent->disconnectToolItem(shadowBtn);
 
     // Stop the timer, it might still fire even during shutdown
     _timer.Stop();
@@ -214,6 +207,9 @@ void CamWnd::constructToolbar()
         _camToolbar->EnableTool(_btnIDs.lighting, false);
         _camToolbar->EnableTool(_btnIDs.lightingShadow, false);
     }
+
+    auto toggleShadowMappingEvent = GlobalEventManager().findEvent("ToggleShadowMapping");
+    GlobalEventManager().registerToolItem("ToggleShadowMapping", shadowLightingBtn);
 
     // Listen for render-mode changes, and set the correct active button to
     // start with.
@@ -389,19 +385,16 @@ void CamWnd::onStopTimeButtonClick(wxCommandEvent& ev)
 
 void CamWnd::onFrame(wxTimerEvent& ev)
 {
-    // Calling wxTheApp->Yield() might cause another timer callback if enough
-    // time has passed during rendering. Calling Yield() within Yield()
-    // might in the end cause stack overflows and is caught by wxWidgets.
     if (!_timerLock)
     {
         util::ScopedBoolLock lock(_timerLock);
 
         GlobalRenderSystem().setTime(GlobalRenderSystem().getTime() + _timer.GetInterval());
 
-        // Mouse movement is handled via idle callbacks, so let's give the app a chance to react
-        wxTheApp->ProcessIdle();
-
-        _wxGLWidget->Refresh();
+        // Queue a repaint without erasing the background (false) to avoid flicker.
+        // The Refresh call posts a paint event that will be processed in the
+        // next event loop iteration, which also processes any pending idle events.
+        _wxGLWidget->Refresh(false);
     }
 }
 
@@ -658,6 +651,7 @@ void CamWnd::ensureFont()
 void CamWnd::drawGrid()
 {
     constexpr double GRID_MAX_DIM = 2048.0;
+    constexpr float GRID_MAX_F = static_cast<float>(GRID_MAX_DIM);
 
     const double step = getCameraSettings()->gridSpacing();
     const int majorEvery = 8;
@@ -684,74 +678,86 @@ void CamWnd::drawGrid()
         return std::abs(a - b) < 1e-9;
     };
 
-    // Axes in world space
-    glLineWidth(2.0f);
-    glBegin(GL_LINES);
+    // Draw world-space axis lines using vertex arrays
+    {
+        const GLfloat axisVertices[] = {
+            -GRID_MAX_F, 0.0f, 0.0f,   GRID_MAX_F, 0.0f, 0.0f,
+             0.0f, -GRID_MAX_F, 0.0f,   0.0f, GRID_MAX_F, 0.0f,
+        };
+        const GLfloat axisColors[] = {
+            0.85f, 0.25f, 0.25f, 0.8f,  0.85f, 0.25f, 0.25f, 0.8f,
+            0.25f, 0.85f, 0.25f, 0.8f,  0.25f, 0.85f, 0.25f, 0.8f,
+        };
 
-    glColor4f(0.85f, 0.25f, 0.25f, 0.8f);
-    glVertex3d(-GRID_MAX_DIM, 0.0, 0.0);
-    glVertex3d( GRID_MAX_DIM, 0.0, 0.0);
+        glLineWidth(2.0f);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glVertexPointer(3, GL_FLOAT, 0, axisVertices);
+        glColorPointer(4, GL_FLOAT, 0, axisColors);
+        glDrawArrays(GL_LINES, 0, 4);
+    }
 
-    glColor4f(0.25f, 0.85f, 0.25f, 0.8f);
-    glVertex3d(0.0, -GRID_MAX_DIM, 0.0);
-    glVertex3d(0.0,  GRID_MAX_DIM, 0.0);
-
-    glEnd();
-
+    // Build and draw grid lines using vertex arrays
     glPushMatrix();
     glTranslated(origin.x(), origin.y(), 0.0);
 
     const double fadeStart = GRID_MAX_DIM * 0.25;
     const double fadeEnd = GRID_MAX_DIM * 1.00;
 
-    auto alphaFor = [&](double d)
+    auto alphaFor = [&](double d) -> float
     {
-        if (d <= fadeStart) {
-            return 1.0f;
-        }
-
-        if (d >= fadeEnd) {
-            return 0.0f;
-        }
-
+        if (d <= fadeStart) return 1.0f;
+        if (d >= fadeEnd) return 0.0f;
         double t = (d - fadeStart) / (fadeEnd - fadeStart);
         t = t * t * (3.0 - 2.0 * t);
-
-        return float(1.0 - t);
+        return static_cast<float>(1.0 - t);
     };
 
-    auto drawLine = [&](double x1, double y1, double x2, double y2)
+    // Pre-compute all grid line vertices and colors into arrays
+    const int numSteps = static_cast<int>(2.0 * GRID_MAX_DIM / step) + 2;
+    std::vector<GLfloat> gridVertices;
+    std::vector<GLfloat> gridColors;
+    gridVertices.reserve(numSteps * 2 * 2 * 3);
+    gridColors.reserve(numSteps * 2 * 2 * 4);
+
+    for (double x = -GRID_MAX_DIM; x <= GRID_MAX_DIM + 1e-6; x += step)
     {
-        glVertex3d(x1, y1, 0.0);
-        glVertex3d(x2, y2, 0.0);
-    };
-
-    glLineWidth(1.0f);
-    glBegin(GL_LINES);
-
-    for (double x = -GRID_MAX_DIM; x <= GRID_MAX_DIM + 1e-6; x += step) {
-        const int idx = int(std::llround(x / step));
+        const int idx = static_cast<int>(std::llround(x / step));
         const bool isMajor = (idx % majorEvery) == 0;
         const float a = alphaFor(std::abs(x));
+        const float xf = static_cast<float>(x);
 
-        if (!isMajor) {
-            glColor4f(0.55f, 0.55f, 0.55f, 0.20f * a);
-        } else {
-            glColor4f(0.60f, 0.60f, 0.60f, 0.45f * a);
+        const float r = isMajor ? 0.60f : 0.55f;
+        const float g = r;
+        const float b = r;
+        const float lineAlpha = isMajor ? 0.45f * a : 0.20f * a;
+
+        // Vertical line at this X position
+        if (!isSameLine(x, skipVerticalAtX))
+        {
+            gridVertices.insert(gridVertices.end(), { xf, -GRID_MAX_F, 0.0f, xf, GRID_MAX_F, 0.0f });
+            gridColors.insert(gridColors.end(), { r, g, b, lineAlpha, r, g, b, lineAlpha });
         }
 
-        // Vertical line X
-        if (!isSameLine(x, skipVerticalAtX)) {
-            drawLine(x, -GRID_MAX_DIM, x, GRID_MAX_DIM);
-        }
-
-        // Horizontal line Y
-        if (!isSameLine(x, skipHorizontalAtY)) {
-            drawLine(-GRID_MAX_DIM, x, GRID_MAX_DIM, x);
+        // Horizontal line at this Y position
+        if (!isSameLine(x, skipHorizontalAtY))
+        {
+            gridVertices.insert(gridVertices.end(), { -GRID_MAX_F, xf, 0.0f, GRID_MAX_F, xf, 0.0f });
+            gridColors.insert(gridColors.end(), { r, g, b, lineAlpha, r, g, b, lineAlpha });
         }
     }
 
-    glEnd();
+    if (!gridVertices.empty())
+    {
+        glLineWidth(1.0f);
+        glVertexPointer(3, GL_FLOAT, 0, gridVertices.data());
+        glColorPointer(4, GL_FLOAT, 0, gridColors.data());
+        glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(gridVertices.size() / 3));
+    }
+
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
     glPopMatrix();
 
     // Clear grid state
@@ -807,28 +813,22 @@ void CamWnd::Cam_Draw()
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixd(_camera->getModelView());
 
-    // one directional light source directly behind the viewer
+    // One directional light source directly behind the viewer
     {
-        GLfloat inverse_cam_dir[4], ambient[4], diffuse[4];//, material[4];
-
-        ambient[0] = ambient[1] = ambient[2] = 0.4f;
-        ambient[3] = 1.0f;
-        diffuse[0] = diffuse[1] = diffuse[2] = 0.4f;
-        diffuse[3] = 1.0f;
-        //material[0] = material[1] = material[2] = 0.8f;
-        //material[3] = 1.0f;
+        const GLfloat ambient[] = { 0.4f, 0.4f, 0.4f, 1.0f };
+        const GLfloat diffuse[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 
         const auto& forward = _camera->getForwardVector();
-        inverse_cam_dir[0] = forward[0];
-        inverse_cam_dir[1] = forward[1];
-        inverse_cam_dir[2] = forward[2];
-        inverse_cam_dir[3] = 0;
+        const GLfloat lightDir[] = {
+            static_cast<GLfloat>(forward[0]),
+            static_cast<GLfloat>(forward[1]),
+            static_cast<GLfloat>(forward[2]),
+            0.0f
+        };
 
-        glLightfv(GL_LIGHT0, GL_POSITION, inverse_cam_dir);
-
+        glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
         glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-
         glEnable(GL_LIGHT0);
     }
 
@@ -1365,7 +1365,8 @@ void CamWnd::onGLMouseButtonPress(wxMouseEvent& ev)
     }
 
     // Track if this is a double-click for the event handlers
-    _isDoubleClick = ev.LeftDClick() || ev.RightDClick() || ev.MiddleDClick();
+    // (LeftDClick is handled above with an early return, so only check right/middle)
+    _isDoubleClick = ev.RightDClick() || ev.MiddleDClick();
 
     // Pass the call to the actual handler
     MouseToolHandler::onGLMouseButtonPress(ev);
@@ -1410,38 +1411,14 @@ void CamWnd::drawTime()
         return;
     }
 
+    // The 2D overlay state (ortho projection, disabled textures/lighting/depth)
+    // is already set up by Cam_Draw before this call. We only need to position
+    // the text in the top-right area of the viewport.
     auto width = _camera->getDeviceWidth();
     auto height = _camera->getDeviceHeight();
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, static_cast<float>(width), 0, static_cast<float>(height), -100, 100);
-
-    glScalef(1, -1, 1);
-    glTranslatef(static_cast<float>(width) - 105, -static_cast<float>(height), 0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    if (GLEW_VERSION_1_3)
-    {
-        glClientActiveTexture(GL_TEXTURE0);
-        glActiveTexture(GL_TEXTURE0);
-    }
-
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
-
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
-    glDisable(GL_DEPTH_TEST);
-
-    glColor3f(1.f, 1.f, 1.f);
-    glLineWidth(1);
-
-    glRasterPos3f(1.0f, static_cast<float>(height) - 4.0f, 0.0f);
+    glRasterPos3f(static_cast<float>(width) - 104.0f,
+                  static_cast<float>(height) - 4.0f, 0.0f);
 
     std::size_t time = GlobalRenderSystem().getTime();
     _glFont->drawString(fmt::format("Time: {0:.3f} sec.", (time * 0.001f)));
