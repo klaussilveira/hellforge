@@ -7,23 +7,23 @@
       <tool name="BasicSelectionTool" button="LMB" modifiers="SHIFT" />
       <tool name="CycleSelectionMouseTool" button="LMB" modifiers="ALT+SHIFT" />
       <tool name="BrushCreatorTool" button="LMB" modifiers="" />
-      <tool name="CameraAngleTool" button="MMB" modifiers="" />
-      <tool name="CameraMoveTool" button="MMB" modifiers="CONTROL" />
+      <tool name="CameraAngleTool" button="" modifiers="" />
+      <tool name="CameraMoveTool" button="" modifiers="" />
       <tool name="ClipperTool" button="LMB" modifiers="" />
       <tool name="PolygonTool" button="LMB" modifiers="" />
-      <tool name="MoveViewTool" button="RMB" modifiers="" />
+      <tool name="MoveViewTool" button="MMB" modifiers="" />
       <tool name="ZoomTool" button="RMB" modifiers="SHIFT" />
-      <tool name="MeasurementTool" button="MMB" modifiers="CONTROL+ALT" />
+      <tool name="MeasurementTool" button="MMB" modifiers="CONTROL" />
     </mouseToolMapping>
     <!-- ID 1 = camera -->
     <mouseToolMapping name="CameraView" id="1">
       <tool name="FreeMoveTool" button="RMB" modifiers="" />
       <tool name="JumpToObjectTool" button="RMB" modifiers="ALT" />
-      <tool name="PanViewTool" button="RMB" modifiers="CONTROL" />
-      <tool name="PickShaderTool" button="MMB" modifiers="" />
+      <tool name="PanViewTool" button="MMB" />
+      <tool name="PickShaderTool" button="MMB" modifiers="ALT" />
       <tool name="PasteShaderProjectedTool" button="MMB" modifiers="CONTROL" />
       <tool name="PasteShaderNaturalTool" button="MMB" modifiers="SHIFT" />
-      <tool name="PasteShaderCoordsTool" button="MMB" modifiers="ALT" />
+      <tool name="PasteShaderCoordsTool" button="" modifiers="" />
       <tool name="PasteShaderToBrushTool" button="MMB" modifiers="ALT+CONTROL" />
       <tool name="PasteShaderNameTool" button="MMB" modifiers="ALT+SHIFT" />
       <tool name="ManipulateMouseTool" button="LMB" modifiers="" />
@@ -43,10 +43,44 @@
     </mouseToolMapping>
   </mouseToolMappings>
 	<cameraview>
-		<strafemode toggle="CONTROL" forward="SHIFT" speed="0.65" forwardFactor="-1" />
+		<strafemode toggle="CONTROL" forward="SHIFT" speed="0.80" forwardFactor="-1" />
 		<brushcreation squareModifier="SHIFT" heightModifier="ALT" />
 	</cameraview>
 	<shortcuts name="default">
+		<!-- Camera Movement -->
+		<shortcut command="CameraMoveForward" key="W" />
+		<shortcut command="CameraMoveBack" key="S" />
+		<shortcut command="CameraMoveLeft" key="A" />
+		<shortcut command="CameraMoveRight" key="D" />
+		<shortcut command="CameraMoveUp" key="Q" />
+		<shortcut command="CameraMoveDown" key="X" />
+
+		<!-- Manipulators -->
+		<shortcut command="ToggleClipper" key="C" />
+		<shortcut command="MouseTranslate" key="T" />
+		<shortcut command="MouseRotate" key="R" />
+		<shortcut command="MouseDrag" key="G" />
+
+		<!-- Texturing -->
+		<shortcut command="ToggleSurfaceInspector" key="S" />
+		<shortcut command="ToggleTextureBrowser" key="T" modifiers="CONTROL" />
+		<shortcut command="ToggleTextureTool" key="T" modifiers="CONTROL+ALT" />
+		<shortcut command="ToggleMainControl_TextureTool" key="T" modifiers="CONTROL+ALT+SHIFT" />
+		<shortcut command="TexRotateClock" key="Next" modifiers="SHIFT" />
+		<shortcut command="TexRotateCounter" key="Prior" modifiers="ALT" />
+		<shortcut command="TexScaleUp" key="Up" modifiers="CONTROL" />
+		<shortcut command="TexScaleDown" key="Down" modifiers="CONTROL" />
+		<shortcut command="TexScaleLeft" key="Left" modifiers="CONTROL" />
+		<shortcut command="TexScaleRight" key="Right" modifiers="CONTROL" />
+		<shortcut command="TexShiftUp" key="Up" modifiers="SHIFT" />
+		<shortcut command="TexShiftDown" key="Down" modifiers="SHIFT" />
+		<shortcut command="TexShiftLeft" key="Left" modifiers="SHIFT" />
+		<shortcut command="TexShiftRight" key="Right" modifiers="SHIFT" />
+		<shortcut command="TexToolGridUp" key="plus" modifiers="SHIFT" />
+		<shortcut command="TexToolGridDown" key="minus" modifiers="SHIFT" />
+		<shortcut command="TexToolMergeItems" key="M" modifiers="ALT" />
+		<shortcut command="TextureNatural" key="N" modifiers="CONTROL" />
+		<shortcut command="NormaliseTexture" key="N" modifiers="SHIFT" />
 		<shortcut command="Sleep" key="P" modifiers="SHIFT+CONTROL" />
 		<shortcut command="OpenMap" key="O" modifiers="CONTROL" />
 		<shortcut command="SaveMap" key="S" modifiers="CONTROL" />
@@ -78,16 +112,6 @@
 		<shortcut command="CamIncreaseMoveSpeed" key="KP_Add" modifiers=""/>
 		<shortcut command="SnapToGrid" key="G" modifiers="CONTROL" />
 		<shortcut command="SelectAllOfType" key="A" modifiers="SHIFT" />
-		<shortcut command="TexRotateClock" key="Next" modifiers="SHIFT" />
-		<shortcut command="TexRotateCounter" key="Prior" modifiers="ALT" />
-		<shortcut command="TexScaleUp" key="Up" modifiers="CONTROL" />
-		<shortcut command="TexScaleDown" key="Down" modifiers="CONTROL" />
-		<shortcut command="TexScaleLeft" key="Left" modifiers="CONTROL" />
-		<shortcut command="TexScaleRight" key="Right" modifiers="CONTROL" />
-		<shortcut command="TexShiftUp" key="Up" modifiers="SHIFT" />
-		<shortcut command="TexShiftDown" key="Down" modifiers="SHIFT" />
-		<shortcut command="TexShiftLeft" key="Left" modifiers="SHIFT" />
-		<shortcut command="TexShiftRight" key="Right" modifiers="SHIFT" />
 		<shortcut command="MoveSelectionDOWN" key="KP_Subtract" modifiers="SHIFT" />
 		<shortcut command="MoveSelectionUP" key="KP_Add" modifiers="SHIFT" />
 		<shortcut command="SelectNudgeLeft" key="Left" modifiers="ALT" />
@@ -100,16 +124,6 @@
 		<shortcut command="UpFloor" key="Prior" />
 		<shortcut command="DownFloor" key="Next" />
 		<shortcut command="TogglePreview" key="F3" />
-		<shortcut command="CameraMoveForward" key="Up" />
-		<shortcut command="CameraMoveBack" key="Down" />
-		<shortcut command="CameraMoveLeft" key="Left" />
-		<shortcut command="CameraMoveRight" key="Right" />
-		<shortcut command="CameraStrafeRight" key="period" />
-		<shortcut command="CameraStrafeLeft" key="comma" />
-		<shortcut command="CameraMoveUp" key="D" />
-		<shortcut command="CameraMoveDown" key="C" />
-		<shortcut command="CameraAngleUp" key="A" />
-		<shortcut command="CameraAngleDown" key="Z" />
 		<shortcut command="Brush3Sided" key="3" modifiers="CONTROL" />
 		<shortcut command="Brush4Sided" key="4" modifiers="CONTROL" />
 		<shortcut command="Brush5Sided" key="5" modifiers="CONTROL" />
@@ -131,7 +145,6 @@
 		<shortcut command="PatchInsertRowEnd" key="KP_Add" modifiers="CONTROL" />
 		<shortcut command="PatchDeleteColumnEnd" key="KP_Subtract" modifiers="SHIFT+CONTROL" />
 		<shortcut command="PatchDeleteRowEnd" key="KP_Subtract" modifiers="CONTROL" />
-		<shortcut command="TextureNatural" key="N" modifiers="CONTROL" />
 		<shortcut command="CreateSimplePatchDialog" key="P" modifiers="SHIFT" />
 		<shortcut command="InvertCurve" key="I" modifiers="CONTROL" />
 		<shortcut command="RedisperseRows" key="E" modifiers="CONTROL" />
@@ -140,8 +153,6 @@
 		<shortcut command="PatchCapDialog" key="C" modifiers="SHIFT" />
 		<shortcut command="NextLeakSpot" key="K" modifiers="SHIFT+CONTROL" />
 		<shortcut command="PrevLeakSpot" key="L" modifiers="SHIFT+CONTROL" />
-		<shortcut command="ToggleSurfaceInspector" key="S" />
-		<shortcut command="ToggleTextureBrowser" key="T" />
 		<shortcut command="ToggleCrosshairs" key="X" modifiers="SHIFT" />
 		<shortcut command="ToggleGrid" key="0" />
 		<shortcut command="ToggleView" key="V" modifiers="SHIFT+CONTROL" />
@@ -157,13 +168,8 @@
 		<shortcut command="DragEdges" key="E" />
 		<shortcut command="DragFaces" key="F" />
 		<shortcut command="ToggleSelectionFocus" key="F" modifiers="CONTROL" />
-		<shortcut command="ThickenPatchDialog" key="T" modifiers="CONTROL" />
+		<shortcut command="ThickenPatchDialog" key="P" modifiers="CONTROL" />
 		<shortcut command="ToggleShowAllLightRadii" key="F" modifiers="CONTROL+SHIFT+ALT" />
-		<shortcut command="ToggleClipper" key="X" />
-		<shortcut command="TogglePolygonMode" key="P" modifiers="CONTROL" />
-		<shortcut command="MouseTranslate" key="W" />
-		<shortcut command="MouseRotate" key="R" />
-		<shortcut command="MouseDrag" key="Q" />
 		<shortcut command="NewOrthoView" key="N" modifiers="CONTROL+ALT" />
 		<shortcut command="SetGrid0.125" key="" modifiers=""/>
 		<shortcut command="SetGrid0.25" key="" modifiers=""/>
@@ -177,12 +183,6 @@
 		<shortcut command="SetGrid64" key="7" modifiers=""/>
 		<shortcut command="SetGrid128" key="8" modifiers=""/>
 		<shortcut command="SetGrid256" key="9" modifiers=""/>
-		<shortcut command="ToggleTextureTool" key="T" modifiers="CONTROL+ALT"/>
-		<shortcut command="ToggleMainControl_TextureTool" key="T" modifiers="CONTROL+ALT+SHIFT"/>
-		<shortcut command="NormaliseTexture" key="" modifiers=""/>
-		<shortcut command="TexToolGridUp" key="plus" modifiers="SHIFT" />
-		<shortcut command="TexToolGridDown" key="minus" modifiers="SHIFT" />
-		<shortcut command="TexToolMergeItems" key="M" modifiers="ALT" />
 		<shortcut command="GroupCycleBackward" key="ISO_Left_Tab" modifiers="SHIFT"/>
 		<shortcut command="GroupCycleForward" key="Tab" modifiers=""/>
 		<shortcut command="RevertToWorldspawn" key="G" modifiers="SHIFT"/>
@@ -212,32 +212,4 @@
     <shortcut command="GroupSelected" key="G" modifiers="CONTROL+SHIFT" />
     <shortcut command="UngroupSelected" key="U" modifiers="CONTROL+SHIFT" />
 	</shortcuts>
-	<commandRemappings>
-		<!-- Commands that have been moved/renamed since 2.8.0 -->
-		<commandRemapping oldname="CameraForward" newname="CameraMoveForward" />
-		<commandRemapping oldname="CameraBack" newname="CameraMoveBack" />
-		<commandRemapping oldname="CameraLeft" newname="CameraMoveLeft" />
-		<commandRemapping oldname="CameraRight" newname="CameraMoveRight" />
-		<commandRemapping oldname="CameraUp" newname="CameraMoveUp" />
-		<commandRemapping oldname="CameraDown" newname="CameraMoveDown" />
-        <commandRemapping oldname="SimplePatchMesh" newname="CreateSimplePatchDialog" />
-        <commandRemapping oldname="CapCurrentCurve" newname="PatchCapDialog" />
-        <commandRemapping oldname="ThickenPatch" newname="ThickenPatchDialog" />
-        <!-- Control Toggles have been unified in 3.5.0, some commands have been renamed -->
-        <commandRemapping oldname="ToggleLayerControlDialog" newname="ToggleLayerControlPanel" />
-        <commandRemapping oldname="SurfaceInspector" newname="ToggleSurfaceInspector" />
-        <commandRemapping oldname="PatchInspector" newname="TogglePatchInspector" />
-        <commandRemapping oldname="TransformDialog" newname="ToggleTransformPanel" />
-        <commandRemapping oldname="MergeControlPanel" newname="ToggleMapMergePanel" />
-        <commandRemapping oldname="EntityList" newname="ToggleEntityList" />
-        <commandRemapping oldname="ToggleAasControlDialog" newname="ToggleAasVisualisationPanel" />
-        <commandRemapping oldname="FindReplaceTextures" newname="ToggleFindAndReplaceMaterial" />
-        <commandRemapping oldname="OverlayDialog" newname="ToggleOrthoBackgroundPanel" />
-        <commandRemapping oldname="TextureTool" newname="ToggleTextureTool" />
-        <commandRemapping oldname="GameConnectionDialogToggle" newname="ToggleGameConnectionPanel" />
-        <commandRemapping oldname="ViewTextures" newname="ToggleTextureBrowser" />
-        <!-- DR 3.6.0: Re-bind the old FocusCameraOnSelection shortcut to ToggleSelectionFocus  -->
-        <!-- FocusCameraOnSelection is now called FocusCameraViewOnSelection -->
-        <commandRemapping oldname="FocusCameraOnSelection" newname="ToggleSelectionFocus" />
-	</commandRemappings>
 </input>
