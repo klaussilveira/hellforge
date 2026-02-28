@@ -9,6 +9,8 @@
 #include "igl.h"
 #include "ui/ieventmanager.h"
 
+class IFace;
+
 #include "wxutil/DockablePanel.h"
 #include "wxutil/GLWidget.h"
 #include "wxutil/FreezePointer.h"
@@ -266,6 +268,15 @@ private:
     void onGLResize(wxSizeEvent& ev);
 
     void onMouseScroll(wxMouseEvent& ev);
+    bool resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirection);
+
+    // Mouse wheel smart extrusion
+    scene::INodePtr _lockedNode;
+    IFace*          _lockedHitFace  = nullptr;
+    IFace*          _lockedOppFace  = nullptr;
+    Vector3         _lockedNormal;
+    bool            _lockedFlipped  = false;
+    void clearLockedFace();
 
     void onGLMouseButtonPress(wxMouseEvent& ev);
     void onGLMouseButtonRelease(wxMouseEvent& ev);

@@ -16,6 +16,10 @@
 #include <wx/frame.h>
 
 #include "iselectiontest.h"
+#include "iselectable.h"
+#include "ibrush.h"
+#include "iundo.h"
+#include "igrid.h"
 #include "selectionlib.h"
 #include "gamelib.h"
 #include "CameraSettings.h"
@@ -29,6 +33,7 @@
 #include "Rectangle.h"
 #include "registry/registry.h"
 #include "FloorHeightWalker.h"
+#include "tools/FaceIntersectionFinder.h"
 
 #include "debugging/debugging.h"
 #include "debugging/gl.h"
@@ -1194,6 +1199,18 @@ void CamWnd::onGLResize(wxSizeEvent& ev)
 
 void CamWnd::onMouseScroll(wxMouseEvent& ev)
 {
+    // Alt+scroll resizes brush face under cursor when a brush is selected
+    if (ev.AltDown() && GlobalSelectionSystem().countSelected() > 0)
+    {
+        int scrollDir = ev.GetWheelRotation() > 0 ? 1 : -1;
+        if (resizeBrushFaceUnderCursor(ev, scrollDir))
+            return;
+    }
+    else
+    {
+        clearLockedFace();
+    }
+
     float movementSpeed = static_cast<float>(getCameraSettings()->movementSpeed());
 
     if (ev.ShiftDown())
@@ -1205,7 +1222,7 @@ void CamWnd::onMouseScroll(wxMouseEvent& ev)
         movementSpeed *= 0.1f;
     }
 
-    // Determine the direction we are moving.
+    // Determine the direction we are moving the extrusion
     if (ev.GetWheelRotation() > 0)
     {
         _camera->setCameraOrigin(_camera->getCameraOrigin() - getCamera().getForwardVector() * movementSpeed);
@@ -1214,6 +1231,142 @@ void CamWnd::onMouseScroll(wxMouseEvent& ev)
     {
         _camera->setCameraOrigin(_camera->getCameraOrigin() - getCamera().getForwardVector() * -movementSpeed);
     }
+}
+
+void CamWnd::clearLockedFace()
+{
+    _lockedNode.reset();
+    _lockedHitFace = nullptr;
+    _lockedOppFace = nullptr;
+    _lockedFlipped = false;
+}
+
+bool CamWnd::resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirection)
+{
+    IFace* hitFace = nullptr;
+    IFace* oppFace = nullptr;
+    IBrush* brush  = nullptr;
+    Vector3 worldNormal;
+
+    // Reuse locked face if it is still there
+    if (_lockedHitFace && _lockedNode && Node_isSelected(_lockedNode))
+    {
+        brush = Node_getIBrush(_lockedNode);
+        if (brush)
+        {
+            hitFace     = _lockedHitFace;
+            oppFace     = _lockedOppFace;
+            worldNormal = _lockedNormal;
+        }
+        else
+        {
+            clearLockedFace();
+        }
+    }
+
+    // If we have no face, find one based on where the camera is pointing
+    if (!hitFace)
+    {
+        Vector2 point(ev.GetX(), ev.GetY());
+        Vector2 devicePos = device_constrained(
+            window_to_normalised_device(point, _camera->getDeviceWidth(), _camera->getDeviceHeight()));
+
+        SelectionTestPtr selTest = _camera->createSelectionTestForPoint(devicePos);
+        const Matrix4& viewProj = selTest->getVolume().GetViewProjection();
+
+        FaceIntersectionFinder finder(*selTest, viewProj);
+        GlobalSceneGraph().root()->traverse(finder);
+
+        FaceIntersection result = finder.getResult();
+        if (!result.valid) return false;
+        if (!Node_isSelected(result.node)) return false;
+
+        brush = Node_getIBrush(result.node);
+        if (!brush) return false;
+
+        const Matrix4& l2w = result.node->localToWorld();
+        double bestOppDot = 1.0;
+
+        for (std::size_t i = 0; i < brush->getNumFaces(); ++i)
+        {
+            IFace& face = brush->getFace(i);
+            Vector3 wn = l2w.transformDirection(face.getPlane3().normal()).getNormalised();
+            double d = wn.dot(result.normal);
+
+            if (d > 0.99 && !hitFace)
+                hitFace = &face;
+            else if (d < bestOppDot)
+            {
+                bestOppDot = d;
+                oppFace = &face;
+            }
+        }
+        if (!hitFace) return false;
+
+        worldNormal = result.normal;
+
+        // So we dont accidentaly extrude other faces
+        _lockedNode    = result.node;
+        _lockedHitFace = hitFace;
+        _lockedOppFace = oppFace;
+        _lockedNormal  = worldNormal;
+    }
+
+    double gridSize = GlobalGrid().getGridSize();
+    IFace* faceToMove = hitFace;
+
+    // Once flipped to opposite face, both directions operate on it
+    if (_lockedFlipped && oppFace)
+    {
+        faceToMove = oppFace;
+
+        // When moving back, check if we returned to the middle
+        if (scrollDirection > 0)
+        {
+            const IWinding& oppWinding = oppFace->getWinding();
+            if (!oppWinding.empty())
+            {
+                Vector3 oppVertex = oppWinding.front().vertex;
+                double thickness = std::abs(hitFace->getPlane3().distanceToPoint(oppVertex));
+
+                if (thickness <= gridSize)
+                {
+                    // Back at the middle: swap again
+                    faceToMove = hitFace;
+                    _lockedFlipped = false;
+                }
+            }
+        }
+    }
+    else if (scrollDirection < 0 && oppFace)
+    {
+        // Check if we are not going to be a degenerate brush
+        const IWinding& oppWinding = oppFace->getWinding();
+        if (!oppWinding.empty())
+        {
+            Vector3 oppVertex = oppWinding.front().vertex;
+            double thickness = std::abs(hitFace->getPlane3().distanceToPoint(oppVertex));
+
+            if (thickness <= gridSize)
+            {
+                // At minimum thickness, time to flip the extrusion side
+                faceToMove = oppFace;
+                _lockedFlipped = true;
+            }
+        }
+    }
+
+    Vector3 moveDir = worldNormal * gridSize * scrollDirection;
+
+    UndoableCommand cmd("resizeBrushFace3D");
+    brush->undoSave();
+    faceToMove->transform(Matrix4::getTranslation(moveDir));
+    faceToMove->freezeTransform();
+
+    brush->evaluateBRep();
+    SceneChangeNotify();
+
+    return true;
 }
 
 CameraMouseToolEvent CamWnd::createMouseEvent(const Vector2& point, const Vector2& delta)
@@ -1380,6 +1533,9 @@ void CamWnd::onGLMouseButtonRelease(wxMouseEvent& ev)
 
 void CamWnd::onGLMouseMove(wxMouseEvent& ev)
 {
+    if (!ev.AltDown())
+        clearLockedFace();
+
     MouseToolHandler::onGLMouseMove(ev);
 }
 
