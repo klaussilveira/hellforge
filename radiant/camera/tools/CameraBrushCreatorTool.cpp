@@ -6,10 +6,12 @@
 #include "icommandsystem.h"
 #include "ibrush.h"
 #include "imousetoolmanager.h"
+#include "iscenegraph.h"
 #include "scenelib.h"
 #include "selectionlib.h"
 #include "command/ExecutionNotPossible.h"
 #include "CameraMouseToolEvent.h"
+#include "FaceIntersectionFinder.h"
 #include "ui/texturebrowser/TextureBrowserPanel.h"
 #include "ui/texturebrowser/TextureBrowserManager.h"
 #include "selection/SelectionVolume.h"
@@ -140,6 +142,128 @@ void CameraBrushCreatorTool::applyConstraints(Vector3& mins, Vector3& maxs, bool
     // Alt-only is handled in onMouseMove before this function is called
 }
 
+bool CameraBrushCreatorTool::findSurfaceUnderCursor(CameraMouseToolEvent& camEvent,
+    const Vector2& devicePos, Vector3& outPoint, Vector3& outNormal)
+{
+    SelectionTestPtr selectionTest = camEvent.getView().createSelectionTestForPoint(devicePos);
+    const Matrix4& viewProjection = selectionTest->getVolume().GetViewProjection();
+
+    FaceIntersectionFinder finder(*selectionTest, viewProjection);
+    GlobalSceneGraph().root()->traverse(finder);
+
+    const FaceIntersection& intersection = finder.getResult();
+
+    if (intersection.valid)
+    {
+        outPoint = intersection.point;
+        outNormal = intersection.normal;
+        return true;
+    }
+
+    return false;
+}
+
+void CameraBrushCreatorTool::cacheNearbyBrushes(const Vector3& center, double radius)
+{
+    _nearbyBrushes.clear();
+
+    AABB searchAABB(center, Vector3(radius, radius, radius));
+
+    GlobalSceneGraph().foreachVisibleNode([&](const scene::INodePtr& node) -> bool
+    {
+        if (!Node_isBrush(node))
+            return true; // continue
+
+        // Skip our own WIP brush
+        if (node == _brush)
+            return true;
+
+        AABB brushAABB = node->worldAABB();
+
+        if (searchAABB.intersects(brushAABB))
+        {
+            _nearbyBrushes.push_back({brushAABB});
+        }
+
+        return true; // continue
+    });
+}
+
+double CameraBrushCreatorTool::snapToNearbyFace(double value, int axis, double snapThreshold) const
+{
+    double bestSnap = value;
+    double bestDist = snapThreshold;
+
+    for (const auto& nb : _nearbyBrushes)
+    {
+        double faceMin = nb.aabb.origin[axis] - nb.aabb.extents[axis];
+        double faceMax = nb.aabb.origin[axis] + nb.aabb.extents[axis];
+
+        double distMin = std::abs(value - faceMin);
+        double distMax = std::abs(value - faceMax);
+
+        if (distMin < bestDist)
+        {
+            bestSnap = faceMin;
+            bestDist = distMin;
+        }
+        if (distMax < bestDist)
+        {
+            bestSnap = faceMax;
+            bestDist = distMax;
+        }
+    }
+
+    return bestSnap;
+}
+
+void CameraBrushCreatorTool::clampToPreventOverlap(const Vector3& anchor,
+    Vector3& mins, Vector3& maxs) const
+{
+    AABB proposedAABB = AABB::createFromMinMax(mins, maxs);
+
+    for (const auto& nb : _nearbyBrushes)
+    {
+        if (!proposedAABB.intersects(nb.aabb))
+            continue;
+
+        Vector3 nbMin(
+            nb.aabb.origin.x() - nb.aabb.extents.x(),
+            nb.aabb.origin.y() - nb.aabb.extents.y(),
+            nb.aabb.origin.z() - nb.aabb.extents.z()
+        );
+        Vector3 nbMax(
+            nb.aabb.origin.x() + nb.aabb.extents.x(),
+            nb.aabb.origin.y() + nb.aabb.extents.y(),
+            nb.aabb.origin.z() + nb.aabb.extents.z()
+        );
+
+        for (int axis = 0; axis < 3; axis++)
+        {
+            // Skip this axis if the anchor sits on a face of this brush —
+            // that means we started construction on this surface and should
+            // be allowed to grow away from it.
+            double eps = 0.1;
+            if (std::abs(anchor[axis] - nbMin[axis]) < eps ||
+                std::abs(anchor[axis] - nbMax[axis]) < eps)
+                continue;
+
+            // Only clamp the edge that's being dragged (away from anchor)
+            if (anchor[axis] <= nbMin[axis] && maxs[axis] > nbMin[axis])
+            {
+                maxs[axis] = nbMin[axis]; // stop at brush's min face
+            }
+            if (anchor[axis] >= nbMax[axis] && mins[axis] < nbMax[axis])
+            {
+                mins[axis] = nbMax[axis]; // stop at brush's max face
+            }
+        }
+
+        // Recompute proposed AABB after clamping for subsequent checks
+        proposedAABB = AABB::createFromMinMax(mins, maxs);
+    }
+}
+
 MouseTool::Result CameraBrushCreatorTool::onMouseDown(Event& ev)
 {
     try
@@ -172,8 +296,9 @@ MouseTool::Result CameraBrushCreatorTool::onMouseDown(Event& ev)
             _brush.reset();
             _hasMoved = false;
             _altWasHeld = false;
+            _constructOnSurface = false;
 
-            // Get the work zone to determine the construction plane height
+            // Get the work zone to determine the fallback construction plane height
             const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
             _planeHeight = wz.bounds.getOrigin().z();
 
@@ -185,12 +310,68 @@ MouseTool::Result CameraBrushCreatorTool::onMouseDown(Event& ev)
             _viewWidth = ev.getInteractiveView().getDeviceWidth();
             _viewHeight = ev.getInteractiveView().getDeviceHeight();
 
-            // Calculate the starting world position
+            // Try surface detection first
+            Vector3 hitPoint, hitNormal;
             Ray ray = calculateRayForDevicePoint(camEvent.getView(), ev.getDevicePosition());
-            _startPos = getWorldPosOnPlane(ray, _planeHeight);
-            snapToGrid(_startPos);
+
+            if (findSurfaceUnderCursor(camEvent, ev.getDevicePosition(), hitPoint, hitNormal))
+            {
+                // Check if the face is axis-aligned (normal along X, Y, or Z)
+                bool axisAligned = false;
+                for (int axis = 0; axis < 3; axis++)
+                {
+                    if (std::abs(std::abs(hitNormal[axis]) - 1.0) < 0.01)
+                    {
+                        axisAligned = true;
+                        break;
+                    }
+                }
+
+                if (axisAligned)
+                {
+                    _constructOnSurface = true;
+                    _surfaceNormal = hitNormal;
+
+                    // Build construction plane from the hit face
+                    double planeDist = hitNormal.dot(hitPoint);
+                    _constructionPlane = Plane3(hitNormal, planeDist);
+
+                    // Project ray onto the construction plane for start position
+                    _startPos = ray.origin + ray.direction * ray.getDistance(_constructionPlane);
+                    snapToGrid(_startPos);
+
+                    // Snap the normal axis to the face's exact coordinate
+                    for (int axis = 0; axis < 3; axis++)
+                    {
+                        if (std::abs(hitNormal[axis]) > 0.9)
+                        {
+                            _startPos[axis] = float_snapped(hitPoint[axis],
+                                GlobalGrid().getGridSize());
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Non-axis-aligned face: fall back to horizontal plane at hit point's Z
+                    _planeHeight = float_snapped(hitPoint.z(), GlobalGrid().getGridSize());
+                    _startPos = getWorldPosOnPlane(ray, _planeHeight);
+                    snapToGrid(_startPos);
+                }
+            }
+            else
+            {
+                // No surface hit: fall back to original horizontal plane behavior
+                _startPos = getWorldPosOnPlane(ray, _planeHeight);
+                snapToGrid(_startPos);
+            }
 
             _lastEndPos = _startPos;
+
+            // Cache nearby brushes for snapping during drag
+            double gridSize = GlobalGrid().getGridSize();
+            double searchRadius = std::max(gridSize * 20.0, 512.0);
+            cacheNearbyBrushes(_startPos, searchRadius);
 
             GlobalUndoSystem().start();
 
@@ -221,7 +402,21 @@ MouseTool::Result CameraBrushCreatorTool::onMouseMove(Event& ev)
 
         // Calculate current world position on the construction plane
         Ray ray = calculateRayForDevicePoint(camEvent.getView(), ev.getDevicePosition());
-        Vector3 endPos = getWorldPosOnPlane(ray, _planeHeight);
+        Vector3 endPos;
+        if (_constructOnSurface)
+        {
+            double dist = ray.getDistance(_constructionPlane);
+            // If ray is nearly parallel or pointing away from the plane,
+            // fall back to projecting along the dominant construction axes
+            if (dist <= 0 || !std::isfinite(dist))
+                endPos = _lastEndPos; // keep previous valid position
+            else
+                endPos = ray.origin + ray.direction * dist;
+        }
+        else
+        {
+            endPos = getWorldPosOnPlane(ray, _planeHeight);
+        }
         snapToGrid(endPos);
 
         // Get current modifier state using configured modifiers
@@ -272,8 +467,23 @@ MouseTool::Result CameraBrushCreatorTool::onMouseMove(Event& ev)
             // Reset Alt tracking when Alt is released
             _altWasHeld = false;
 
-            // Normal mode or with constraints - set height to grid size
-            maxs.z() = mins.z() + gridSize;
+            // Set the thin dimension along the surface normal (or Z by default)
+            if (_constructOnSurface)
+            {
+                for (int axis = 0; axis < 3; axis++)
+                {
+                    if (std::abs(_surfaceNormal[axis]) > 0.9)
+                    {
+                        double sign = _surfaceNormal[axis] > 0 ? 1.0 : -1.0;
+                        maxs[axis] = mins[axis] + gridSize * sign;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                maxs.z() = mins.z() + gridSize;
+            }
 
             // Store for Alt modifier later (remember the X/Y position)
             _lastEndPos = maxs;
@@ -290,6 +500,30 @@ MouseTool::Result CameraBrushCreatorTool::onMouseMove(Event& ev)
                 std::swap(mins[i], maxs[i]);
             }
         }
+
+        // Snap dragged edges to nearby brush faces and prevent overlap.
+        // Skip the thin axis (programmatically set, not user-dragged).
+        int thinAxis = 2; // default: Z
+        if (_constructOnSurface)
+        {
+            for (int a = 0; a < 3; a++)
+            {
+                if (std::abs(_surfaceNormal[a]) > 0.9) { thinAxis = a; break; }
+            }
+        }
+
+        double snapThreshold = GlobalGrid().getGridSize() * 2.0;
+        for (int axis = 0; axis < 3; axis++)
+        {
+            if (axis == thinAxis) continue;
+
+            // Only snap the dragged edge (away from _startPos), not the anchor
+            if (_startPos[axis] <= mins[axis])
+                maxs[axis] = snapToNearbyFace(maxs[axis], axis, snapThreshold);
+            else
+                mins[axis] = snapToNearbyFace(mins[axis], axis, snapThreshold);
+        }
+        clampToPreventOverlap(_startPos, mins, maxs);
 
         // Check for degenerate brush
         for (int i = 0; i < 3; i++)
@@ -452,9 +686,13 @@ void CameraBrushCreatorTool::renderOverlay()
     std::string heightModStr = wxutil::Modifier::GetLocalisedModifierString(heightModifier);
     std::string cubeModStr = wxutil::Modifier::GetLocalisedModifierString(squareModifier | heightModifier);
 
-    std::string hint = squareModStr + _(": Square (X=Y)  |  ") +
-                       heightModStr + _(": Height only  |  ") +
-                       cubeModStr + _(": Cube (X=Y=Z)");
+    std::string hint;
+    if (_constructOnSurface)
+        hint = _("Drawing on surface | ");
+
+    hint += squareModStr + _(": Square (X=Y)  |  ") +
+            heightModStr + _(": Height only  |  ") +
+            cubeModStr + _(": Cube (X=Y=Z)");
 
     // Position in lower-left corner with padding to avoid FPS/debug timers
     // The stats line is at (4, height-4), so we go 40 pixels below that

@@ -4,10 +4,17 @@
 #include "icameraview.h"
 #include "inode.h"
 #include "math/Vector3.h"
+#include "math/Vector2.h"
 #include "math/Ray.h"
+#include "math/Plane3.h"
+#include "math/AABB.h"
+
+#include <vector>
 
 namespace ui
 {
+
+class CameraMouseToolEvent;
 
 /**
  * This tool provides the drag-to-create-a-brush functionality for the 3D camera view.
@@ -41,6 +48,15 @@ private:
     int _viewWidth;             // View width for overlay rendering
     int _viewHeight;            // View height for overlay rendering
 
+    // Cached nearby brush AABBs for snapping during drag (populated on mouseDown)
+    struct NearbyBrush { AABB aabb; };
+    std::vector<NearbyBrush> _nearbyBrushes;
+
+    // Construction plane for this drag (either from clicked brush face or default horizontal)
+    Plane3 _constructionPlane;
+    bool _constructOnSurface = false;   // true if user clicked on a brush face
+    Vector3 _surfaceNormal;             // face normal of clicked surface
+
     // Calculate a ray from the camera through the given device point
     Ray calculateRayForDevicePoint(camera::ICameraView& camView, const Vector2& devicePoint) const;
 
@@ -52,6 +68,13 @@ private:
 
     // Apply constraint modifiers to the brush dimensions
     void applyConstraints(Vector3& mins, Vector3& maxs, bool shiftHeld, bool altHeld) const;
+
+    // Surface detection and snapping helpers
+    bool findSurfaceUnderCursor(CameraMouseToolEvent& camEvent, const Vector2& devicePos,
+                                Vector3& outPoint, Vector3& outNormal);
+    void cacheNearbyBrushes(const Vector3& center, double radius);
+    double snapToNearbyFace(double value, int axis, double snapThreshold) const;
+    void clampToPreventOverlap(const Vector3& anchor, Vector3& mins, Vector3& maxs) const;
 
 public:
     const std::string& getName() override;
