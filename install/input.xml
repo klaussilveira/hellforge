@@ -27,6 +27,7 @@
       <tool name="PasteShaderToBrushTool" button="MMB" modifiers="ALT+CONTROL" />
       <tool name="PasteShaderNameTool" button="MMB" modifiers="ALT+SHIFT" />
       <tool name="ManipulateMouseTool" button="LMB" modifiers="" />
+      <tool name="PolygonTool" button="LMB" modifiers="" />
       <tool name="CameraBrushCreatorTool" button="LMB" modifiers="" />
       <tool name="BasicSelectionTool" button="LMB" modifiers="SHIFT" />
       <tool name="DragSelectionMouseToolFaceOnly" button="LMB" modifiers="SHIFT+CONTROL" />

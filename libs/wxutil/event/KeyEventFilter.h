@@ -31,6 +31,10 @@ private:
 
     Callback _callback;
 
+    // When a KEY_DOWN is consumed, also consume the matching KEY_UP
+    // to prevent it from reaching keyUp-triggered shortcuts
+    bool _consumeNextKeyUp = false;
+
 public:
     // Construct the filter with a keycode to observer and a callback
     // function that is invoked when the keycode occurs
@@ -50,7 +54,7 @@ public:
     {
         const wxEventType t = event.GetEventType();
 
-        if (t == wxEVT_KEY_DOWN && 
+        if (t == wxEVT_KEY_DOWN &&
             static_cast<wxKeyEvent&>(event).GetKeyCode() == _keyCodeToCapture)
         {
             Result result = Result::KeyProcessed;
@@ -60,8 +64,19 @@ public:
                 result = _callback();
             }
 
+            _consumeNextKeyUp = (result == Result::KeyProcessed);
+
             // Stop propagation if the key was processed
             return result == Result::KeyProcessed ? Event_Processed : Event_Skip;
+        }
+
+        // Also consume the matching KEY_UP to prevent it from
+        // reaching keyUp-triggered commands (e.g., CloneSelection)
+        if (t == wxEVT_KEY_UP && _consumeNextKeyUp &&
+            static_cast<wxKeyEvent&>(event).GetKeyCode() == _keyCodeToCapture)
+        {
+            _consumeNextKeyUp = false;
+            return Event_Processed;
         }
 
         // Continue processing the event normally if it doesn't match our signature

@@ -18,6 +18,7 @@ public:
     void positionActiveView(const Vector3& origin) override;
     OrthoOrientation getActiveViewType() const override;
     void setActiveViewType(OrthoOrientation viewType) override;
+    bool polygonMode() const override;
 
     std::string getName() const override;
 };

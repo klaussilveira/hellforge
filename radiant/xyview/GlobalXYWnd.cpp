@@ -120,7 +120,7 @@ void XYWndManager::registerCommands()
 	GlobalCommandSystem().addCommand("Zoom100", std::bind(&XYWndManager::zoom100, this, std::placeholders::_1));
 	GlobalCommandSystem().addCommand("RunBenchmark", std::bind(&XYWndManager::runBenchmark, this, std::placeholders::_1),
         { cmd::ARGTYPE_INT | cmd::ARGTYPE_OPTIONAL });
-	GlobalCommandSystem().addCommand("TogglePolygonMode", std::bind(&XYWndManager::togglePolygonMode, this, std::placeholders::_1));
+	GlobalEventManager().addToggle("TogglePolygonMode", [this](bool) { togglePolygonMode(cmd::ArgumentList()); });
 	// Register FinishPolygon with a check function so it only activates when polygon mode
 	// is enabled and there's an active polygon with enough points
 	GlobalCommandSystem().addWithCheck("FinishPolygon",
@@ -270,6 +270,7 @@ void XYWndManager::setPolygonMode(bool enabled)
         _polygonTool->cancelPolygonDrawing();
     }
 
+    GlobalEventManager().setToggled("TogglePolygonMode", _polygonMode);
     updateAllViews();
 }
 
@@ -578,6 +579,11 @@ void XYWndManager::initialiseModule(const IApplicationContext& ctx)
     toolGroup.registerMouseTool(std::make_shared<ClipperTool>());
     _polygonTool = std::make_shared<PolygonTool>();
     toolGroup.registerMouseTool(_polygonTool);
+
+    // Also register in camera view so polygon tool works in 3D
+    IMouseToolGroup& camGroup = GlobalMouseToolManager().getGroup(IMouseToolGroup::Type::CameraView);
+    camGroup.registerMouseTool(_polygonTool);
+
     toolGroup.registerMouseTool(std::make_shared<ZoomTool>());
     toolGroup.registerMouseTool(std::make_shared<CameraAngleTool>());
     toolGroup.registerMouseTool(std::make_shared<CameraMoveTool>());

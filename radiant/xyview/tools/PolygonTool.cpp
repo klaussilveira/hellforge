@@ -14,6 +14,13 @@
 #include "math/FloatTools.h"
 #include "math/Plane3.h"
 #include "XYMouseToolEvent.h"
+#include "camera/tools/CameraMouseToolEvent.h"
+#include "camera/tools/FaceIntersectionFinder.h"
+#include "icameraview.h"
+#include "iscenegraph.h"
+#include "selection/SelectionVolume.h"
+#include "igl.h"
+#include "settings/RenderingQualitySettings.h"
 #include "ui/texturebrowser/TextureBrowserPanel.h"
 #include "ui/texturebrowser/TextureBrowserManager.h"
 #include "../GlobalXYWnd.h"
@@ -25,6 +32,7 @@ PolygonTool::PolygonTool() :
     _viewType(OrthoOrientation::XY),
     _viewScale(1.0f),
     _isDrawing(false),
+    _isCameraMode(false),
     _pointsRenderable(_renderVertices),
     _lineRenderable(_renderVertices)
 {}
@@ -45,12 +53,19 @@ const std::string& PolygonTool::getDisplayName()
 
 MouseTool::Result PolygonTool::onMouseDown(Event& ev)
 {
+    // Try ortho view first
     try {
         XYMouseToolEvent& xyEvent = dynamic_cast<XYMouseToolEvent&>(ev);
 
-        if (!GlobalXYWnd().polygonMode())
+        // If already drawing in camera mode, ignore ortho events
+        if (_isDrawing && _isCameraMode)
         {
             return Result::Ignored;
+        }
+
+        if (!GlobalXYWnd().polygonMode())
+        {
+            return Result::Finished;
         }
 
         Vector3 point = xyEvent.getWorldPos();
@@ -61,12 +76,16 @@ MouseTool::Result PolygonTool::onMouseDown(Event& ev)
             _viewType = xyEvent.getViewType();
             _viewScale = xyEvent.getScale();
             _isDrawing = true;
+            _isCameraMode = false;
 
             // Register Return key filter to complete polygon
             if (!_returnKeyFilter)
             {
                 _returnKeyFilter = std::make_shared<wxutil::KeyEventFilter>(
                     WXK_RETURN,
+                    std::bind(&PolygonTool::handleReturnKey, this));
+                _spaceKeyFilter = std::make_shared<wxutil::KeyEventFilter>(
+                    WXK_SPACE,
                     std::bind(&PolygonTool::handleReturnKey, this));
             }
         }
@@ -81,7 +100,121 @@ MouseTool::Result PolygonTool::onMouseDown(Event& ev)
         }
 
         // Add the point
-        addPoint(point, xyEvent);
+        addPoint(point);
+        _currentMousePos = point;
+
+        updateRenderables();
+        GlobalMainFrame().updateAllWindows();
+
+        return Result::Activated;
+    }
+    catch (std::bad_cast&)
+    {
+    }
+
+    // Try camera view
+    try {
+        CameraMouseToolEvent& camEvent = dynamic_cast<CameraMouseToolEvent&>(ev);
+
+        // If already drawing in ortho mode, ignore camera events
+        if (_isDrawing && !_isCameraMode)
+        {
+            return Result::Ignored;
+        }
+
+        if (!GlobalXYWnd().polygonMode())
+        {
+            return Result::Finished;
+        }
+
+        // Store camera matrices for overlay rendering
+        _cameraModelView = camEvent.getView().getModelView();
+        _cameraProjection = camEvent.getView().getProjection();
+        _cameraWidth = static_cast<int>(ev.getInteractiveView().getDeviceWidth());
+        _cameraHeight = static_cast<int>(ev.getInteractiveView().getDeviceHeight());
+
+        Ray ray = calculateRayForDevicePoint(camEvent.getView(), ev.getDevicePosition());
+
+        if (_points.empty())
+        {
+            // First click: establish construction plane
+            Vector3 hitPoint, hitNormal;
+
+            if (findSurfaceUnderCursor(camEvent, hitPoint, hitNormal))
+            {
+                // Determine if the hit normal is axis-aligned
+                bool axisAligned = false;
+                for (int axis = 0; axis < 3; axis++)
+                {
+                    if (std::abs(std::abs(hitNormal[axis]) - 1.0) < 0.01)
+                    {
+                        axisAligned = true;
+                        break;
+                    }
+                }
+
+                if (axisAligned)
+                {
+                    // Map normal to ortho orientation
+                    if (std::abs(hitNormal.z()) > 0.9)
+                        _viewType = OrthoOrientation::XY;
+                    else if (std::abs(hitNormal.x()) > 0.9)
+                        _viewType = OrthoOrientation::YZ;
+                    else
+                        _viewType = OrthoOrientation::XZ;
+
+                    _constructionNormal = hitNormal;
+                    double planeDist = hitNormal.dot(hitPoint);
+                    _constructionPlane = Plane3(hitNormal, planeDist);
+                }
+                else
+                {
+                    // Non-axis-aligned: fall back to horizontal XY plane at hit Z
+                    _viewType = OrthoOrientation::XY;
+                    double hitZ = float_snapped(hitPoint.z(), GlobalGrid().getGridSize());
+                    _constructionNormal = Vector3(0, 0, 1);
+                    _constructionPlane = Plane3(_constructionNormal, hitZ);
+                }
+            }
+            else
+            {
+                // No surface hit: horizontal XY plane at workzone Z
+                _viewType = OrthoOrientation::XY;
+                const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
+                double planeZ = float_snapped(wz.bounds.getOrigin().z(), GlobalGrid().getGridSize());
+                _constructionNormal = Vector3(0, 0, 1);
+                _constructionPlane = Plane3(_constructionNormal, planeZ);
+            }
+
+            _isCameraMode = true;
+            _isDrawing = true;
+
+            if (!_returnKeyFilter)
+            {
+                _returnKeyFilter = std::make_shared<wxutil::KeyEventFilter>(
+                    WXK_RETURN,
+                    std::bind(&PolygonTool::handleReturnKey, this));
+                _spaceKeyFilter = std::make_shared<wxutil::KeyEventFilter>(
+                    WXK_SPACE,
+                    std::bind(&PolygonTool::handleReturnKey, this));
+            }
+        }
+
+        // Project ray onto construction plane
+        Vector3 point = projectOntoConstructionPlane(ray);
+        double gridSize = GlobalGrid().getGridSize();
+        point.x() = float_snapped(point.x(), gridSize);
+        point.y() = float_snapped(point.y(), gridSize);
+        point.z() = float_snapped(point.z(), gridSize);
+
+        // Check if we should close the polygon
+        if (_points.size() >= MIN_POLYGON_POINTS && isNearFirstPoint(point))
+        {
+            finishPolygon();
+            return Result::Finished;
+        }
+
+        addPoint(point);
         _currentMousePos = point;
 
         updateRenderables();
@@ -98,16 +231,46 @@ MouseTool::Result PolygonTool::onMouseDown(Event& ev)
 
 MouseTool::Result PolygonTool::onMouseMove(Event& ev)
 {
+    // Try ortho view
     try
     {
         XYMouseToolEvent& xyEvent = dynamic_cast<XYMouseToolEvent&>(ev);
 
-        // Update current mouse position for preview
-        if (_isDrawing && !_points.empty())
+        if (_isDrawing && !_isCameraMode && !_points.empty())
         {
             _currentMousePos = xyEvent.getWorldPos();
             xyEvent.getView().snapToGrid(_currentMousePos);
             _viewScale = xyEvent.getScale();
+
+            updateRenderables();
+
+            return Result::Continued;
+        }
+    }
+    catch (std::bad_cast&)
+    {
+    }
+
+    // Try camera view
+    try
+    {
+        CameraMouseToolEvent& camEvent = dynamic_cast<CameraMouseToolEvent&>(ev);
+
+        if (_isDrawing && _isCameraMode && !_points.empty())
+        {
+            // Update camera matrices for overlay rendering
+            _cameraModelView = camEvent.getView().getModelView();
+            _cameraProjection = camEvent.getView().getProjection();
+            _cameraWidth = static_cast<int>(ev.getInteractiveView().getDeviceWidth());
+            _cameraHeight = static_cast<int>(ev.getInteractiveView().getDeviceHeight());
+
+            Ray ray = calculateRayForDevicePoint(camEvent.getView(), ev.getDevicePosition());
+            _currentMousePos = projectOntoConstructionPlane(ray);
+
+            double gridSize = GlobalGrid().getGridSize();
+            _currentMousePos.x() = float_snapped(_currentMousePos.x(), gridSize);
+            _currentMousePos.y() = float_snapped(_currentMousePos.y(), gridSize);
+            _currentMousePos.z() = float_snapped(_currentMousePos.z(), gridSize);
 
             updateRenderables();
 
@@ -126,11 +289,18 @@ MouseTool::Result PolygonTool::onMouseUp(Event& ev)
     try
     {
         dynamic_cast<XYMouseToolEvent&>(ev);
-
-        if (_isDrawing)
-        {
+        if (_isDrawing && !_isCameraMode)
             return Result::Continued;
-        }
+    }
+    catch (std::bad_cast&)
+    {
+    }
+
+    try
+    {
+        dynamic_cast<CameraMouseToolEvent&>(ev);
+        if (_isDrawing && _isCameraMode)
+            return Result::Continued;
     }
     catch (std::bad_cast&)
     {
@@ -190,8 +360,8 @@ void PolygonTool::ensureShaders(RenderSystem& renderSystem)
 {
     if (!_wireShader)
     {
-        // Use a bright yellow color for visibility
-        _colour = Vector4(1.0f, 1.0f, 0.0f, 1.0f);
+        Vector3 themeColour = GlobalColourSchemeManager().getColour("drag_selection");
+        _colour = Vector4(themeColour.x(), themeColour.y(), themeColour.z(), 1.0f);
         _wireShader = renderSystem.capture(ColourShaderType::OrthoviewSolid, _colour);
     }
 
@@ -236,6 +406,62 @@ void PolygonTool::render(RenderSystem& renderSystem, IRenderableCollector& colle
     _lineRenderable.update(_wireShader);
 }
 
+void PolygonTool::renderOverlay()
+{
+    if (!_isCameraMode || _points.empty() || _cameraWidth == 0) return;
+
+    // Replace the 2D ortho projection with the stored 3D camera matrices
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadMatrixd(_cameraProjection);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadMatrixd(_cameraModelView);
+
+    // Ensure color is set
+    if (_colour.w() == 0)
+    {
+        Vector3 c = GlobalColourSchemeManager().getColour("drag_selection");
+        _colour = Vector4(c.x(), c.y(), c.z(), 1.0f);
+    }
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+    GlobalRenderingQualitySettings().applyLineSmoothing();
+
+    // Draw polygon outline
+    glColor3f(static_cast<float>(_colour.x()), static_cast<float>(_colour.y()), static_cast<float>(_colour.z()));
+    glLineWidth(2.0f);
+
+    glBegin(GL_LINE_STRIP);
+    for (const auto& pt : _points)
+        glVertex3d(pt.x(), pt.y(), pt.z());
+    glVertex3d(_currentMousePos.x(), _currentMousePos.y(), _currentMousePos.z());
+    glVertex3d(_points[0].x(), _points[0].y(), _points[0].z());
+    glEnd();
+
+    // Draw vertex points
+    glPointSize(6.0f);
+
+    glBegin(GL_POINTS);
+    for (const auto& pt : _points)
+        glVertex3d(pt.x(), pt.y(), pt.z());
+    glEnd();
+
+    // Restore GL state
+    glPointSize(1.0f);
+    glLineWidth(1.0f);
+    GlobalRenderingQualitySettings().disableSmoothing();
+    glEnable(GL_LIGHTING);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+}
+
 bool PolygonTool::isNearFirstPoint(const Vector3& point) const
 {
     if (_points.empty())
@@ -245,6 +471,17 @@ bool PolygonTool::isNearFirstPoint(const Vector3& point) const
 
     int axis1, axis2;
     getViewAxes(axis1, axis2);
+
+    if (_isCameraMode)
+    {
+        // In camera mode, use world-space distance threshold
+        double gridSize = GlobalGrid().getGridSize();
+        double threshold = gridSize * 0.5;
+        double dx = point[axis1] - _points[0][axis1];
+        double dy = point[axis2] - _points[0][axis2];
+        double distanceSq = dx * dx + dy * dy;
+        return distanceSq < (threshold * threshold);
+    }
 
     double dx = (point[axis1] - _points[0][axis1]) * _viewScale;
     double dy = (point[axis2] - _points[0][axis2]) * _viewScale;
@@ -437,22 +674,26 @@ void PolygonTool::reset()
     _renderVertices.clear();
     _currentMousePos = Vector3(0, 0, 0);
     _isDrawing = false;
+    _isCameraMode = false;
     _pointsRenderable.clear();
     _lineRenderable.clear();
-    _returnKeyFilter.reset();
 }
 
-void PolygonTool::addPoint(const Vector3& point, const XYMouseToolEvent& event)
+void PolygonTool::addPoint(const Vector3& point)
 {
     Vector3 adjustedPoint = point;
-    int depthAxis = getExtrusionAxis();
 
-    // For the depth axis, use the workzone center
-    const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
-    adjustedPoint[depthAxis] = float_snapped(
-        (wz.min[depthAxis] + wz.max[depthAxis]) * 0.5,
-        GlobalGrid().getGridSize()
-    );
+    if (!_isCameraMode)
+    {
+        // In ortho mode, set the depth axis to workzone center
+        int depthAxis = getExtrusionAxis();
+        const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
+        adjustedPoint[depthAxis] = float_snapped(
+            (wz.min[depthAxis] + wz.max[depthAxis]) * 0.5,
+            GlobalGrid().getGridSize()
+        );
+    }
+    // In camera mode, the ray-plane intersection already has the correct depth
 
     _points.push_back(adjustedPoint);
 }
@@ -471,8 +712,29 @@ int PolygonTool::getExtrusionAxis() const
 void PolygonTool::getDepthRange(double& minDepth, double& maxDepth) const
 {
     int depthAxis = getExtrusionAxis();
-    const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
     double gridSize = GlobalGrid().getGridSize();
+
+    if (_isCameraMode)
+    {
+        // In camera mode, extrude one grid unit from the construction surface
+        // in the normal direction
+        double surfaceDepth = _points.empty() ? 0 : _points[0][depthAxis];
+        double sign = _constructionNormal[depthAxis];
+
+        if (sign >= 0)
+        {
+            minDepth = surfaceDepth;
+            maxDepth = surfaceDepth + gridSize;
+        }
+        else
+        {
+            minDepth = surfaceDepth - gridSize;
+            maxDepth = surfaceDepth;
+        }
+        return;
+    }
+
+    const selection::WorkZone& wz = GlobalSelectionSystem().getWorkZone();
 
     // Check if workzone is valid
     if (wz.bounds.isValid() && wz.bounds.extents[depthAxis] > 0.01)
@@ -530,8 +792,69 @@ wxutil::KeyEventFilter::Result PolygonTool::handleReturnKey()
         return wxutil::KeyEventFilter::Result::KeyProcessed;
     }
 
-    // Not enough points yet, ignore press
+    // Always consume the key while polygon mode is active or drawing,
+    // to prevent it leaking to shortcuts (e.g., Space → CloneSelection)
+    if (GlobalXYWnd().polygonMode() || _isDrawing)
+    {
+        return wxutil::KeyEventFilter::Result::KeyProcessed;
+    }
+
     return wxutil::KeyEventFilter::Result::KeyIgnored;
+}
+
+Ray PolygonTool::calculateRayForDevicePoint(camera::ICameraView& camView, const Vector2& devicePoint) const
+{
+    const Matrix4& modelView = camView.getModelView();
+    const Matrix4& projection = camView.getProjection();
+
+    Matrix4 viewProj = projection.getMultipliedBy(modelView);
+    Matrix4 invViewProj = viewProj.getFullInverse();
+
+    Vector3 nearPoint(devicePoint.x(), devicePoint.y(), -1.0);
+    Vector3 farPoint(devicePoint.x(), devicePoint.y(), 1.0);
+
+    Vector4 nearWorld4 = invViewProj.transform(Vector4(nearPoint.x(), nearPoint.y(), nearPoint.z(), 1.0));
+    Vector4 farWorld4 = invViewProj.transform(Vector4(farPoint.x(), farPoint.y(), farPoint.z(), 1.0));
+
+    Vector3 nearWorld = nearWorld4.getProjected();
+    Vector3 farWorld = farWorld4.getProjected();
+
+    return Ray::createForPoints(nearWorld, farWorld);
+}
+
+Vector3 PolygonTool::projectOntoConstructionPlane(const Ray& ray) const
+{
+    double distance = ray.getDistance(_constructionPlane);
+
+    if (distance <= 0 || !std::isfinite(distance))
+    {
+        // Ray parallel or pointing away — return last known position
+        return _currentMousePos;
+    }
+
+    return ray.origin + ray.direction * distance;
+}
+
+bool PolygonTool::findSurfaceUnderCursor(CameraMouseToolEvent& camEvent,
+    Vector3& outPoint, Vector3& outNormal)
+{
+    SelectionTestPtr selectionTest = camEvent.getView().createSelectionTestForPoint(
+        camEvent.getDevicePosition());
+    const Matrix4& viewProjection = selectionTest->getVolume().GetViewProjection();
+
+    FaceIntersectionFinder finder(*selectionTest, viewProjection);
+    GlobalSceneGraph().root()->traverse(finder);
+
+    const FaceIntersection& intersection = finder.getResult();
+
+    if (intersection.valid)
+    {
+        outPoint = intersection.point;
+        outNormal = intersection.normal;
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace ui

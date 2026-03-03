@@ -15,6 +15,7 @@
 #include <wx/sizer.h>
 #include <wx/frame.h>
 
+#include "iorthoview.h"
 #include "iselectiontest.h"
 #include "iselectable.h"
 #include "ibrush.h"
@@ -1478,8 +1479,8 @@ void CamWnd::onGLMouseButtonPress(wxMouseEvent& ev)
     // Set this camwnd to active
     _owner.setActiveCamWnd(_id);
 
-    // Handle double-click face selection with high priority (before other tools)
-    if (ev.LeftDClick())
+    // Handle double-click face selection with high priority
+    if (ev.LeftDClick() && !GlobalOrthoViewManager().polygonMode())
     {
         // Perform face selection on double-click
         Vector2 point(ev.GetX(), ev.GetY());
@@ -1516,7 +1517,6 @@ void CamWnd::onGLMouseButtonPress(wxMouseEvent& ev)
     }
 
     // Track if this is a double-click for the event handlers
-    // (LeftDClick is handled above with an early return, so only check right/middle)
     _isDoubleClick = ev.RightDClick() || ev.MiddleDClick();
 
     // Pass the call to the actual handler

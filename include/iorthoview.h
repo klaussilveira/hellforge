@@ -105,6 +105,9 @@ public:
 
     // Sets the viewtype of the active view
     virtual void setActiveViewType(OrthoOrientation viewType) = 0;
+
+    // Returns true if polygon drawing mode is active
+    virtual bool polygonMode() const = 0;
 };
 
 } // namespace

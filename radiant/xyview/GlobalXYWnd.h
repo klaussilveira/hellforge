@@ -78,7 +78,7 @@ public:
     bool zoomCenteredOnMouseCursor() const;
 
     // Polygon mode accessors
-    bool polygonMode() const;
+    bool polygonMode() const override;
     void setPolygonMode(bool enabled);
     void togglePolygonMode(const cmd::ArgumentList& args);
     void finishPolygon(const cmd::ArgumentList& args);

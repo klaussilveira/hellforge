@@ -2,9 +2,14 @@
 
 #include "imousetool.h"
 #include "iorthoview.h"
+#include "icameraview.h"
 #include "inode.h"
 #include "math/Vector3.h"
 #include "math/Vector4.h"
+#include "math/Vector2.h"
+#include "math/Ray.h"
+#include "math/Plane3.h"
+#include "math/Matrix4.h"
 #include "render.h"
 #include "render/RenderableVertexArray.h"
 #include "wxutil/event/KeyEventFilter.h"
@@ -14,9 +19,10 @@ namespace ui
 {
 
 class XYMouseToolEvent;
+class CameraMouseToolEvent;
 
 /**
- * Tool for creating polygon-shaped brushes by adding points in ortho view.
+ * Tool for creating polygon-shaped brushes by adding points in ortho or camera view.
  */
 class PolygonTool :
     public MouseTool
@@ -37,6 +43,17 @@ private:
     // Whether we're actively drawing
     bool _isDrawing;
 
+    // Camera mode state
+    bool _isCameraMode;
+    Plane3 _constructionPlane;
+    Vector3 _constructionNormal;
+
+    // Stored camera matrices for overlay rendering
+    Matrix4 _cameraModelView;
+    Matrix4 _cameraProjection;
+    int _cameraWidth = 0;
+    int _cameraHeight = 0;
+
     // Rendering infrastructure
     std::vector<Vertex3> _renderVertices;
     render::RenderablePoints _pointsRenderable;
@@ -49,6 +66,7 @@ private:
     static constexpr std::size_t MIN_POLYGON_POINTS = 3;
 
     wxutil::KeyEventFilterPtr _returnKeyFilter;
+    wxutil::KeyEventFilterPtr _spaceKeyFilter;
 
 public:
     PolygonTool();
@@ -67,8 +85,11 @@ public:
     unsigned int getPointerMode() override;
     unsigned int getRefreshMode() override;
 
-    // Render the polygon preview in world space
+    // Render the polygon preview in world space (ortho views via render system)
     void render(RenderSystem& renderSystem, IRenderableCollector& collector, const VolumeTest& volume) override;
+
+    // Render polygon preview in camera view via direct GL overlay
+    void renderOverlay() override;
 
     void finishPolygonIfReady();
     void cancelPolygonDrawing();
@@ -88,7 +109,7 @@ private:
     scene::INodePtr createBrushFromPolygon();
 
     void reset();
-    void addPoint(const Vector3& point, const XYMouseToolEvent& event);
+    void addPoint(const Vector3& point);
 
     // Get the extrusion axis based on view type
     int getExtrusionAxis() const;
@@ -102,6 +123,11 @@ private:
     void ensureShaders(RenderSystem& renderSystem);
     void updateRenderables();
     wxutil::KeyEventFilter::Result handleReturnKey();
+
+    // Camera mode helpers
+    Ray calculateRayForDevicePoint(camera::ICameraView& camView, const Vector2& devicePoint) const;
+    Vector3 projectOntoConstructionPlane(const Ray& ray) const;
+    bool findSurfaceUnderCursor(CameraMouseToolEvent& camEvent, Vector3& outPoint, Vector3& outNormal);
 };
 
 } // namespace ui

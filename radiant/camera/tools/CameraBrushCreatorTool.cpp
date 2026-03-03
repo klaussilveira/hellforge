@@ -12,6 +12,7 @@
 #include "command/ExecutionNotPossible.h"
 #include "CameraMouseToolEvent.h"
 #include "FaceIntersectionFinder.h"
+#include "iorthoview.h"
 #include "ui/texturebrowser/TextureBrowserPanel.h"
 #include "ui/texturebrowser/TextureBrowserManager.h"
 #include "selection/SelectionVolume.h"
@@ -268,9 +269,10 @@ MouseTool::Result CameraBrushCreatorTool::onMouseDown(Event& ev)
 {
     try
     {
-        if (GlobalClipper().clipMode() || GlobalMapModule().getEditMode() == IMap::EditMode::Merge)
+        if (GlobalClipper().clipMode() || GlobalMapModule().getEditMode() == IMap::EditMode::Merge ||
+            GlobalOrthoViewManager().polygonMode())
         {
-            return Result::Ignored; // no brush creation in clip or merge mode
+            return Result::Ignored; // no brush creation in clip, merge or polygon mode
         }
 
         // We only operate on camera view events

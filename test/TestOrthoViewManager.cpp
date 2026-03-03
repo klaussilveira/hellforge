@@ -43,6 +43,11 @@ OrthoOrientation TestOrthoViewManager::getActiveViewType() const
 void TestOrthoViewManager::setActiveViewType(OrthoOrientation viewType)
 {}
 
+bool TestOrthoViewManager::polygonMode() const
+{
+    return false;
+}
+
 std::string TestOrthoViewManager::getName() const
 {
     static std::string _name(MODULE_ORTHOVIEWMANAGER);
