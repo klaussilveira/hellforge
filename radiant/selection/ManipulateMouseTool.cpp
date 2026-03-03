@@ -163,7 +163,7 @@ void ManipulateMouseTool::handleMouseMove(const render::View& view, const Vector
 
     if (gridIsEnabled())
     {
-        // Grid constraint is ON if available, constraing is off when CTRL is held
+        // Grid constraint is ON if available, constraint is off when CTRL is held
         constraintFlag |= wxGetKeyState(WXK_CONTROL) ? 0 : selection::IManipulator::Component::Constraint::Grid;
     }
 

@@ -173,16 +173,16 @@ void TranslateFree::transform(const Matrix4& pivot2world, const VolumeTest& view
     Vector3 current = getPlaneProjectedPoint(pivot2world, view, devicePoint);
     Vector3 diff = current - _start;
 
-	if (constraintFlags & Constraint::Type1)
+	if (constraintFlags & Constraint::Type3)
 	{
-		// Locate the index of the component carrying the largest abs value
-		int largestIndex = fabs(diff.y()) > fabs(diff.x()) ?
-			(fabs(diff.z()) > fabs(diff.y()) ? 2 : 1) :
-			(fabs(diff.z()) > fabs(diff.x()) ? 2 : 0);
-
-		// Zero out the other two components
-		diff[(largestIndex + 1) % 3] = 0;
-		diff[(largestIndex + 2) % 3] = 0;
+		// ALT: lock to vertical axis (Z only)
+		diff.x() = 0;
+		diff.y() = 0;
+	}
+	else if (constraintFlags & Constraint::Type1)
+	{
+		// SHIFT: lock to horizontal plane (XY only)
+		diff.z() = 0;
 	}
 
 	// Snap to grid if the constraint flag is set
