@@ -10,6 +10,7 @@
 
 #include "module/StaticModule.h"
 #include "wxutil/Bitmap.h"
+#include "wxutil/UIThemeManager.h"
 
 namespace ui
 {
@@ -24,9 +25,12 @@ StatusBarManager::StatusBarManager() :
     _tempParent->SetName("StatusBarTemporaryParent");
 	_statusBar->SetName("Statusbar");
 
-    // Apply dark theme colours to status bar
-    _statusBar->SetBackgroundColour(wxColour(48, 48, 48));  // #303030 - Blender header background
-    _statusBar->SetForegroundColour(wxColour(230, 230, 230));  // #e6e6e6 - Blender text
+    // Apply theme colours to status bar
+    if (wxutil::GlobalUIThemeManager().isDarkThemeEnabled())
+    {
+        _statusBar->SetBackgroundColour(wxColour(48, 48, 48));  // #303030 - Blender header background
+        _statusBar->SetForegroundColour(wxColour(230, 230, 230));  // #e6e6e6 - Blender text
+    }
 
 	_tempParent->Hide();
 

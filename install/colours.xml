@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <colourschemes>
-	<!-- Blender 4 Dark: Modern dark theme matching Blender 4's default colour scheme -->
-	<colourscheme name="Blender 4 Dark" readonly="1" active="1" version="1.0">
+	<colourscheme name="HellForge" readonly="1" active="1" version="1.0">
 		<colour name="texture_background" value="0.12 0.12 0.12" />
 		<colour name="grid_background" value="0.24 0.24 0.24" />
 		<colour name="grid_major" value="0.35 0.35 0.35" />
@@ -34,7 +33,7 @@
 		<colour name="xyview_crosshairs" value="0.55 0.78 0.24" />
 		<colour name="drag_selection" value="0.28 0.45 0.7" />
 	</colourscheme>
-	<colourscheme name="DarkRadiant Default" readonly="1" version="1.0">
+	<colourscheme name="DarkRadiant" readonly="1" version="1.0">
 		<colour name="texture_background" value="0.25 0.25 0.25" />
 		<colour name="grid_background" value="1 1 1" />
 		<colour name="grid_major" value="0.5 0.5 0.5" />
@@ -67,7 +66,7 @@
 		<colour name="xyview_crosshairs" value="0.2 0.9 0.2" />
 		<colour name="drag_selection" value="0.65 0 0" />
 	</colourscheme>
-	<colourscheme name="QE3Radiant Original" readonly="1" version="1.0">
+	<colourscheme name="QE3Radiant" readonly="1" version="1.0">
  		<colour name="texture_background" value="0.25 0.25 0.25" />
 		<colour name="grid_background" value="1 1 1" />
 		<colour name="grid_major" value="0.5 0.5 0.5" />
@@ -133,7 +132,7 @@
 		<colour name="xyview_crosshairs" value="0.2 0.9 0.2" />
 		<colour name="drag_selection" value="1.0 0 0" />
 	</colourscheme>
-	<colourscheme name="Maya/Max/Lightwave Emulation" readonly="1" version="1.0">
+	<colourscheme name="Maya/Max/Lightwave" readonly="1" version="1.0">
  		<colour name="texture_background" value="0.25 0.25 0.25" />
 		<colour name="grid_background" value="0.77 0.77 0.77" />
 		<colour name="grid_major" value="0.89 0.89 0.89" />
@@ -198,6 +197,138 @@
 		<colour name="workzone" value="1 0 0"></colour>
 		<colour name="xyview_crosshairs" value="0.2 0.9 0.2"></colour>
 		<colour name="drag_selection" value="1.0 0 0" />
+	</colourscheme>
+	<colourscheme name="Dracula" readonly="1" version="1.0">
+		<colour name="texture_background" value="0.157 0.165 0.212" />
+		<colour name="grid_background" value="0.18 0.188 0.243" />
+		<colour name="grid_major" value="0.384 0.447 0.643" />
+		<colour name="grid_minor" value="0.267 0.278 0.353" />
+		<colour name="grid_text" value="0.973 0.973 0.949" />
+		<colour name="grid_block" value="0.741 0.576 0.976" />
+		<colour name="default_brush" value="0.973 0.973 0.949" />
+		<colour name="default_entity" value="1.0 0.722 0.424" />
+		<colour name="camera_background" value="0.157 0.165 0.212" />
+		<colour name="selected_brush" value="1.0 0.475 0.776" />
+		<colour name="selected_group_items" value="0.741 0.576 0.976" />
+		<colour name="selected_brush_camera" value="1.0 0.475 0.776" />
+		<colour name="clipper" value="0.545 0.914 0.992" />
+		<colour name="active_view_name" value="0.384 0.447 0.643" />
+		<colour name="axis_x" value="1.0 0.333 0.333" />
+		<colour name="axis_y" value="0.314 0.98 0.482" />
+		<colour name="axis_z" value="0.545 0.914 0.992" />
+		<colour name="workzone" value="1.0 0.475 0.776" />
+		<colour name="camera_icon" value="0.741 0.576 0.976" />
+		<colour name="brush_size_info" value="0.973 0.973 0.949" />
+		<colour name="light_volumes" value="0.945 0.98 0.549" />
+		<colour name="brush_vertices" value="0.314 0.98 0.482" />
+		<colour name="patch_vertex_inside" value="0.314 0.98 0.482" />
+		<colour name="patch_vertex_corner" value="1.0 0.722 0.424" />
+		<colour name="light_vertex_deselected" value="0.945 0.98 0.549" />
+		<colour name="light_vertex_selected" value="0.545 0.914 0.992" />
+		<colour name="light_vertex_normal" value="1.0 0.333 0.333" />
+		<colour name="light_startend_selected" value="0.545 0.914 0.992" />
+		<colour name="light_startend_deselected" value="0.945 0.98 0.549" />
+		<colour name="xyview_crosshairs" value="0.314 0.98 0.482" />
+		<colour name="drag_selection" value="0.741 0.576 0.976" />
+	</colourscheme>
+	<colourscheme name="Monokai" readonly="1" version="1.0">
+		<colour name="texture_background" value="0.153 0.157 0.133" />
+		<colour name="grid_background" value="0.188 0.192 0.165" />
+		<colour name="grid_major" value="0.459 0.443 0.369" />
+		<colour name="grid_minor" value="0.22 0.22 0.19" />
+		<colour name="grid_text" value="0.973 0.973 0.949" />
+		<colour name="grid_block" value="0.4 0.851 0.937" />
+		<colour name="default_brush" value="0.973 0.973 0.949" />
+		<colour name="default_entity" value="0.992 0.592 0.122" />
+		<colour name="camera_background" value="0.153 0.157 0.133" />
+		<colour name="selected_brush" value="0.976 0.149 0.447" />
+		<colour name="selected_group_items" value="0.4 0.851 0.937" />
+		<colour name="selected_brush_camera" value="0.976 0.149 0.447" />
+		<colour name="clipper" value="0.4 0.851 0.937" />
+		<colour name="active_view_name" value="0.459 0.443 0.369" />
+		<colour name="axis_x" value="0.976 0.149 0.447" />
+		<colour name="axis_y" value="0.651 0.886 0.18" />
+		<colour name="axis_z" value="0.4 0.851 0.937" />
+		<colour name="workzone" value="0.976 0.149 0.447" />
+		<colour name="camera_icon" value="0.4 0.851 0.937" />
+		<colour name="brush_size_info" value="0.973 0.973 0.949" />
+		<colour name="light_volumes" value="0.902 0.859 0.455" />
+		<colour name="brush_vertices" value="0.651 0.886 0.18" />
+		<colour name="patch_vertex_inside" value="0.651 0.886 0.18" />
+		<colour name="patch_vertex_corner" value="0.992 0.592 0.122" />
+		<colour name="light_vertex_deselected" value="0.902 0.859 0.455" />
+		<colour name="light_vertex_selected" value="0.4 0.851 0.937" />
+		<colour name="light_vertex_normal" value="0.976 0.149 0.447" />
+		<colour name="light_startend_selected" value="0.4 0.851 0.937" />
+		<colour name="light_startend_deselected" value="0.902 0.859 0.455" />
+		<colour name="xyview_crosshairs" value="0.651 0.886 0.18" />
+		<colour name="drag_selection" value="0.682 0.506 1.0" />
+	</colourscheme>
+	<colourscheme name="Nord" readonly="1" version="1.0">
+		<colour name="texture_background" value="0.18 0.204 0.251" />
+		<colour name="grid_background" value="0.231 0.259 0.322" />
+		<colour name="grid_major" value="0.298 0.337 0.416" />
+		<colour name="grid_minor" value="0.263 0.298 0.369" />
+		<colour name="grid_text" value="0.847 0.871 0.914" />
+		<colour name="grid_block" value="0.369 0.506 0.675" />
+		<colour name="default_brush" value="0.847 0.871 0.914" />
+		<colour name="default_entity" value="0.816 0.529 0.439" />
+		<colour name="camera_background" value="0.18 0.204 0.251" />
+		<colour name="selected_brush" value="0.749 0.38 0.416" />
+		<colour name="selected_group_items" value="0.506 0.631 0.757" />
+		<colour name="selected_brush_camera" value="0.749 0.38 0.416" />
+		<colour name="clipper" value="0.533 0.753 0.816" />
+		<colour name="active_view_name" value="0.298 0.337 0.416" />
+		<colour name="axis_x" value="0.749 0.38 0.416" />
+		<colour name="axis_y" value="0.639 0.745 0.549" />
+		<colour name="axis_z" value="0.533 0.753 0.816" />
+		<colour name="workzone" value="0.749 0.38 0.416" />
+		<colour name="camera_icon" value="0.369 0.506 0.675" />
+		<colour name="brush_size_info" value="0.847 0.871 0.914" />
+		<colour name="light_volumes" value="0.922 0.796 0.545" />
+		<colour name="brush_vertices" value="0.639 0.745 0.549" />
+		<colour name="patch_vertex_inside" value="0.639 0.745 0.549" />
+		<colour name="patch_vertex_corner" value="0.816 0.529 0.439" />
+		<colour name="light_vertex_deselected" value="0.922 0.796 0.545" />
+		<colour name="light_vertex_selected" value="0.533 0.753 0.816" />
+		<colour name="light_vertex_normal" value="0.749 0.38 0.416" />
+		<colour name="light_startend_selected" value="0.533 0.753 0.816" />
+		<colour name="light_startend_deselected" value="0.922 0.796 0.545" />
+		<colour name="xyview_crosshairs" value="0.639 0.745 0.549" />
+		<colour name="drag_selection" value="0.506 0.631 0.757" />
+	</colourscheme>
+	<colourscheme name="PowerShell" readonly="1" version="1.0">
+		<colour name="texture_background" value="0.004 0.063 0.212" />
+		<colour name="grid_background" value="0.004 0.141 0.337" />
+		<colour name="grid_major" value="0.1 0.3 0.5" />
+		<colour name="grid_minor" value="0.05 0.2 0.4" />
+		<colour name="grid_text" value="1.0 1.0 1.0" />
+		<colour name="grid_block" value="1.0 1.0 0.0" />
+		<colour name="default_brush" value="0.8 0.8 0.8" />
+		<colour name="default_entity" value="1.0 1.0 0.0" />
+		<colour name="camera_background" value="0.004 0.063 0.212" />
+		<colour name="selected_brush" value="0.0 1.0 1.0" />
+		<colour name="selected_group_items" value="1.0 0.0 1.0" />
+		<colour name="selected_brush_camera" value="0.0 1.0 1.0" />
+		<colour name="clipper" value="1.0 1.0 0.0" />
+		<colour name="active_view_name" value="0.5 0.5 0.5" />
+		<colour name="axis_x" value="1.0 0.0 0.0" />
+		<colour name="axis_y" value="0.0 1.0 0.0" />
+		<colour name="axis_z" value="0.0 0.0 1.0" />
+		<colour name="workzone" value="1.0 0.0 0.0" />
+		<colour name="camera_icon" value="1.0 1.0 0.0" />
+		<colour name="brush_size_info" value="1.0 1.0 1.0" />
+		<colour name="light_volumes" value="0.0 1.0 0.0" />
+		<colour name="brush_vertices" value="0.0 1.0 0.0" />
+		<colour name="patch_vertex_inside" value="0.0 1.0 0.0" />
+		<colour name="patch_vertex_corner" value="1.0 0.0 1.0" />
+		<colour name="light_vertex_deselected" value="0.0 1.0 0.0" />
+		<colour name="light_vertex_selected" value="0.0 0.0 1.0" />
+		<colour name="light_vertex_normal" value="1.0 0.0 0.0" />
+		<colour name="light_startend_selected" value="0.0 0.0 1.0" />
+		<colour name="light_startend_deselected" value="0.0 1.0 1.0" />
+		<colour name="xyview_crosshairs" value="0.0 1.0 0.0" />
+		<colour name="drag_selection" value="1.0 1.0 0.0" />
 	</colourscheme>
 	<descriptions>
 		<texture_background value="Texture Background" />

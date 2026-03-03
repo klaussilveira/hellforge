@@ -14,17 +14,23 @@
 
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/choice.h>
 #include <wx/clrpicker.h>
 #include <wx/stattext.h>
 #include <wx/statline.h>
 #include <wx/checkbox.h>
+
+#include <fstream>
+#include <cstdlib>
 
 namespace ui
 {
 
 namespace
 {
-    const char* const EDITOR_WINDOW_TITLE = N_("Edit Colour Schemes");
+    const char* const EDITOR_WINDOW_TITLE = N_("Theme and Colours");
+    const int THEME_DARK = 0;
+    const int THEME_LIGHT = 1;
 }
 
 ColourSchemeEditor::ColourSchemeEditor() :
@@ -93,6 +99,36 @@ void ColourSchemeEditor::addOptionsPanel(wxBoxSizer& vbox)
     vbox.Add(overrideLightsCB, 0, wxEXPAND | wxTOP, 6);
 }
 
+std::string ColourSchemeEditor::getThemeFilePath()
+{
+    const char* xdg = std::getenv("XDG_CONFIG_HOME");
+    if (xdg && *xdg)
+        return std::string(xdg) + "/hellforge/theme";
+
+    const char* home = std::getenv("HOME");
+    return std::string(home ? home : "") + "/.config/hellforge/theme";
+}
+
+std::string ColourSchemeEditor::readThemeFile()
+{
+    std::ifstream f(getThemeFilePath());
+    if (f.is_open())
+    {
+        std::string value;
+        std::getline(f, value);
+        if (value == "light")
+            return "light";
+    }
+    return "dark";
+}
+
+void ColourSchemeEditor::writeThemeFile(const std::string& theme)
+{
+    std::ofstream f(getThemeFilePath());
+    if (f.is_open())
+        f << theme << std::endl;
+}
+
 void ColourSchemeEditor::constructWindow()
 {
     wxBoxSizer* mainHBox = new wxBoxSizer(wxHORIZONTAL);
@@ -104,6 +140,23 @@ void ColourSchemeEditor::constructWindow()
     // Create the scheme list and the buttons
     wxBoxSizer* leftVBox = new wxBoxSizer(wxVERTICAL);
     mainHBox->Add(leftVBox, 0, wxEXPAND | wxRIGHT, 6);
+
+    // System theme selector
+    wxBoxSizer* themeRow = new wxBoxSizer(wxHORIZONTAL);
+    themeRow->Add(new wxStaticText(this, wxID_ANY, _("System Theme:")),
+                  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+
+    wxArrayString themeChoices;
+    themeChoices.Add(_("Dark"));
+    themeChoices.Add(_("Light"));
+    _themeChoice = new wxChoice(this, wxID_ANY, wxDefaultPosition,
+                                wxDefaultSize, themeChoices);
+
+    _originalTheme = readThemeFile();
+    _themeChoice->SetSelection(_originalTheme == "light" ? THEME_LIGHT : THEME_DARK);
+
+    themeRow->Add(_themeChoice, 1, wxEXPAND);
+    leftVBox->Add(themeRow, 0, wxEXPAND | wxBOTTOM, 6);
 
     _schemeList = new wxDataViewListCtrl(this, wxID_ANY, wxDefaultPosition,
                                      wxDefaultSize, wxDV_NO_HEADER);
@@ -348,6 +401,19 @@ int ColourSchemeEditor::ShowModal()
 	{
 		GlobalColourSchemeManager().setActive(getSelectedScheme());
 		GlobalColourSchemeManager().saveColourSchemes();
+
+		// Save system theme preference
+		std::string newTheme = (_themeChoice->GetSelection() == THEME_LIGHT)
+		    ? "light" : "dark";
+		writeThemeFile(newTheme);
+
+		if (newTheme != _originalTheme)
+		{
+			wxutil::Messagebox::Show(
+			    _("System Theme Changed"),
+			    _("The system theme change will take effect after restarting the application."),
+			    ui::IDialog::MESSAGE_CONFIRM);
+		}
 	}
 	else
 	{

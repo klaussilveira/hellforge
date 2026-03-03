@@ -70,6 +70,7 @@
 		<menuSeparator />
 		<menuItem name="shortcuts" caption="Keyboard Shortcuts..." command="ShowCommandList" />
     <menuItem name="mousetoolbindings" caption="Mouse Bindings..." command="MouseToolMappingDialog" />
+		<menuItem name="themes" caption="Themes..." command="EditColourScheme" icon="editcolour16.png" />
 		<menuItem name="preferences" caption="Pre&amp;ferences..." command="Preferences" />
 	</subMenu>
 
@@ -129,7 +130,6 @@
 		</subMenu>
 
 		<menuSeparator />
-		<menuItem name="colours" caption="Colours..." command="EditColourScheme" icon="editcolour16.png" />
 		<menuItem name="backgroundimage" caption="Background Image..." command="ToggleOrthoBackgroundPanel" icon="bgimage16.png" />
 	</subMenu>
 

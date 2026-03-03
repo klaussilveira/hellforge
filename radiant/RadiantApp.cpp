@@ -29,6 +29,7 @@
 #include <exception>
 #include <iomanip>
 #include <cstring>
+#include <fstream>
 
 #if defined (_DEBUG) && defined (WIN32) && defined (_MSC_VER)
 #include "crtdbg.h"
@@ -117,16 +118,47 @@ RadiantApp::RadiantApp()
     // this functionality.
     setenv("GDK_BACKEND", "x11", 0);
 
-    // Enable GTK dark theme variant for a modern dark UI appearance.
-    // This must be set before any GTK widgets are created.
-    // The ":dark" suffix tells GTK to use the dark variant of the current theme.
-    const char* currentTheme = getenv("GTK_THEME");
-    if (currentTheme == nullptr || strstr(currentTheme, ":dark") == nullptr)
+    // Read user's system theme preference from config file.
+    // This must happen before any GTK widgets are created.
+    // The config file contains just "light" or "dark". Default is dark.
+    bool useDark = true;
+
+    std::string themePath;
+    const char* xdg = getenv("XDG_CONFIG_HOME");
+    if (xdg && *xdg)
+        themePath = std::string(xdg) + "/hellforge/theme";
+    else
     {
-        // If no theme set, use Adwaita:dark as default
-        // If theme is set but not dark, append :dark
-        std::string darkTheme = currentTheme ? std::string(currentTheme) + ":dark" : "Adwaita:dark";
-        setenv("GTK_THEME", darkTheme.c_str(), 1);
+        const char* home = getenv("HOME");
+        themePath = std::string(home ? home : "") + "/.config/hellforge/theme";
+    }
+
+    std::ifstream themeFile(themePath);
+    if (themeFile.is_open())
+    {
+        std::string value;
+        std::getline(themeFile, value);
+        if (value == "light")
+            useDark = false;
+    }
+
+    // Sync the UIThemeManager so icon loading uses the correct subfolder
+    wxutil::GlobalUIThemeManager().setDarkThemeEnabled(useDark);
+
+    if (useDark)
+    {
+        const char* currentTheme = getenv("GTK_THEME");
+        if (currentTheme == nullptr || strstr(currentTheme, ":dark") == nullptr)
+        {
+            std::string darkTheme = currentTheme
+                ? std::string(currentTheme) + ":dark" : "Adwaita:dark";
+            setenv("GTK_THEME", darkTheme.c_str(), 1);
+        }
+    }
+    else
+    {
+        // Light theme: ensure no dark variant is forced
+        setenv("GTK_THEME", "Adwaita", 1);
     }
 #endif
 }

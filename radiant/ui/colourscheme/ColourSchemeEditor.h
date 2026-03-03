@@ -8,6 +8,7 @@
 #include "wxutil/dataview/TreeModel.h"
 
 class wxButton;
+class wxChoice;
 class wxPanel;
 class wxDataViewEvent;
 class wxColourPickerEvent;
@@ -30,6 +31,12 @@ class ColourSchemeEditor :
 
 	// The "delete scheme" button
 	wxButton* _deleteButton;
+
+	// System theme selector (Light/Dark)
+	wxChoice* _themeChoice = nullptr;
+
+	// Original theme value for cancel support
+	std::string _originalTheme;
 
 public:
 	// Constructor
@@ -75,6 +82,11 @@ private:
 	// Callbacks
 	void callbackSelChanged(wxDataViewEvent& ev);
 	void callbackColorChanged(wxColourPickerEvent& ev, colours::IColourItem& item);
+
+	// System theme file helpers
+	static std::string getThemeFilePath();
+	static std::string readThemeFile();
+	static void writeThemeFile(const std::string& theme);
 
 	// Updates the windows after a colour change
 	static void updateWindows();
