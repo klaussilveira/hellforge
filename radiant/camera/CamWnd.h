@@ -268,7 +268,7 @@ private:
     void onGLResize(wxSizeEvent& ev);
 
     void onMouseScroll(wxMouseEvent& ev);
-    bool resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirection);
+    bool resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirection, bool symmetric = false);
 
     // Mouse wheel smart extrusion
     scene::INodePtr _lockedNode;

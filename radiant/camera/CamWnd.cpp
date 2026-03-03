@@ -1201,10 +1201,12 @@ void CamWnd::onGLResize(wxSizeEvent& ev)
 void CamWnd::onMouseScroll(wxMouseEvent& ev)
 {
     // Alt+scroll resizes brush face under cursor when a brush is selected
-    if (ev.AltDown() && GlobalSelectionSystem().countSelected() > 0)
+    // Ctrl+scroll resizes both the hit face and opposite face symmetrically
+    if ((ev.AltDown() || ev.ControlDown()) && GlobalSelectionSystem().countSelected() > 0)
     {
         int scrollDir = ev.GetWheelRotation() > 0 ? 1 : -1;
-        if (resizeBrushFaceUnderCursor(ev, scrollDir))
+        bool symmetric = ev.ControlDown() && !ev.AltDown();
+        if (resizeBrushFaceUnderCursor(ev, scrollDir, symmetric))
             return;
     }
     else
@@ -1242,7 +1244,7 @@ void CamWnd::clearLockedFace()
     _lockedFlipped = false;
 }
 
-bool CamWnd::resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirection)
+bool CamWnd::resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirection, bool symmetric)
 {
     IFace* hitFace = nullptr;
     IFace* oppFace = nullptr;
@@ -1314,6 +1316,40 @@ bool CamWnd::resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirect
     }
 
     double gridSize = GlobalGrid().getGridSize();
+
+    if (symmetric && oppFace)
+    {
+        // Symmetric mode: move both faces outward/inward simultaneously
+        if (scrollDirection < 0)
+        {
+            // Shrinking: check minimum thickness (need room for both faces to move)
+            const IWinding& oppWinding = oppFace->getWinding();
+            if (!oppWinding.empty())
+            {
+                Vector3 oppVertex = oppWinding.front().vertex;
+                double thickness = std::abs(hitFace->getPlane3().distanceToPoint(oppVertex));
+
+                if (thickness <= 2 * gridSize)
+                    return true; // Already at minimum, do nothing
+            }
+        }
+
+        Vector3 hitMoveDir = worldNormal * gridSize * scrollDirection;
+        Vector3 oppMoveDir = worldNormal * gridSize * -scrollDirection;
+
+        UndoableCommand cmd("resizeBrushFaceSymmetric3D");
+        brush->undoSave();
+        hitFace->transform(Matrix4::getTranslation(hitMoveDir));
+        hitFace->freezeTransform();
+        oppFace->transform(Matrix4::getTranslation(oppMoveDir));
+        oppFace->freezeTransform();
+
+        brush->evaluateBRep();
+        SceneChangeNotify();
+
+        return true;
+    }
+
     IFace* faceToMove = hitFace;
 
     // Once flipped to opposite face, both directions operate on it
@@ -1533,7 +1569,7 @@ void CamWnd::onGLMouseButtonRelease(wxMouseEvent& ev)
 
 void CamWnd::onGLMouseMove(wxMouseEvent& ev)
 {
-    if (!ev.AltDown())
+    if (!ev.AltDown() && !ev.ControlDown())
         clearLockedFace();
 
     MouseToolHandler::onGLMouseMove(ev);
