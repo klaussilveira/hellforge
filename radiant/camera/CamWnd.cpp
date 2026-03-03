@@ -24,6 +24,7 @@
 #include "selectionlib.h"
 #include "gamelib.h"
 #include "CameraSettings.h"
+#include "CameraHintOverlay.h"
 #include "CameraWndManager.h"
 #include "settings/RenderingQualitySettings.h"
 #include "render/RenderableCollectionWalker.h"
@@ -1012,6 +1013,11 @@ void CamWnd::Cam_Draw()
     _glFont->drawString(statString);
 
     drawTime();
+
+    if (getCameraSettings()->learnerModeEnabled())
+    {
+        CameraHintOverlay::render(width, height, _glFont);
+    }
 
     if (!_activeMouseTools.empty())
     {

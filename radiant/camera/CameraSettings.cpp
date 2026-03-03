@@ -112,6 +112,15 @@ bool CameraSettings::showCameraToolbar() const
     return registry::getValue<bool>(RKEY_SHOW_CAMERA_TOOLBAR);
 }
 
+bool CameraSettings::learnerModeEnabled() const
+{
+    if (!GlobalRegistry().keyExists(RKEY_CAMERA_LEARNER_MODE))
+    {
+        registry::setValue(RKEY_CAMERA_LEARNER_MODE, true);
+    }
+    return registry::getValue<bool>(RKEY_CAMERA_LEARNER_MODE);
+}
+
 bool CameraSettings::gridEnabled() const
 {
     return _gridEnabled;

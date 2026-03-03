@@ -36,6 +36,7 @@ namespace
     const std::string RKEY_CAMERA_GRID_ENABLED = RKEY_CAMERA_ROOT + "/gridEnabled";
     const std::string RKEY_CAMERA_GRID_SPACING = RKEY_CAMERA_ROOT + "/gridSpacing";
     const std::string RKEY_CAMERA_FIELD_OF_VIEW = RKEY_CAMERA_ROOT + "/fieldOfView";
+    const std::string RKEY_CAMERA_LEARNER_MODE = RKEY_CAMERA_ROOT + "/learnerMode";
 }
 
 inline float calculateFarPlaneDistance(int cubicScale)
@@ -98,6 +99,9 @@ public:
 
     bool gridEnabled() const;
     int gridSpacing() const;
+
+    /// Whether to show keyboard shortcut hints in the 3D viewport
+    bool learnerModeEnabled() const;
 
 	// Sets/returns the draw mode (wireframe, solid, textured, lighting)
 	CameraDrawMode getRenderMode() const;

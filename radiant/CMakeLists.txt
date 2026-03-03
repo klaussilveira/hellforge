@@ -1,5 +1,6 @@
 add_executable(hellforge
                camera/CameraSettings.cpp
+               camera/CameraHintOverlay.cpp
                camera/CamWnd.cpp
                camera/CameraWndManager.cpp
                camera/tools/CameraBrushCreatorTool.cpp

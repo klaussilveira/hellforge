@@ -12,6 +12,7 @@
 #include "iradiant.h"
 
 #include "camera/CameraWndManager.h"
+#include "camera/CameraSettings.h"
 
 #include "registry/registry.h"
 #include "ui/iuserinterface.h"
@@ -88,6 +89,7 @@ void MainFrame::initialiseModule(const IApplicationContext& ctx)
 
     page.appendCombo(_("Start on monitor"), RKEY_MULTIMON_START_MONITOR, list);
     page.appendSpinner(_("Source view font size"), wxutil::RKEY_SOURCE_FONT_SIZE, 1, 36, 1);
+    page.appendCheckBox(_("Show keyboard shortcut hints (Learner Mode)"), ui::RKEY_CAMERA_LEARNER_MODE);
 
     GlobalCommandSystem().addCommand(FOCUS_CONTROL_COMMAND,
         std::bind(&MainFrame::focusControl, this, std::placeholders::_1),
