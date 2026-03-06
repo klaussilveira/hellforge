@@ -6,6 +6,7 @@
 #include "icameraview.h"
 #include "ientity.h"
 #include "ibrush.h"
+#include "iclipper.h"
 #include "ieclass.h"
 #include "iundo.h"
 #include "ishaders.h"
@@ -299,6 +300,74 @@ JsonValue McpPlugin::dispatch(const std::string& method, const JsonValue& params
     if (method == "list_shortcuts") return listShortcuts(params);
     if (method == "get_command_shortcut") return getCommandShortcut(params);
     if (method == "capture_view") return captureView(params);
+
+    // CSG operations (all work on current selection)
+    if (method == "csg_subtract") { GlobalCommandSystem().executeCommand("CSGSubtract"); return jsonObject({{"success", true}}); }
+    if (method == "csg_merge") { GlobalCommandSystem().executeCommand("CSGMerge"); return jsonObject({{"success", true}}); }
+    if (method == "csg_hollow") { GlobalCommandSystem().executeCommand("CSGHollow"); return jsonObject({{"success", true}}); }
+    if (method == "csg_room") { GlobalCommandSystem().executeCommand("CSGRoom"); return jsonObject({{"success", true}}); }
+    if (method == "csg_intersect") { GlobalCommandSystem().executeCommand("CSGIntersect"); return jsonObject({{"success", true}}); }
+    if (method == "csg_seal") { GlobalCommandSystem().executeCommand("CSGSeal"); return jsonObject({{"success", true}}); }
+    if (method == "csg_passable") { GlobalCommandSystem().executeCommand("CSGPassable"); return jsonObject({{"success", true}}); }
+
+    // Brush shape conversion (works on current selection)
+    if (method == "make_brush_prefab")
+    {
+        std::string shape = params["shape"].getString();
+        int sides = params.has("sides") ? static_cast<int>(params["sides"].getNumber()) : 8;
+
+        int prefabType;
+        if (shape == "prism") prefabType = static_cast<int>(brush::PrefabType::Prism);
+        else if (shape == "cone") prefabType = static_cast<int>(brush::PrefabType::Cone);
+        else if (shape == "sphere") prefabType = static_cast<int>(brush::PrefabType::Sphere);
+        else if (shape == "cuboid") prefabType = static_cast<int>(brush::PrefabType::Cuboid);
+        else throw std::runtime_error("Invalid shape: " + shape + ". Use 'prism', 'cone', 'sphere', or 'cuboid'.");
+
+        cmd::ArgumentList args;
+        args.push_back(prefabType);
+        args.push_back(sides);
+        GlobalCommandSystem().executeCommand("BrushMakePrefab", args);
+        return jsonObject({{"success", true}, {"shape", shape}, {"sides", sides}});
+    }
+
+    // Clip/split selected brushes by a plane defined by 2 or 3 points
+    if (method == "clip_brush")
+    {
+        std::string mode = params.has("mode") ? params["mode"].getString() : "clip";
+
+        auto& p1Arr = params["point1"];
+        auto& p2Arr = params["point2"];
+        Vector3 p1(p1Arr[0].getNumber(), p1Arr[1].getNumber(), p1Arr[2].getNumber());
+        Vector3 p2(p2Arr[0].getNumber(), p2Arr[1].getNumber(), p2Arr[2].getNumber());
+
+        // Enter clip mode
+        GlobalCommandSystem().executeCommand("ToggleManipulatorMode", cmd::Argument(std::string("Clip")));
+
+        // Set clip points
+        GlobalClipper().newClipPoint(p1);
+        GlobalClipper().newClipPoint(p2);
+        if (params.has("point3"))
+        {
+            auto& p3Arr = params["point3"];
+            Vector3 p3(p3Arr[0].getNumber(), p3Arr[1].getNumber(), p3Arr[2].getNumber());
+            GlobalClipper().newClipPoint(p3);
+        }
+
+        // Flip if requested
+        if (params.has("flip") && params["flip"].getBool())
+            GlobalCommandSystem().executeCommand("FlipClip");
+
+        // Execute
+        if (mode == "split")
+            GlobalCommandSystem().executeCommand("SplitSelected");
+        else
+            GlobalCommandSystem().executeCommand("ClipSelected");
+
+        // Exit clip mode back to drag
+        GlobalCommandSystem().executeCommand("ToggleManipulatorMode", cmd::Argument(std::string("Drag")));
+
+        return jsonObject({{"success", true}, {"mode", mode}});
+    }
 
     throw std::runtime_error("Unknown method: " + method);
 }
