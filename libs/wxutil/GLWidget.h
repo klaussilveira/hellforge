@@ -32,6 +32,10 @@ public:
 	// Call this to enable/disable the private GL context of this widget
 	void SetHasPrivateContext(bool hasPrivateContext);
 
+	// Render the scene to the back buffer and save as PNG.
+	// Must be called on the main thread. Returns true on success.
+	bool captureToFile(const std::string& filename, int maxWidth = 0);
+
 	virtual ~GLWidget();
 
 private:

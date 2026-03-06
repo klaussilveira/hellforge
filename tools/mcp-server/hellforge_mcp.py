@@ -12,7 +12,7 @@ from typing import Any
 import anyio
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import Tool, TextContent, ImageContent
 
 HELLFORGE_HOST = "127.0.0.1"
 HELLFORGE_PORT = 13646
@@ -147,6 +147,7 @@ TOOLS = [
     Tool(name="list_shortcuts", description="List keyboard shortcuts currently configured in the editor. Returns command names with their bound key combinations. Use this to teach users the shortcuts for operations they ask about. Filter by command name or key combo substring.", inputSchema={"type": "object", "properties": {"filter": {"type": "string", "description": "Case-insensitive filter on command name or shortcut key (e.g. 'clone', 'ctrl+c', 'texture', 'select')"}, "limit": {"type": "integer", "description": "Max results (default 500)"}}}),
     Tool(name="get_command_shortcut", description="Get the keyboard shortcut bound to a specific editor command. Returns the key combination string, whether it's bound, and whether the command exists. Use this when a user asks 'how do I do X' to tell them the exact shortcut.", inputSchema={"type": "object", "properties": {"command": {"type": "string", "description": "Command name (e.g. 'CloneSelection', 'DeleteSelection', 'ToggleSurfaceInspector')"}}, "required": ["command"]}),
     Tool(name="list_special_materials", description="List special/utility textures (caulk, clip, visportal, trigger, etc.) with their material paths, categories, and descriptions. Use this to find the correct texture path for non-visible utility surfaces. Filter by category or text search.", inputSchema={"type": "object", "properties": {"filter": {"type": "string", "description": "Case-insensitive text filter on name, path, or description"}, "category": {"type": "string", "description": "Filter by category: optimization, collision, trigger, lighting"}}}),
+    Tool(name="capture_view", description="Capture a screenshot of an editor viewport. Returns a PNG image. Use this to see the current state of the level from the 3D camera or any orthographic (top/side/front) view. Call this after making changes to verify the result visually.", inputSchema={"type": "object", "properties": {"view": {"type": "string", "enum": ["camera", "xy", "xz", "yz"], "description": "Which view to capture: 'camera' (3D perspective), 'xy' (top-down), 'xz' (side), 'yz' (front). Default: 'camera'"}, "max_width": {"type": "integer", "description": "Maximum image width in pixels for downscaling (default: 800). Use smaller values to reduce response size."}}}),
 
 ]
 
@@ -157,9 +158,24 @@ async def list_tools():
 
 
 @app.call_tool()
-async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+async def call_tool(name: str, arguments: dict) -> list[TextContent | ImageContent]:
     try:
         result = conn.call(name, arguments)
+
+        # capture_view returns base64 image data
+        if name == "capture_view" and isinstance(result, dict) and "image" in result:
+            return [
+                ImageContent(
+                    type="image",
+                    data=result["image"],
+                    mimeType="image/png",
+                ),
+                TextContent(
+                    type="text",
+                    text=f"Captured {result.get('view', 'unknown')} view",
+                ),
+            ]
+
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
     except ConnectionError as e:
         return [TextContent(type="text", text=f"Connection error: {e}")]

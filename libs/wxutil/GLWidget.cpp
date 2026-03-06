@@ -6,7 +6,9 @@
 
 #include "GLContext.h"
 
+#include <vector>
 #include <wx/dcclient.h>
+#include <wx/image.h>
 
 namespace wxutil
 {
@@ -105,6 +107,61 @@ void GLWidget::OnPaint(wxPaintEvent& WXUNUSED(event))
 		// and we can swap the buffers
 		SwapBuffers();
 	}
+}
+
+bool GLWidget::captureToFile(const std::string& filename, int maxWidth)
+{
+	if (!IsShownOnScreen()) return false;
+
+	// Make the GL context current (same logic as OnPaint)
+	if (_privateContext != nullptr)
+	{
+		SetCurrent(*_privateContext);
+	}
+	else
+	{
+		const auto& context = GlobalOpenGLContext().getSharedContext();
+		auto wxContext = std::static_pointer_cast<GLContext>(context);
+		SetCurrent(wxContext->get());
+	}
+
+	// Render the scene to the back buffer
+	if (!_renderCallback())
+		return false;
+
+	int width = GetClientSize().GetWidth();
+	int height = GetClientSize().GetHeight();
+	if (width <= 0 || height <= 0)
+		return false;
+
+	// Now read from the back buffer
+	glReadBuffer(GL_BACK);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+	std::vector<unsigned char> pixels(width * height * 3);
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+
+	// GL reads bottom-up, wxImage expects top-down
+	wxImage image(width, height, false);
+	auto* dst = image.GetData();
+	int rowBytes = width * 3;
+
+	for (int y = 0; y < height; y++)
+	{
+		memcpy(dst + y * rowBytes,
+		       pixels.data() + (height - 1 - y) * rowBytes,
+		       rowBytes);
+	}
+
+	// Scale down if requested
+	if (maxWidth > 0 && width > maxWidth)
+	{
+		int newHeight = height * maxWidth / width;
+		if (newHeight > 0)
+			image.Rescale(maxWidth, newHeight, wxIMAGE_QUALITY_HIGH);
+	}
+
+	return image.SaveFile(filename, wxBITMAP_TYPE_PNG);
 }
 
 } // namespace

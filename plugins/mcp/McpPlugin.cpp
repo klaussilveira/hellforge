@@ -39,6 +39,7 @@
 #include <cmath>
 #include <future>
 #include <sstream>
+#include <fstream>
 
 #include "fmt/format.h"
 
@@ -299,6 +300,7 @@ JsonValue McpPlugin::dispatch(const std::string& method, const JsonValue& params
     if (method == "insert_prefab") return insertPrefab(params);
     if (method == "list_shortcuts") return listShortcuts(params);
     if (method == "get_command_shortcut") return getCommandShortcut(params);
+    if (method == "capture_view") return captureView(params);
 
     throw std::runtime_error("Unknown method: " + method);
 }
@@ -2794,6 +2796,80 @@ JsonValue McpPlugin::getCommandShortcut(const JsonValue& params)
     result["exists"] = event != nullptr;
 
     return JsonValue(std::move(result));
+}
+
+namespace
+{
+
+std::string base64Encode(const std::vector<unsigned char>& data)
+{
+    static const char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string out;
+    out.reserve((data.size() + 2) / 3 * 4);
+
+    for (std::size_t i = 0; i < data.size(); i += 3)
+    {
+        unsigned int n = static_cast<unsigned int>(data[i]) << 16;
+        if (i + 1 < data.size()) n |= static_cast<unsigned int>(data[i + 1]) << 8;
+        if (i + 2 < data.size()) n |= static_cast<unsigned int>(data[i + 2]);
+
+        out.push_back(table[(n >> 18) & 0x3F]);
+        out.push_back(table[(n >> 12) & 0x3F]);
+        out.push_back(i + 1 < data.size() ? table[(n >> 6) & 0x3F] : '=');
+        out.push_back(i + 2 < data.size() ? table[n & 0x3F] : '=');
+    }
+
+    return out;
+}
+
+} // anonymous namespace
+
+JsonValue McpPlugin::captureView(const JsonValue& params)
+{
+    std::string viewType = params.has("view") ? params["view"].getString() : "camera";
+    int maxWidth = params.has("max_width") ? static_cast<int>(params["max_width"].getNumber()) : 800;
+
+    std::string tmpFile = "/tmp/hellforge_capture_" + viewType + ".png";
+
+    if (viewType == "camera")
+    {
+        cmd::ArgumentList args;
+        args.push_back(tmpFile);
+        args.push_back(maxWidth);
+        GlobalCommandSystem().executeCommand("CaptureCamera", args);
+    }
+    else if (viewType == "xy" || viewType == "xz" || viewType == "yz")
+    {
+        cmd::ArgumentList args;
+        args.push_back(viewType);
+        args.push_back(tmpFile);
+        args.push_back(maxWidth);
+        GlobalCommandSystem().executeCommand("CaptureOrthoView", args);
+    }
+    else
+    {
+        throw std::runtime_error("Invalid view type: " + viewType + ". Use 'camera', 'xy', 'xz', or 'yz'.");
+    }
+
+    // Read the PNG file
+    std::ifstream file(tmpFile, std::ios::binary);
+    if (!file.is_open())
+        throw std::runtime_error("Failed to capture view");
+
+    std::vector<unsigned char> fileData(
+        (std::istreambuf_iterator<char>(file)),
+        std::istreambuf_iterator<char>());
+    file.close();
+    std::remove(tmpFile.c_str());
+
+    if (fileData.empty())
+        throw std::runtime_error("Captured image is empty");
+
+    return jsonObject({
+        {"image", base64Encode(fileData)},
+        {"format", "png"},
+        {"view", viewType}
+    });
 }
 
 } // namespace mcp

@@ -128,6 +128,21 @@ void XYWndManager::registerCommands()
 		[this]() { return _polygonMode && _polygonTool && _polygonTool->hasActivePolygon(); });
 	GlobalCommandSystem().addCommand("CancelPolygon", std::bind(&XYWndManager::cancelPolygon, this, std::placeholders::_1));
 
+	GlobalCommandSystem().addCommand("CaptureOrthoView",
+		[this](const cmd::ArgumentList& args) {
+			if (args.size() < 2) return;
+			auto typeStr = args[0].getString();
+			OrthoOrientation orient = OrthoOrientation::XY;
+			if (typeStr == "xz") orient = OrthoOrientation::XZ;
+			else if (typeStr == "yz") orient = OrthoOrientation::YZ;
+			try {
+				auto& view = getViewByType(orient);
+				auto* ortho = static_cast<OrthoView*>(&view);
+				int maxWidth = args.size() > 2 ? args[2].getInt() : 0;
+				ortho->getGLWidget()->captureToFile(args[1].getString(), maxWidth);
+			} catch (const std::runtime_error&) {}
+		}, { cmd::ARGTYPE_STRING, cmd::ARGTYPE_STRING, cmd::ARGTYPE_INT | cmd::ARGTYPE_OPTIONAL });
+
 	GlobalEventManager().addRegistryToggle("ToggleCrosshairs", RKEY_SHOW_CROSSHAIRS);
 	GlobalEventManager().addRegistryToggle("ToggleGrid", RKEY_SHOW_GRID);
 	GlobalEventManager().addRegistryToggle("ShowAngles", RKEY_SHOW_ENTITY_ANGLES);

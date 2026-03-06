@@ -124,6 +124,9 @@ private:
     JsonValue getPrefabInfo(const JsonValue& params);
     JsonValue insertPrefab(const JsonValue& params);
 
+    // View capture tools
+    JsonValue captureView(const JsonValue& params);
+
     std::thread _serverThread;
     std::atomic<bool> _running{false};
     int _serverFd = -1;

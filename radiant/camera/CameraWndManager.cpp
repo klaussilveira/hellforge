@@ -107,6 +107,15 @@ void CameraWndManager::registerCommands()
 	GlobalEventManager().addRegistryToggle("ToggleCameraGrid", RKEY_CAMERA_GRID_ENABLED);
 	GlobalEventManager().addRegistryToggle("ToggleShadowMapping", RKEY_ENABLE_SHADOW_MAPPING);
 
+	GlobalCommandSystem().addCommand("CaptureCamera",
+		[this](const cmd::ArgumentList& args) {
+			if (args.size() < 1) return;
+			auto* cam = getActiveCamWnd();
+			if (!cam) return;
+			int maxWidth = args.size() > 1 ? args[1].getInt() : 0;
+			cam->getwxGLWidget()->captureToFile(args[0].getString(), maxWidth);
+		}, { cmd::ARGTYPE_STRING, cmd::ARGTYPE_INT | cmd::ARGTYPE_OPTIONAL });
+
 	GlobalEventManager().addKeyEvent("CameraMoveForward", std::bind(&CameraWndManager::onMoveForwardKey, this, std::placeholders::_1));
 	GlobalEventManager().addKeyEvent("CameraMoveBack", std::bind(&CameraWndManager::onMoveBackKey, this, std::placeholders::_1));
 	GlobalEventManager().addKeyEvent("CameraMoveLeft", std::bind(&CameraWndManager::onMoveLeftKey, this, std::placeholders::_1));
