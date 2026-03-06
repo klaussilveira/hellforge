@@ -52,7 +52,6 @@ private:
     JsonValue createBrush(const JsonValue& params);
     JsonValue createBrushes(const JsonValue& params);
     JsonValue cloneBrush(const JsonValue& params);
-    JsonValue createRoom(const JsonValue& params);
 
     // Batch entity tools
     JsonValue createEntities(const JsonValue& params);
@@ -111,9 +110,6 @@ private:
     JsonValue listSounds(const JsonValue& params);
     JsonValue listSkins(const JsonValue& params);
     JsonValue listParticles(const JsonValue& params);
-
-    // Geometry tools
-    JsonValue createStairs(const JsonValue& params);
 
     // Shortcut/help tools
     JsonValue listShortcuts(const JsonValue& params);
