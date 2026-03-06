@@ -383,7 +383,7 @@ void makePassableForSelectedBrushes(const cmd::ArgumentList& args)
             Brush& pieceBrush = piece->getBrush();
             pieceBrush.removeEmptyFaces();
 
-            if (pieceBrush.empty())
+            if (pieceBrush.empty() || pieceBrush.getNumFaces() < 6)
             {
                 continue;
             }
