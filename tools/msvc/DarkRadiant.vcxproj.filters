@@ -229,6 +229,9 @@
     <ClCompile Include="..\..\radiant\camera\tools\DecalShooterTool.cpp">
       <Filter>src\camera\tools</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\camera\CameraHintOverlay.cpp">
+      <Filter>src\camera</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\camera\CamWnd.cpp">
       <Filter>src\camera</Filter>
     </ClCompile>
@@ -796,6 +799,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\radiant\camera\CameraSettings.h">
+      <Filter>src\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\camera\CameraHintOverlay.h">
       <Filter>src\camera</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\camera\CamWnd.h">
