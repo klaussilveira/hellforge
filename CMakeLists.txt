@@ -137,6 +137,9 @@ if (${ENABLE_DM_PLUGINS})
     add_subdirectory(plugins/dm.gameconnection)
 endif()
 
+# MCP server plugin
+add_subdirectory(plugins/mcp)
+
 # Main radiant components
 add_subdirectory(radiantcore)
 add_subdirectory(radiant)

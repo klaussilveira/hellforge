@@ -30,6 +30,14 @@ HellForge has very opinionated features, keybindings and a different workflow. W
 - **CSG Passable**: Turns solid volumes into wall shells and carves away interior geometry.
 - **CSG Shell**: Similar to Passable but repositions brushes to avoid overlap.
 
+## MCP Server
+
+HellForge includes an MCP server that allows AI agents to operate the editor programmatically: creating brushes, placing entities, browsing materials and executing other editor commands. This enables AI-assisted level design workflows where an agent can build and modify maps using natural language instructions.
+
+You can also use the MCP server to learn how to use HellForge, learn shortcuts, as well as get tips and tricks on how to design levels.
+
+See [tools/mcp-server/README.md](tools/mcp-server/README.md) for setup and usage.
+
 ## Getting started
 
 HellForge requires game resources to work with, these resources are not installed by this editor. You'll need to point HellForge to one of the supported games (Doom 3, dhewm3, RBDOOM-3-BFG, etc.) before you can start working on your map.
