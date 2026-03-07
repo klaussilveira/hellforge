@@ -12,6 +12,7 @@
 #include "ishaders.h"
 #include "isound.h"
 #include "iparticles.h"
+#include "iparticlestage.h"
 #include "modelskin.h"
 #include "ifilesystem.h"
 #include "igame.h"
@@ -294,6 +295,16 @@ JsonValue McpPlugin::dispatch(const std::string& method, const JsonValue& params
     if (method == "list_sounds") return listSounds(params);
     if (method == "list_skins") return listSkins(params);
     if (method == "list_particles") return listParticles(params);
+    if (method == "get_particle_def") return getParticleDef(params);
+    if (method == "create_particle_def") return createParticleDef(params);
+    if (method == "update_particle_def") return updateParticleDef(params);
+    if (method == "add_particle_stage") return addParticleStage(params);
+    if (method == "update_particle_stage") return updateParticleStage(params);
+    if (method == "remove_particle_stage") return removeParticleStage(params);
+    if (method == "swap_particle_stages") return swapParticleStages(params);
+    if (method == "save_particle_def") return saveParticleDef(params);
+    if (method == "clone_particle_def") return cloneParticleDef(params);
+    if (method == "delete_particle_def") return deleteParticleDef(params);
     if (method == "list_prefabs") return listPrefabs(params);
     if (method == "get_prefab_info") return getPrefabInfo(params);
     if (method == "insert_prefab") return insertPrefab(params);
@@ -2674,6 +2685,417 @@ JsonValue McpPlugin::listMaps(const JsonValue& params)
     return jsonObject({
         {"count", static_cast<int>(maps.size())},
         {"maps", JsonValue(std::move(maps))}
+    });
+}
+
+// Particle Operations
+
+static JsonValue stageToJson(const particles::IStageDef& stage, int index)
+{
+    auto orientStr = [](particles::IStageDef::OrientationType t) -> std::string {
+        switch (t) {
+            case particles::IStageDef::ORIENTATION_VIEW: return "view";
+            case particles::IStageDef::ORIENTATION_AIMED: return "aimed";
+            case particles::IStageDef::ORIENTATION_X: return "x";
+            case particles::IStageDef::ORIENTATION_Y: return "y";
+            case particles::IStageDef::ORIENTATION_Z: return "z";
+            default: return "view";
+        }
+    };
+    auto distStr = [](particles::IStageDef::DistributionType t) -> std::string {
+        switch (t) {
+            case particles::IStageDef::DISTRIBUTION_RECT: return "rect";
+            case particles::IStageDef::DISTRIBUTION_CYLINDER: return "cylinder";
+            case particles::IStageDef::DISTRIBUTION_SPHERE: return "sphere";
+            default: return "rect";
+        }
+    };
+    auto dirStr = [](particles::IStageDef::DirectionType t) -> std::string {
+        switch (t) {
+            case particles::IStageDef::DIRECTION_CONE: return "cone";
+            case particles::IStageDef::DIRECTION_OUTWARD: return "outward";
+            default: return "cone";
+        }
+    };
+    auto pathStr = [](particles::IStageDef::CustomPathType t) -> std::string {
+        switch (t) {
+            case particles::IStageDef::PATH_STANDARD: return "standard";
+            case particles::IStageDef::PATH_HELIX: return "helix";
+            case particles::IStageDef::PATH_FLIES: return "flies";
+            case particles::IStageDef::PATH_ORBIT: return "orbit";
+            case particles::IStageDef::PATH_DRIP: return "drip";
+            default: return "standard";
+        }
+    };
+
+    auto paramToJson = [](const particles::IParticleParameter& p) -> JsonValue {
+        return jsonObject({{"from", p.getFrom()}, {"to", p.getTo()}});
+    };
+
+    auto& offset = stage.getOffset();
+    auto& color = stage.getColour();
+    auto& fadeColor = stage.getFadeColour();
+
+    return jsonObject({
+        {"index", index},
+        {"material", stage.getMaterialName()},
+        {"count", stage.getCount()},
+        {"duration", static_cast<double>(stage.getDuration())},
+        {"cycles", static_cast<double>(stage.getCycles())},
+        {"bunching", static_cast<double>(stage.getBunching())},
+        {"time_offset", static_cast<double>(stage.getTimeOffset())},
+        {"dead_time", static_cast<double>(stage.getDeadTime())},
+        {"color", jsonArray({color.x(), color.y(), color.z(), color.w()})},
+        {"fade_color", jsonArray({fadeColor.x(), fadeColor.y(), fadeColor.z(), fadeColor.w()})},
+        {"fade_in", static_cast<double>(stage.getFadeInFraction())},
+        {"fade_out", static_cast<double>(stage.getFadeOutFraction())},
+        {"fade_index", static_cast<double>(stage.getFadeIndexFraction())},
+        {"animation_frames", stage.getAnimationFrames()},
+        {"animation_rate", static_cast<double>(stage.getAnimationRate())},
+        {"initial_angle", static_cast<double>(stage.getInitialAngle())},
+        {"offset", jsonArray({offset.x(), offset.y(), offset.z()})},
+        {"gravity", static_cast<double>(stage.getGravity())},
+        {"world_gravity", stage.getWorldGravityFlag()},
+        {"random_distribution", stage.getRandomDistribution()},
+        {"entity_color", stage.getUseEntityColour()},
+        {"bounds_expansion", static_cast<double>(stage.getBoundsExpansion())},
+        {"speed", paramToJson(stage.getSpeed())},
+        {"size", paramToJson(stage.getSize())},
+        {"aspect", paramToJson(stage.getAspect())},
+        {"rotation", paramToJson(stage.getRotationSpeed())},
+        {"orientation", orientStr(stage.getOrientationType())},
+        {"orientation_parms", jsonArray({
+            static_cast<double>(stage.getOrientationParm(0)),
+            static_cast<double>(stage.getOrientationParm(1)),
+            static_cast<double>(stage.getOrientationParm(2)),
+            static_cast<double>(stage.getOrientationParm(3))
+        })},
+        {"distribution", distStr(stage.getDistributionType())},
+        {"distribution_parms", jsonArray({
+            static_cast<double>(stage.getDistributionParm(0)),
+            static_cast<double>(stage.getDistributionParm(1)),
+            static_cast<double>(stage.getDistributionParm(2)),
+            static_cast<double>(stage.getDistributionParm(3))
+        })},
+        {"direction", dirStr(stage.getDirectionType())},
+        {"direction_parms", jsonArray({
+            static_cast<double>(stage.getDirectionParm(0)),
+            static_cast<double>(stage.getDirectionParm(1)),
+            static_cast<double>(stage.getDirectionParm(2)),
+            static_cast<double>(stage.getDirectionParm(3))
+        })},
+        {"custom_path", pathStr(stage.getCustomPathType())},
+        {"custom_path_parms", jsonArray({
+            static_cast<double>(stage.getCustomPathParm(0)),
+            static_cast<double>(stage.getCustomPathParm(1)),
+            static_cast<double>(stage.getCustomPathParm(2)),
+            static_cast<double>(stage.getCustomPathParm(3)),
+            static_cast<double>(stage.getCustomPathParm(4)),
+            static_cast<double>(stage.getCustomPathParm(5)),
+            static_cast<double>(stage.getCustomPathParm(6)),
+            static_cast<double>(stage.getCustomPathParm(7))
+        })}
+    });
+}
+
+static void applyStageProperties(particles::IStageDef& stage, const JsonValue& props)
+{
+    if (props.has("material")) stage.setMaterialName(props["material"].getString());
+    if (props.has("count")) stage.setCount(static_cast<int>(props["count"].getNumber()));
+    if (props.has("duration")) stage.setDuration(static_cast<float>(props["duration"].getNumber()));
+    if (props.has("cycles")) stage.setCycles(static_cast<float>(props["cycles"].getNumber()));
+    if (props.has("bunching")) stage.setBunching(static_cast<float>(props["bunching"].getNumber()));
+    if (props.has("time_offset")) stage.setTimeOffset(static_cast<float>(props["time_offset"].getNumber()));
+    if (props.has("dead_time")) stage.setDeadTime(static_cast<float>(props["dead_time"].getNumber()));
+    if (props.has("fade_in")) stage.setFadeInFraction(static_cast<float>(props["fade_in"].getNumber()));
+    if (props.has("fade_out")) stage.setFadeOutFraction(static_cast<float>(props["fade_out"].getNumber()));
+    if (props.has("fade_index")) stage.setFadeIndexFraction(static_cast<float>(props["fade_index"].getNumber()));
+    if (props.has("animation_frames")) stage.setAnimationFrames(static_cast<int>(props["animation_frames"].getNumber()));
+    if (props.has("animation_rate")) stage.setAnimationRate(static_cast<float>(props["animation_rate"].getNumber()));
+    if (props.has("initial_angle")) stage.setInitialAngle(static_cast<float>(props["initial_angle"].getNumber()));
+    if (props.has("gravity")) stage.setGravity(static_cast<float>(props["gravity"].getNumber()));
+    if (props.has("world_gravity")) stage.setWorldGravityFlag(props["world_gravity"].getBool());
+    if (props.has("random_distribution")) stage.setRandomDistribution(props["random_distribution"].getBool());
+    if (props.has("entity_color")) stage.setUseEntityColour(props["entity_color"].getBool());
+    if (props.has("bounds_expansion")) stage.setBoundsExpansion(static_cast<float>(props["bounds_expansion"].getNumber()));
+
+    if (props.has("color"))
+    {
+        auto& c = props["color"];
+        stage.setColour(Vector4(c[0].getNumber(), c[1].getNumber(), c[2].getNumber(), c[3].getNumber()));
+    }
+    if (props.has("fade_color"))
+    {
+        auto& c = props["fade_color"];
+        stage.setFadeColour(Vector4(c[0].getNumber(), c[1].getNumber(), c[2].getNumber(), c[3].getNumber()));
+    }
+    if (props.has("offset"))
+    {
+        auto& o = props["offset"];
+        stage.setOffset(Vector3(o[0].getNumber(), o[1].getNumber(), o[2].getNumber()));
+    }
+
+    if (props.has("speed"))
+    {
+        auto& p = props["speed"];
+        if (p.has("from")) stage.getSpeed().setFrom(static_cast<float>(p["from"].getNumber()));
+        if (p.has("to")) stage.getSpeed().setTo(static_cast<float>(p["to"].getNumber()));
+    }
+    if (props.has("size"))
+    {
+        auto& p = props["size"];
+        if (p.has("from")) stage.getSize().setFrom(static_cast<float>(p["from"].getNumber()));
+        if (p.has("to")) stage.getSize().setTo(static_cast<float>(p["to"].getNumber()));
+    }
+    if (props.has("aspect"))
+    {
+        auto& p = props["aspect"];
+        if (p.has("from")) stage.getAspect().setFrom(static_cast<float>(p["from"].getNumber()));
+        if (p.has("to")) stage.getAspect().setTo(static_cast<float>(p["to"].getNumber()));
+    }
+    if (props.has("rotation"))
+    {
+        auto& p = props["rotation"];
+        if (p.has("from")) stage.getRotationSpeed().setFrom(static_cast<float>(p["from"].getNumber()));
+        if (p.has("to")) stage.getRotationSpeed().setTo(static_cast<float>(p["to"].getNumber()));
+    }
+
+    if (props.has("orientation"))
+    {
+        std::string o = props["orientation"].getString();
+        if (o == "view") stage.setOrientationType(particles::IStageDef::ORIENTATION_VIEW);
+        else if (o == "aimed") stage.setOrientationType(particles::IStageDef::ORIENTATION_AIMED);
+        else if (o == "x") stage.setOrientationType(particles::IStageDef::ORIENTATION_X);
+        else if (o == "y") stage.setOrientationType(particles::IStageDef::ORIENTATION_Y);
+        else if (o == "z") stage.setOrientationType(particles::IStageDef::ORIENTATION_Z);
+    }
+    if (props.has("orientation_parms"))
+    {
+        auto& arr = props["orientation_parms"];
+        for (int i = 0; i < static_cast<int>(arr.size()) && i < 4; ++i)
+            stage.setOrientationParm(i, static_cast<float>(arr[i].getNumber()));
+    }
+
+    if (props.has("distribution"))
+    {
+        std::string d = props["distribution"].getString();
+        if (d == "rect") stage.setDistributionType(particles::IStageDef::DISTRIBUTION_RECT);
+        else if (d == "cylinder") stage.setDistributionType(particles::IStageDef::DISTRIBUTION_CYLINDER);
+        else if (d == "sphere") stage.setDistributionType(particles::IStageDef::DISTRIBUTION_SPHERE);
+    }
+    if (props.has("distribution_parms"))
+    {
+        auto& arr = props["distribution_parms"];
+        for (int i = 0; i < static_cast<int>(arr.size()) && i < 4; ++i)
+            stage.setDistributionParm(i, static_cast<float>(arr[i].getNumber()));
+    }
+
+    if (props.has("direction"))
+    {
+        std::string d = props["direction"].getString();
+        if (d == "cone") stage.setDirectionType(particles::IStageDef::DIRECTION_CONE);
+        else if (d == "outward") stage.setDirectionType(particles::IStageDef::DIRECTION_OUTWARD);
+    }
+    if (props.has("direction_parms"))
+    {
+        auto& arr = props["direction_parms"];
+        for (int i = 0; i < static_cast<int>(arr.size()) && i < 4; ++i)
+            stage.setDirectionParm(i, static_cast<float>(arr[i].getNumber()));
+    }
+
+    if (props.has("custom_path"))
+    {
+        std::string p = props["custom_path"].getString();
+        if (p == "standard") stage.setCustomPathType(particles::IStageDef::PATH_STANDARD);
+        else if (p == "helix") stage.setCustomPathType(particles::IStageDef::PATH_HELIX);
+        else if (p == "flies") stage.setCustomPathType(particles::IStageDef::PATH_FLIES);
+        else if (p == "orbit") stage.setCustomPathType(particles::IStageDef::PATH_ORBIT);
+        else if (p == "drip") stage.setCustomPathType(particles::IStageDef::PATH_DRIP);
+    }
+    if (props.has("custom_path_parms"))
+    {
+        auto& arr = props["custom_path_parms"];
+        for (int i = 0; i < static_cast<int>(arr.size()) && i < 8; ++i)
+            stage.setCustomPathParm(i, static_cast<float>(arr[i].getNumber()));
+    }
+}
+
+JsonValue McpPlugin::getParticleDef(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    JsonValue::Array stages;
+    for (std::size_t i = 0; i < def->getNumStages(); ++i)
+        stages.push_back(stageToJson(*def->getStage(i), static_cast<int>(i)));
+
+    return jsonObject({
+        {"name", def->getDeclName()},
+        {"depth_hack", static_cast<double>(def->getDepthHack())},
+        {"num_stages", static_cast<int>(def->getNumStages())},
+        {"stages", JsonValue(std::move(stages))}
+    });
+}
+
+JsonValue McpPlugin::createParticleDef(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+
+    auto existing = GlobalParticlesManager().getDefByName(name);
+    if (existing) throw std::runtime_error("Particle already exists: " + name);
+
+    auto def = GlobalParticlesManager().findOrInsertParticleDef(name);
+
+    if (params.has("depth_hack"))
+        def->setDepthHack(static_cast<float>(params["depth_hack"].getNumber()));
+
+    return jsonObject({
+        {"success", true},
+        {"name", def->getDeclName()},
+        {"num_stages", static_cast<int>(def->getNumStages())}
+    });
+}
+
+JsonValue McpPlugin::updateParticleDef(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    if (params.has("depth_hack"))
+        def->setDepthHack(static_cast<float>(params["depth_hack"].getNumber()));
+
+    return jsonObject({
+        {"success", true},
+        {"name", def->getDeclName()},
+        {"depth_hack", static_cast<double>(def->getDepthHack())}
+    });
+}
+
+JsonValue McpPlugin::addParticleStage(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    auto idx = def->addParticleStage();
+
+    if (params.has("properties"))
+        applyStageProperties(*def->getStage(idx), params["properties"]);
+
+    return jsonObject({
+        {"success", true},
+        {"name", def->getDeclName()},
+        {"stage_index", static_cast<int>(idx)},
+        {"num_stages", static_cast<int>(def->getNumStages())}
+    });
+}
+
+JsonValue McpPlugin::updateParticleStage(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    int stageIdx = static_cast<int>(params["stage"].getNumber());
+
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    if (stageIdx < 0 || stageIdx >= static_cast<int>(def->getNumStages()))
+        throw std::runtime_error("Stage index out of range: " + std::to_string(stageIdx));
+
+    auto stage = def->getStage(static_cast<std::size_t>(stageIdx));
+    applyStageProperties(*stage, params);
+
+    return stageToJson(*stage, stageIdx);
+}
+
+JsonValue McpPlugin::removeParticleStage(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    int stageIdx = static_cast<int>(params["stage"].getNumber());
+
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    if (stageIdx < 0 || stageIdx >= static_cast<int>(def->getNumStages()))
+        throw std::runtime_error("Stage index out of range: " + std::to_string(stageIdx));
+
+    def->removeParticleStage(static_cast<std::size_t>(stageIdx));
+
+    return jsonObject({
+        {"success", true},
+        {"name", def->getDeclName()},
+        {"num_stages", static_cast<int>(def->getNumStages())}
+    });
+}
+
+JsonValue McpPlugin::swapParticleStages(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    int idx1 = static_cast<int>(params["stage1"].getNumber());
+    int idx2 = static_cast<int>(params["stage2"].getNumber());
+
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    int numStages = static_cast<int>(def->getNumStages());
+    if (idx1 < 0 || idx1 >= numStages || idx2 < 0 || idx2 >= numStages)
+        throw std::runtime_error("Stage index out of range");
+
+    def->swapParticleStages(static_cast<std::size_t>(idx1), static_cast<std::size_t>(idx2));
+
+    return jsonObject({
+        {"success", true},
+        {"name", def->getDeclName()}
+    });
+}
+
+JsonValue McpPlugin::saveParticleDef(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    GlobalParticlesManager().saveParticleDef(name);
+
+    return jsonObject({
+        {"success", true},
+        {"name", name}
+    });
+}
+
+JsonValue McpPlugin::cloneParticleDef(const JsonValue& params)
+{
+    std::string sourceName = params["source"].getString();
+    std::string newName = params["name"].getString();
+
+    auto source = GlobalParticlesManager().getDefByName(sourceName);
+    if (!source) throw std::runtime_error("Source particle not found: " + sourceName);
+
+    auto existing = GlobalParticlesManager().getDefByName(newName);
+    if (existing) throw std::runtime_error("Particle already exists: " + newName);
+
+    auto newDef = GlobalParticlesManager().findOrInsertParticleDef(newName);
+    newDef->copyFrom(source);
+
+    return jsonObject({
+        {"success", true},
+        {"name", newDef->getDeclName()},
+        {"num_stages", static_cast<int>(newDef->getNumStages())}
+    });
+}
+
+JsonValue McpPlugin::deleteParticleDef(const JsonValue& params)
+{
+    std::string name = params["name"].getString();
+    auto def = GlobalParticlesManager().getDefByName(name);
+    if (!def) throw std::runtime_error("Particle not found: " + name);
+
+    GlobalParticlesManager().removeParticleDef(name);
+
+    return jsonObject({
+        {"success", true},
+        {"name", name}
     });
 }
 

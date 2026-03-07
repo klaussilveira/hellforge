@@ -126,6 +126,18 @@ private:
     // View capture tools
     JsonValue captureView(const JsonValue& params);
 
+    // Particle tools
+    JsonValue getParticleDef(const JsonValue& params);
+    JsonValue createParticleDef(const JsonValue& params);
+    JsonValue updateParticleDef(const JsonValue& params);
+    JsonValue addParticleStage(const JsonValue& params);
+    JsonValue updateParticleStage(const JsonValue& params);
+    JsonValue removeParticleStage(const JsonValue& params);
+    JsonValue swapParticleStages(const JsonValue& params);
+    JsonValue saveParticleDef(const JsonValue& params);
+    JsonValue cloneParticleDef(const JsonValue& params);
+    JsonValue deleteParticleDef(const JsonValue& params);
+
     std::thread _serverThread;
     std::atomic<bool> _running{false};
     int _serverFd = -1;

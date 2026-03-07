@@ -18,6 +18,49 @@ HELLFORGE_HOST = "127.0.0.1"
 HELLFORGE_PORT = 13646
 
 
+def _relax_schema_types(schema: dict) -> dict:
+    """Allow string values for integer/number/boolean params (MCP clients may stringify)."""
+    props = schema.get("properties", {})
+    for prop in props.values():
+        t = prop.get("type")
+        if t in ("integer", "number", "boolean"):
+            prop["type"] = [t, "string"]
+        if "properties" in prop:
+            _relax_schema_types(prop)
+        items = prop.get("items")
+        if isinstance(items, dict) and "properties" in items:
+            _relax_schema_types(items)
+    return schema
+
+
+def _coerce_args(arguments: dict, schema: dict) -> dict:
+    """Coerce string values to schema-expected types before sending to C++."""
+    props = schema.get("properties", {})
+    for key, value in list(arguments.items()):
+        if key not in props:
+            continue
+        prop = props[key]
+        t = prop.get("type")
+        if isinstance(t, list):
+            t = t[0]
+        if isinstance(value, str):
+            if t == "integer":
+                arguments[key] = int(value)
+            elif t == "number":
+                arguments[key] = float(value)
+            elif t == "boolean":
+                arguments[key] = value.lower() in ("true", "1", "yes")
+        elif isinstance(value, dict) and "properties" in prop:
+            _coerce_args(value, prop)
+        elif isinstance(value, list) and "items" in prop:
+            items_schema = prop["items"]
+            if isinstance(items_schema, dict) and "properties" in items_schema:
+                for item in value:
+                    if isinstance(item, dict):
+                        _coerce_args(item, items_schema)
+    return arguments
+
+
 class HellForgeConnection:
     """Manages TCP connection to the HellForge MCP plugin."""
 
@@ -139,6 +182,16 @@ TOOLS = [
     Tool(name="list_sounds", description="List sound shaders with name, display folder, and min/max radius. Filter by name substring.", inputSchema={"type": "object", "properties": {"filter": {"type": "string", "description": "Text filter on sound name"}, "limit": {"type": "integer", "description": "Max results (default 100)"}}}),
     Tool(name="list_skins", description="List available skins (material remappings for models). Optionally filter by model path to get only applicable skins.", inputSchema={"type": "object", "properties": {"model": {"type": "string", "description": "Model path to filter skins for"}, "limit": {"type": "integer", "description": "Max results (default 100)"}}}),
     Tool(name="list_particles", description="List available particle effect definitions. Filter by name substring.", inputSchema={"type": "object", "properties": {"filter": {"type": "string", "description": "Text filter on particle name"}, "limit": {"type": "integer", "description": "Max results (default 100)"}}}),
+    Tool(name="get_particle_def", description="Get full details of a particle definition including all stages and their properties. Each stage defines a group of particles with shared material, timing, movement, and visual properties.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name"}}, "required": ["name"]}),
+    Tool(name="create_particle_def", description="Create a new empty particle definition. Add stages with add_particle_stage after creation.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Name for the new particle (e.g. 'my_fire')"}, "depth_hack": {"type": "number", "description": "Depth offset for rendering order (default 0)"}}, "required": ["name"]}),
+    Tool(name="update_particle_def", description="Update particle-level properties (not stage properties).", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name"}, "depth_hack": {"type": "number", "description": "Depth offset for rendering order"}}, "required": ["name"]}),
+    Tool(name="add_particle_stage", description="Add a new stage to a particle definition. Optionally set initial properties. Each stage renders a group of particles with shared settings.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name"}, "properties": {"type": "object", "description": "Initial stage properties (same format as update_particle_stage)", "properties": {"material": {"type": "string"}, "count": {"type": "integer"}, "duration": {"type": "number"}, "color": {"type": "array", "items": {"type": "number"}, "description": "[r,g,b,a] 0-1"}}}}, "required": ["name"]}),
+    Tool(name="update_particle_stage", description="Update properties on a particle stage. All properties are optional - only specified ones are changed. Bounded parameters (speed, size, aspect, rotation) use {from, to} objects for range over particle lifetime. Distribution types: rect, cylinder, sphere. Direction types: cone, outward. Orientation: view, aimed, x, y, z. Custom paths: standard, helix, flies, orbit, drip.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name"}, "stage": {"type": "integer", "description": "Stage index (0-based)"}, "material": {"type": "string", "description": "Shader/texture name"}, "count": {"type": "integer", "description": "Number of particles"}, "duration": {"type": "number", "description": "Stage duration in seconds"}, "cycles": {"type": "number", "description": "Repeat count (0 = infinite)"}, "bunching": {"type": "number", "description": "Spawn distribution 0-1 (0=all at once, 1=evenly spaced)"}, "time_offset": {"type": "number", "description": "Seconds before first spawn"}, "dead_time": {"type": "number", "description": "Seconds to wait after duration before respawn"}, "color": {"type": "array", "items": {"type": "number"}, "description": "RGBA color [r,g,b,a] 0-1"}, "fade_color": {"type": "array", "items": {"type": "number"}, "description": "Fade target color [r,g,b,a]"}, "fade_in": {"type": "number", "description": "Fraction of lifetime for fade in (0-1)"}, "fade_out": {"type": "number", "description": "Fraction of lifetime for fade out (0-1)"}, "fade_index": {"type": "number", "description": "Later particles fade more (0-1)"}, "animation_frames": {"type": "integer", "description": "Sprite sheet subdivisions"}, "animation_rate": {"type": "number", "description": "Animation FPS"}, "initial_angle": {"type": "number", "description": "Initial rotation degrees"}, "offset": {"type": "array", "items": {"type": "number"}, "description": "Spawn offset [x,y,z]"}, "gravity": {"type": "number", "description": "Gravity factor (negative = float up)"}, "world_gravity": {"type": "boolean", "description": "Apply gravity in world space"}, "random_distribution": {"type": "boolean"}, "entity_color": {"type": "boolean", "description": "Use parent entity color"}, "bounds_expansion": {"type": "number"}, "speed": {"type": "object", "properties": {"from": {"type": "number"}, "to": {"type": "number"}}, "description": "Particle velocity range"}, "size": {"type": "object", "properties": {"from": {"type": "number"}, "to": {"type": "number"}}, "description": "Particle quad size range"}, "aspect": {"type": "object", "properties": {"from": {"type": "number"}, "to": {"type": "number"}}, "description": "Width/height ratio range"}, "rotation": {"type": "object", "properties": {"from": {"type": "number"}, "to": {"type": "number"}}, "description": "Rotation speed range"}, "orientation": {"type": "string", "enum": ["view", "aimed", "x", "y", "z"], "description": "Particle facing mode"}, "orientation_parms": {"type": "array", "items": {"type": "number"}, "description": "Orientation parameters [0-3]"}, "distribution": {"type": "string", "enum": ["rect", "cylinder", "sphere"], "description": "Spawn area shape"}, "distribution_parms": {"type": "array", "items": {"type": "number"}, "description": "Distribution size [sizeX, sizeY, sizeZ, ringFraction]"}, "direction": {"type": "string", "enum": ["cone", "outward"], "description": "Particle direction mode"}, "direction_parms": {"type": "array", "items": {"type": "number"}, "description": "Direction parameters (cone angle or outward bias)"}, "custom_path": {"type": "string", "enum": ["standard", "helix", "flies", "orbit", "drip"]}, "custom_path_parms": {"type": "array", "items": {"type": "number"}, "description": "Custom path parameters [0-7]"}}, "required": ["name", "stage"]}),
+    Tool(name="remove_particle_stage", description="Remove a stage from a particle definition by index.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name"}, "stage": {"type": "integer", "description": "Stage index to remove (0-based)"}}, "required": ["name", "stage"]}),
+    Tool(name="swap_particle_stages", description="Swap the order of two stages in a particle definition.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name"}, "stage1": {"type": "integer", "description": "First stage index"}, "stage2": {"type": "integer", "description": "Second stage index"}}, "required": ["name", "stage1", "stage2"]}),
+    Tool(name="save_particle_def", description="Save a particle definition to its .prt file on disk. Call this after making changes to persist them.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name to save"}}, "required": ["name"]}),
+    Tool(name="clone_particle_def", description="Clone an existing particle definition under a new name. Copies all stages and properties.", inputSchema={"type": "object", "properties": {"source": {"type": "string", "description": "Source particle name to clone from"}, "name": {"type": "string", "description": "Name for the new particle"}}, "required": ["source", "name"]}),
+    Tool(name="delete_particle_def", description="Delete a particle definition.", inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Particle definition name to delete"}}, "required": ["name"]}),
     Tool(name="list_prefabs", description="List available prefab files (.pfb, .pfbx, .map) from the prefabs/ directory. Prefabs are reusable map fragments that can be inserted into the current map.", inputSchema={"type": "object", "properties": {"filter": {"type": "string", "description": "Text filter on prefab name/path"}, "limit": {"type": "integer", "description": "Max results (default 100)"}}}),
     Tool(name="get_prefab_info", description="Get detailed info about a prefab: description (auto-generated if empty, listing models/materials), entity/brush/patch counts, bounding box with dimensions, designed origin, contained entities, models used, and visible materials used.", inputSchema={"type": "object", "properties": {"path": {"type": "string", "description": "VFS path to the prefab (e.g. 'prefabs/rooms/hallway.pfb')"}}, "required": ["path"]}),
     Tool(name="insert_prefab", description="Insert a prefab into the current map at a given position with optional rotation. The prefab geometry is merged into the map. Supports 'angle' (yaw degrees) or 'angles' (pitch/yaw/roll) for rotation on insertion.", inputSchema={"type": "object", "properties": {"path": {"type": "string", "description": "VFS path to the prefab"}, "origin": {"type": "array", "items": {"type": "number"}, "description": "Insertion position [x,y,z] (default: [0,0,0])"}, "angle": {"type": "number", "description": "Yaw rotation in degrees (0=east, 90=north, 180=west, 270=south)"}, "angles": {"type": "array", "items": {"type": "number"}, "description": "Full rotation [pitch, yaw, roll] in degrees"}, "as_group": {"type": "boolean", "description": "Group prefab parts together (default: true)"}, "recalculate_origin": {"type": "boolean", "description": "Recalculate prefab origin to center at insertion point (default: true)"}}, "required": ["path"]}),
@@ -160,6 +213,12 @@ TOOLS = [
 ]
 
 
+# Relax schemas to accept string values for integer/number/boolean params
+_TOOL_SCHEMAS = {t.name: t.inputSchema for t in TOOLS}
+for _tool in TOOLS:
+    _relax_schema_types(_tool.inputSchema)
+
+
 @app.list_tools()
 async def list_tools():
     return TOOLS
@@ -168,6 +227,8 @@ async def list_tools():
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent | ImageContent]:
     try:
+        schema = _TOOL_SCHEMAS.get(name, {})
+        _coerce_args(arguments, schema)
         result = conn.call(name, arguments)
 
         # capture_view returns base64 image data
