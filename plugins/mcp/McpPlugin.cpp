@@ -300,6 +300,7 @@ JsonValue McpPlugin::dispatch(const std::string& method, const JsonValue& params
     if (method == "list_shortcuts") return listShortcuts(params);
     if (method == "get_command_shortcut") return getCommandShortcut(params);
     if (method == "capture_view") return captureView(params);
+    if (method == "list_maps") return listMaps(params);
 
     // CSG operations (all work on current selection)
     if (method == "csg_subtract") { GlobalCommandSystem().executeCommand("CSGSubtract"); return jsonObject({{"success", true}}); }
@@ -2639,6 +2640,40 @@ JsonValue McpPlugin::captureView(const JsonValue& params)
         {"image", base64Encode(fileData)},
         {"format", "png"},
         {"view", viewType}
+    });
+}
+
+JsonValue McpPlugin::listMaps(const JsonValue& params)
+{
+    std::string filter;
+    int limit = 100;
+
+    if (params.has("filter")) filter = params["filter"].getString();
+    if (params.has("limit")) limit = static_cast<int>(params["limit"].getNumber());
+
+    JsonValue::Array maps;
+    int count = 0;
+
+    GlobalFileSystem().forEachFile("maps/", "map", [&](const vfs::FileInfo& info) {
+        if (count >= limit) return;
+
+        std::string name = info.name;
+        std::string fullPath = info.fullPath();
+
+        if (!filter.empty() && name.find(filter) == std::string::npos
+            && fullPath.find(filter) == std::string::npos)
+            return;
+
+        maps.push_back(jsonObject({
+            {"name", name},
+            {"path", std::string("maps/") + name}
+        }));
+        ++count;
+    }, 99);
+
+    return jsonObject({
+        {"count", static_cast<int>(maps.size())},
+        {"maps", JsonValue(std::move(maps))}
     });
 }
 

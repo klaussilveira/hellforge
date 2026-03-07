@@ -120,6 +120,9 @@ private:
     JsonValue getPrefabInfo(const JsonValue& params);
     JsonValue insertPrefab(const JsonValue& params);
 
+    // Game map browsing tools
+    JsonValue listMaps(const JsonValue& params);
+
     // View capture tools
     JsonValue captureView(const JsonValue& params);
 
