@@ -9,9 +9,12 @@ namespace map
 
 void MapFileManager::registerFileTypes()
 {
-	// Register the map file extension in the FileTypeRegistry
 	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Map"), "map", "*.map"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Portable Map"), "mapx", "*.mapx"));
+	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Valve 220"), "map", "*.map", "", "Valve 220"));
+	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Quake 1"), "map", "*.map", "", "Quake 1"));
+	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Quake 2"), "map", "*.map", "", "Quake 2"));
+	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Valve VMF"), "vmf", "*.vmf", "", "Valve VMF"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_REGION, FileTypePattern(_("Region"), "reg", "*.reg"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_PREFAB, FileTypePattern(_("Portable Prefab"), "pfbx", "*.pfbx"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_PREFAB, FileTypePattern(_("Prefab"), "pfb", "*.pfb"));

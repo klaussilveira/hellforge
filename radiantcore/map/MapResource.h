@@ -41,14 +41,16 @@ private:
     sigc::signal<void(bool)> _signalModifiedStatusChanged;
     sigc::connection _mapChangeCountListener;
 
+	MapFormatPtr _formatOverride;
+
 public:
-	// Constructor
 	MapResource(const std::string& resourcePath);
     virtual ~MapResource();
 
 	virtual void rename(const std::string& fullPath) override;
 
 	virtual bool load() override;
+	void setFormatOverride(const MapFormatPtr& format) override;
     virtual bool isReadOnly() override;
 	virtual void save(const MapFormatPtr& mapFormat = MapFormatPtr()) override;
 

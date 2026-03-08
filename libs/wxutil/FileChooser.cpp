@@ -149,11 +149,11 @@ void FileChooser::assembleFileTypes()
 		filter.caption = pattern.name + " (" + pattern.pattern + ")";
 		filter.filter = pattern.pattern;
 		filter.extension = pattern.extension;
+		filter.mapFormatName = pattern.mapFormatName;
 
 		_fileFilters.push_back(filter);
 
-		// Pre-select the filter matching the default extension
-		if (pattern.extension == _defaultExt)
+		if (pattern.extension == _defaultExt && pattern.mapFormatName.empty())
 		{
 			filter.isDefaultFilter = true;
 		}

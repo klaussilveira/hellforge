@@ -22,15 +22,20 @@ struct FileTypePattern
     // Optional icon string, referring to an image in the bitmaps folder
     std::string icon;
 
+	// Optional map format name, used to associate this pattern with a specific MapFormat
+	std::string mapFormatName;
+
 	// Constructor with optional initialisation parameters
-	FileTypePattern(const std::string& name_ = "", 
-					const std::string& extension_ = "", 
+	FileTypePattern(const std::string& name_ = "",
+					const std::string& extension_ = "",
 					const std::string& pattern_ = "",
-                    const std::string& icon_ = "") :
+                    const std::string& icon_ = "",
+					const std::string& mapFormatName_ = "") :
 		name(name_),
 		extension(extension_),
 		pattern(pattern_),
-        icon(icon_)
+        icon(icon_),
+		mapFormatName(mapFormatName_)
 	{}
 };
 typedef std::list<FileTypePattern> FileTypePatterns;

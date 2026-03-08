@@ -134,16 +134,15 @@ void Map::onUndoEvent(IUndoSystem::EventType type, const std::string& operationN
     }
 }
 
-void Map::loadMapResourceFromPath(const std::string& path)
+void Map::loadMapResourceFromPath(const std::string& path, const MapFormatPtr& format)
 {
-    // Create a MapLocation defining a physical file, and forward the call
-    loadMapResourceFromLocation(MapLocation{path, false, ""});
+    loadMapResourceFromLocation(MapLocation{path, false, "", format});
 }
 
 void Map::loadMapResourceFromArchive(const std::string& archive, const std::string& archiveRelativePath)
 {
     // Create a MapLocation defining an archive file, and forward the call
-    loadMapResourceFromLocation(MapLocation{ archive, true, archiveRelativePath });
+    loadMapResourceFromLocation(MapLocation{ archive, true, archiveRelativePath, {} });
 }
 
 void Map::loadMapResourceFromLocation(const MapLocation& location)
@@ -162,6 +161,11 @@ void Map::loadMapResourceFromLocation(const MapLocation& location)
         GlobalMapResourceManager().createFromPath(location.path);
 
     assert(_resource);
+
+	if (location.format)
+	{
+		_resource->setFormatOverride(location.format);
+	}
 
     try
     {
@@ -620,10 +624,10 @@ const scene::INodePtr& Map::findOrInsertWorldspawn()
     return _worldSpawnNode;
 }
 
-void Map::load(const std::string& filename)
+void Map::load(const std::string& filename, const MapFormatPtr& format)
 {
     setMapName(filename);
-    loadMapResourceFromPath(_mapName);
+    loadMapResourceFromPath(_mapName, format);
 }
 
 bool Map::save(const MapFormatPtr& mapFormat)
@@ -700,11 +704,16 @@ IMapExporter::Ptr Map::createMapExporter(IMapWriter& writer,
     return std::make_shared<MapExporter>(writer, root, mapStream, 0);
 }
 
-bool Map::import(const std::string& filename)
+bool Map::import(const std::string& filename, const MapFormatPtr& format)
 {
     bool success = false;
 
     IMapResourcePtr resource = GlobalMapResourceManager().createFromPath(filename);
+
+	if (format)
+	{
+		resource->setFormatOverride(format);
+	}
 
     try
     {
@@ -1076,6 +1085,7 @@ void Map::openMapCmd(const cmd::ArgumentList& args)
     if (!askForSave(_("Open Map"))) return;
 
     std::string candidate;
+    MapFormatPtr selectedFormat;
 
     if (!args.empty())
     {
@@ -1083,9 +1093,9 @@ void Map::openMapCmd(const cmd::ArgumentList& args)
     }
     else
     {
-        // No arguments passed, get the map file name to load
         auto fileInfo = MapFileManager::getMapFileSelection(true, _("Open map"), filetype::TYPE_MAP);
         candidate = fileInfo.fullPath;
+        selectedFormat = fileInfo.mapFormat;
     }
 
     std::string mapToLoad;
@@ -1096,15 +1106,12 @@ void Map::openMapCmd(const cmd::ArgumentList& args)
     }
     else if (!candidate.empty())
     {
-        // Try to open this file from the VFS (this will hit physical files
-        // in the active project as well as files in registered PK4)
         if (GlobalFileSystem().openTextFile(candidate))
         {
             mapToLoad = candidate;
         }
         else
         {
-            // Next, try to look up the map in the regular maps path
             fs::path mapsPath = GlobalGameManager().getMapPath();
             fs::path fullMapPath = mapsPath / candidate;
 
@@ -1124,7 +1131,7 @@ void Map::openMapCmd(const cmd::ArgumentList& args)
         GlobalMRU().insert(mapToLoad);
 
         freeMap();
-        load(mapToLoad);
+        load(mapToLoad, selectedFormat);
     }
 }
 
@@ -1162,7 +1169,7 @@ void Map::importMap(const cmd::ArgumentList& args)
     if (!fileInfo.fullPath.empty())
     {
         UndoableCommand undo("mapImport");
-        GlobalMap().import(fileInfo.fullPath);
+        GlobalMap().import(fileInfo.fullPath, fileInfo.mapFormat);
     }
 }
 

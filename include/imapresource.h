@@ -29,6 +29,8 @@ public:
 	 */
 	virtual bool load() = 0;
 
+	virtual void setFormatOverride(const map::MapFormatPtr& format) = 0;
+
 	// Exception type thrown by the the MapResource implementation
 	class OperationException :
 		public std::runtime_error 

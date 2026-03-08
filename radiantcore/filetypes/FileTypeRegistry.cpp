@@ -29,9 +29,8 @@ void FileTypeRegistry::registerPattern(const std::string& fileType, const FileTy
 	// Check if the pattern is already associated
 	for (const FileTypePattern& existing : patternList)
 	{
-		if (existing.extension == patternLocal.extension)
+		if (existing.extension == patternLocal.extension && existing.name == patternLocal.name)
 		{
-			// Ignore this pattern
 			return;
 		}
 	}

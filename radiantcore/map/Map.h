@@ -150,14 +150,9 @@ public:
 	 */
 	void saveSelected(const std::string& filename, const MapFormatPtr& mapFormat = MapFormatPtr());
 
-	// Loads the map from the given filename
-    void load(const std::string& filename);
+	void load(const std::string& filename, const MapFormatPtr& format = MapFormatPtr());
 
-	/** greebo: Imports the contents from the given filename.
-	 *
-	 * @returns: true on success.
-	 */
-	bool import(const std::string& filename);
+	bool import(const std::string& filename, const MapFormatPtr& format = MapFormatPtr());
 
 	/**
 	 * greebo: Exports the current map directly to the given filename.
@@ -267,10 +262,11 @@ private:
         std::string path;
         bool isArchive;
         std::string archiveRelativePath;
+		MapFormatPtr format;
     };
     void loadMapResourceFromLocation(const MapLocation& location);
 
-	void loadMapResourceFromPath(const std::string& path);
+	void loadMapResourceFromPath(const std::string& path, const MapFormatPtr& format = MapFormatPtr());
 	void loadMapResourceFromArchive(const std::string& archive, const std::string& archiveRelativePath);
 
     void startMergeOperationCmd(const cmd::ArgumentList& args);

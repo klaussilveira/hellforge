@@ -110,6 +110,11 @@ bool MapResource::load()
 	return _mapRoot != nullptr;
 }
 
+void MapResource::setFormatOverride(const MapFormatPtr& format)
+{
+	_formatOverride = format;
+}
+
 bool MapResource::isReadOnly()
 {
     return !FileIsWriteable(getAbsoluteResourcePath());
@@ -293,8 +298,8 @@ RootNodePtr MapResource::loadMapNode()
 
     try
     {
-        // Get the mapformat
-        auto format = algorithm::determineMapFormat(stream->getStream(), _extension);
+        auto format = _formatOverride ? _formatOverride :
+            algorithm::determineMapFormat(stream->getStream(), _extension);
 
         if (!format)
         {
