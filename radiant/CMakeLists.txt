@@ -39,6 +39,8 @@ add_executable(hellforge
                ui/brush/QuerySidesDialog.cpp
                ui/commandlist/CommandList.cpp
                ui/commandlist/ShortcutChooser.cpp
+               ui/commandpalette/CommandPalette.cpp
+               ui/commandpalette/InsertPalette.cpp
                ui/common/EntityChooser.cpp
                ui/common/ImageFilePopulator.cpp
                ui/common/ImageFileSelector.cpp

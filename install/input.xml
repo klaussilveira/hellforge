@@ -82,7 +82,7 @@
 		<shortcut command="TexToolMergeItems" key="M" modifiers="ALT" />
 		<shortcut command="TextureNatural" key="N" modifiers="CONTROL" />
 		<shortcut command="NormaliseTexture" key="N" modifiers="SHIFT" />
-		<shortcut command="Sleep" key="P" modifiers="SHIFT+CONTROL" />
+		<shortcut command="CommandPalette" key="P" modifiers="SHIFT+CONTROL" />
 		<shortcut command="OpenMap" key="O" modifiers="CONTROL" />
 		<shortcut command="SaveMap" key="S" modifiers="CONTROL" />
 		<shortcut command="Undo" key="Z" modifiers="CONTROL" />
@@ -169,7 +169,7 @@
 		<shortcut command="DragEdges" key="E" />
 		<shortcut command="DragFaces" key="F" />
 		<shortcut command="ToggleSelectionFocus" key="F" modifiers="CONTROL" />
-		<shortcut command="ThickenPatchDialog" key="P" modifiers="CONTROL" />
+		<shortcut command="InsertPalette" key="P" modifiers="CONTROL" />
 		<shortcut command="ToggleShowAllLightRadii" key="F" modifiers="CONTROL+SHIFT+ALT" />
 		<shortcut command="NewOrthoView" key="N" modifiers="CONTROL+ALT" />
 		<shortcut command="SetGrid0.125" key="" modifiers=""/>

@@ -44,7 +44,8 @@
 		<strafemode toggle="CONTROL" forward="SHIFT" speed="0.65" forwardFactor="-1" />
 	</cameraview>
 	<shortcuts name="default">
-		<shortcut command="Sleep" key="P" modifiers="SHIFT+CONTROL" />
+		<shortcut command="CommandPalette" key="P" modifiers="SHIFT+CONTROL" />
+		<shortcut command="InsertPalette" key="P" modifiers="CONTROL" />
 		<shortcut command="OpenMap" key="O" modifiers="CONTROL" />
 		<shortcut command="SaveMap" key="S" modifiers="CONTROL" />
 		<shortcut command="Undo" key="Z" modifiers="CONTROL" />

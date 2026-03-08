@@ -44,6 +44,8 @@
 #include "ui/findshader/FindShaderControl.h"
 #include "ui/mapinfo/MapInfoDialog.h"
 #include "ui/commandlist/CommandList.h"
+#include "ui/commandpalette/CommandPalette.h"
+#include "ui/commandpalette/InsertPalette.h"
 #include "ui/mousetool/ToolMappingDialog.h"
 #include "ui/about/AboutDialog.h"
 #include "ui/eclasstree/EClassTree.h"
@@ -521,6 +523,8 @@ void UserInterfaceModule::registerUICommands()
     GlobalCommandSystem().addCommand("MouseToolMappingDialog", ToolMappingDialog::ShowDialog);
 
     GlobalCommandSystem().addCommand("ShowCommandList", CommandList::ShowDialog);
+    GlobalCommandSystem().addCommand("CommandPalette", CommandPalette::ShowPalette);
+    GlobalCommandSystem().addCommand("InsertPalette", InsertPalette::ShowPalette);
     GlobalCommandSystem().addCommand("About", AboutDialog::showDialog);
     GlobalCommandSystem().addCommand("ShowUserGuide", Documentation::showUserGuide);
     GlobalCommandSystem().addCommand("OpenForumUrl", Documentation::OpenForumUrl);
