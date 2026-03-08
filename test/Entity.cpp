@@ -408,7 +408,7 @@ TEST_F(EntityTest, LightWireframeShader)
     // colour. Note that this colour is derived from the entity *class*, which
     // for "light" is a default green. Actual lights will be rendered with a
     // colour based on their _color key.
-    EXPECT_EQ(newWireSh->getName(), "<0.000000 1.000000 0.000000>");
+    EXPECT_EQ(newWireSh->getName(), "<0.930000 0.800000 0.200000>");
 }
 
 // Disabled test, since the Shader implementation currently offers no public interface

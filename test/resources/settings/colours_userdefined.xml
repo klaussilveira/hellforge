@@ -33,7 +33,7 @@
     <colour name="workzone" value="1 0 0"/>
     <colour name="xyview_crosshairs" value="0.2 0.9 0.2"/>
   </colourscheme>
-  <colourscheme name="DarkRadiant Default" version="1.0" readonly="1">
+  <colourscheme name="HellForge" version="1.0" readonly="1">
     <colour name="active_view_name" value="0.5 0 0.75"/>
     <colour name="axis_x" value="1 0 0"/>
     <colour name="axis_y" value="0 1 0"/>
@@ -66,7 +66,7 @@
     <colour name="workzone" value="1 0 0"/>
     <colour name="xyview_crosshairs" value="0.2 0.9 0.2"/>
   </colourscheme>
-  <colourscheme name="Maya/Max/Lightwave Emulation" version="1.0" readonly="1">
+  <colourscheme name="Maya/Max/Lightwave" version="1.0" readonly="1">
     <colour name="active_view_name" value="0.5 0 0.75"/>
     <colour name="axis_x" value="1 0 0"/>
     <colour name="axis_y" value="0 1 0"/>
@@ -132,7 +132,7 @@
     <colour name="workzone" value="1 0 0"/>
     <colour name="xyview_crosshairs" value="0.2 0.9 0.2"/>
   </colourscheme>
-  <colourscheme name="QE3Radiant Original" version="1.0" readonly="1">
+  <colourscheme name="QE3Radiant" version="1.0" readonly="1">
     <colour name="active_view_name" value="0.5 0 0.75"/>
     <colour name="axis_x" value="1 0 0"/>
     <colour name="axis_y" value="0 1 0"/>

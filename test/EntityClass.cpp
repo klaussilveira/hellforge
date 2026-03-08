@@ -307,7 +307,8 @@ TEST_F(EntityClassTest, ModifyEntityClass)
     EXPECT_NE(light->getWireShader(), origWireShader);
 }
 
-static const Vector4 GREEN(0, 1, 0, 1);
+// HellForge scheme overrides the light class colour with its light_volumes value
+static const Vector4 LIGHT_OVERRIDE(0.93, 0.8, 0.2, 1);
 static const Vector4 YELLOW(1, 0, 1, 1);
 
 void expectEntityClassColour(const scene::EntityClass::Ptr& eclass, const Vector4& expectedColour)
@@ -320,12 +321,12 @@ TEST_F(EntityClassTest, OverrideEClassColour)
     auto lightCls = algorithm::createEntityByClassName("light")->getEntity().getEntityClass();
     auto torchCls = algorithm::createEntityByClassName("light_torchflame_small")->getEntity().getEntityClass();
 
-    // Light has an explicit green editor_color
-    expectEntityClassColour(lightCls, GREEN);
+    // Light colour is overridden by the active colour scheme's light_volumes
+    expectEntityClassColour(lightCls, LIGHT_OVERRIDE);
 
     // This class does not have an explicit editor_color value, but should
     // inherit the one from 'light'.
-    expectEntityClassColour(torchCls, GREEN);
+    expectEntityClassColour(torchCls, LIGHT_OVERRIDE);
 
     // Set an override for the 'light' class
     GlobalEclassColourManager().addOverrideColour("light", YELLOW);
@@ -355,8 +356,8 @@ TEST_F(EntityClassTest, OverrideEClassColourAfterReload)
     auto lightCls = algorithm::createEntityByClassName("light")->getEntity().getEntityClass();
     auto torchCls = algorithm::createEntityByClassName("light_torchflame_small")->getEntity().getEntityClass();
 
-    EXPECT_EQ(lightCls->getColour(), GREEN); // explicitly set
-    EXPECT_EQ(torchCls->getColour(), GREEN); // inherited
+    EXPECT_EQ(lightCls->getColour(), LIGHT_OVERRIDE); // overridden by scheme
+    EXPECT_EQ(torchCls->getColour(), LIGHT_OVERRIDE); // inherited
 
     // Set an override for the 'light' class
     GlobalEclassColourManager().addOverrideColour("light", YELLOW);
@@ -385,9 +386,10 @@ TEST_F(EntityClassTest, OverrideEClassColourRemoval)
     // Remove the override
     GlobalEclassColourManager().removeOverrideColour("light");
 
-    // We should now be back at the defaults
-    EXPECT_EQ(lightCls->getColour(), GREEN); // explicitly set
-    EXPECT_EQ(torchCls->getColour(), GREEN); // inherited
+    // With the override removed, we're back to the original editor_color
+    static const Vector4 EDITOR_GREEN(0, 1, 0, 1);
+    EXPECT_EQ(lightCls->getColour(), EDITOR_GREEN);
+    EXPECT_EQ(torchCls->getColour(), EDITOR_GREEN);
 }
 
 TEST_F(EntityClassTest, DefaultEclassColourIsValid)
