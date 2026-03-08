@@ -179,6 +179,9 @@
     <Filter Include="src\ui\colourscheme">
       <UniqueIdentifier>{f198ee8a-abfc-41e7-b3a5-9087c21695d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\commandpalette">
+      <UniqueIdentifier>{a1b2c3d4-e5f6-7890-abcd-ef1234567890}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\materials">
       <UniqueIdentifier>{d855833c-6204-4825-ba61-c4e143ba50ce}</UniqueIdentifier>
     </Filter>
@@ -202,6 +205,9 @@
     </Filter>
     <Filter Include="src\ui\skin">
       <UniqueIdentifier>{fb0a245f-4bbd-42a0-a877-c3189952d1ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\stairs">
+      <UniqueIdentifier>{b2c3d4e5-f6a7-8901-bcde-f12345678901}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\ui\array">
       <UniqueIdentifier>{43eee746-f4e6-481b-8fd5-a5fadfd55788}</UniqueIdentifier>
@@ -625,6 +631,12 @@
     <ClCompile Include="..\..\radiant\ui\colourscheme\ColourSchemeEditor.cpp">
       <Filter>src\ui\colourscheme</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\commandpalette\CommandPalette.cpp">
+      <Filter>src\ui\commandpalette</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\commandpalette\InsertPalette.cpp">
+      <Filter>src\ui\commandpalette</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\ui\animationpreview\AnimationPreview.cpp">
       <Filter>src\ui\animationpreview</Filter>
     </ClCompile>
@@ -780,6 +792,9 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\skin\SkinEditorTreeView.cpp">
       <Filter>src\ui\skin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.cpp">
+      <Filter>src\ui\stairs</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\xyview\OrthoView.cpp">
       <Filter>src\xyview</Filter>
@@ -1320,6 +1335,15 @@
     <ClInclude Include="..\..\radiant\ui\colourscheme\ColourSchemeEditor.h">
       <Filter>src\ui\colourscheme</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\commandpalette\CommandMetadata.h">
+      <Filter>src\ui\commandpalette</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\commandpalette\CommandPalette.h">
+      <Filter>src\ui\commandpalette</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\commandpalette\InsertPalette.h">
+      <Filter>src\ui\commandpalette</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\radiant\ui\animationpreview\AnimationPreview.h">
       <Filter>src\ui\animationpreview</Filter>
     </ClInclude>
@@ -1571,6 +1595,12 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\skin\SkinEditorTreeView.h">
       <Filter>src\ui\skin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.h">
+      <Filter>src\ui\stairs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\stairs\StairsGeometry.h">
+      <Filter>src\ui\stairs</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\xyview\OrthoView.h">
       <Filter>src\xyview</Filter>

@@ -230,6 +230,8 @@
     <ClCompile Include="..\..\radiant\ui\animationpreview\MD5AnimationViewer.cpp" />
     <ClCompile Include="..\..\radiant\ui\brush\FindBrush.cpp" />
     <ClCompile Include="..\..\radiant\ui\colourscheme\ColourSchemeEditor.cpp" />
+    <ClCompile Include="..\..\radiant\ui\commandpalette\CommandPalette.cpp" />
+    <ClCompile Include="..\..\radiant\ui\commandpalette\InsertPalette.cpp" />
     <ClCompile Include="..\..\radiant\ui\common\DialogManager.cpp" />
     <ClCompile Include="..\..\radiant\ui\common\ImageFilePopulator.cpp" />
     <ClCompile Include="..\..\radiant\ui\common\ImageFileSelector.cpp" />
@@ -361,6 +363,7 @@
     <ClCompile Include="..\..\radiant\ui\selectionset\SelectionSetToolmenu.cpp" />
     <ClCompile Include="..\..\radiant\ui\skin\SkinEditor.cpp" />
     <ClCompile Include="..\..\radiant\ui\skin\SkinEditorTreeView.cpp" />
+    <ClCompile Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\statusbar\CommandStatus.cpp" />
     <ClCompile Include="..\..\radiant\ui\statusbar\EditingStopwatchStatus.cpp" />
     <ClCompile Include="..\..\radiant\ui\statusbar\MapStatistics.cpp" />
@@ -445,6 +448,9 @@
     <ClInclude Include="..\..\radiant\ui\AutoSaveRequestHandler.h" />
     <ClInclude Include="..\..\radiant\ui\brush\FindBrush.h" />
     <ClInclude Include="..\..\radiant\ui\colourscheme\ColourSchemeEditor.h" />
+    <ClInclude Include="..\..\radiant\ui\commandpalette\CommandMetadata.h" />
+    <ClInclude Include="..\..\radiant\ui\commandpalette\CommandPalette.h" />
+    <ClInclude Include="..\..\radiant\ui\commandpalette\InsertPalette.h" />
     <ClInclude Include="..\..\radiant\ui\common\DialogManager.h" />
     <ClInclude Include="..\..\radiant\ui\common\ImageFilePopulator.h" />
     <ClInclude Include="..\..\radiant\ui\common\ImageFileSelector.h" />
@@ -613,6 +619,8 @@
     <ClInclude Include="..\..\radiant\ui\selectionset\SelectionSetToolmenu.h" />
     <ClInclude Include="..\..\radiant\ui\skin\SkinEditor.h" />
     <ClInclude Include="..\..\radiant\ui\skin\SkinEditorTreeView.h" />
+    <ClInclude Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.h" />
+    <ClInclude Include="..\..\radiant\ui\stairs\StairsGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\statusbar\CommandStatus.h" />
     <ClInclude Include="..\..\radiant\ui\statusbar\EditingStopwatchStatus.h" />
     <ClInclude Include="..\..\radiant\ui\statusbar\MapStatistics.h" />
