@@ -56,6 +56,7 @@ add_executable(drtest
                Selection.cpp
                SelectionGroup.cpp
                Settings.cpp
+               StairsGenerator.cpp
                SoundManager.cpp
                TerrainGenerator.cpp
                TextureManipulation.cpp
@@ -76,6 +77,7 @@ get_filename_component(TEST_BASE_PATH "./" ABSOLUTE)
 add_compile_definitions(TEST_BASE_PATH="${TEST_BASE_PATH}")
 
 target_include_directories(drtest PRIVATE ../plugins/dm.editing)
+target_include_directories(drtest PRIVATE ${CMAKE_SOURCE_DIR}/radiant)
 
 target_link_libraries(drtest PUBLIC
                       math xmlutil scene module

@@ -168,6 +168,7 @@ add_executable(hellforge
                ui/prefdialog/PreferenceItem.cpp
                ui/prefdialog/PrefPage.cpp
                ui/scatter/ScatterDialog.cpp
+               ui/stairs/StairsGeneratorDialog.cpp
                ui/terrain/TerrainGeneratorDialog.cpp
                ui/script/ScriptMenu.cpp
                ui/script/ScriptWindow.cpp

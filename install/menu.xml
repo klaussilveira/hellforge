@@ -212,6 +212,7 @@
 		<menuItem name="prism" caption="Prism..." command="BrushPrism" />
 		<menuItem name="cone" caption="Cone..." command="BrushCone" />
 		<menuItem name="sphere" caption="Sphere..." command="BrushSphere" />
+		<menuItem name="stairsGenerator" caption="Stairs..." command="StairsGeneratorDialog" />
 		<menuSeparator />
 
 		<subMenu name="csg" caption="CSG">
