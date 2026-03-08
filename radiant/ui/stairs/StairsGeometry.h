@@ -6,6 +6,8 @@
 #include "math/Matrix3.h"
 #include "math/Vector3.h"
 
+#include "math/pi.h"
+
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -13,8 +15,7 @@
 namespace stairs
 {
 
-constexpr double PI = 3.14159265358979323846;
-constexpr double DEG2RAD = PI / 180.0;
+const double DEG2RAD = math::PI / 180.0;
 
 struct StairDir
 {
