@@ -213,6 +213,7 @@
 		<menuItem name="cone" caption="Cone..." command="BrushCone" />
 		<menuItem name="sphere" caption="Sphere..." command="BrushSphere" />
 		<menuItem name="stairsGenerator" caption="Stairs..." command="StairsGeneratorDialog" />
+		<menuItem name="cableGenerator" caption="Cables..." command="CableGeneratorDialog" />
 		<menuSeparator />
 
 		<subMenu name="csg" caption="CSG">

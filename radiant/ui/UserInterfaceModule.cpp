@@ -64,6 +64,7 @@
 #include "ui/patch/PatchCreateDialog.h"
 #include "ui/patch/PatchPrefabDialog.h"
 #include "ui/patch/BulgePatchDialog.h"
+#include "ui/cables/CableGeneratorDialog.h"
 #include "ui/scatter/ScatterDialog.h"
 #include "ui/stairs/StairsGeneratorDialog.h"
 #include "ui/terrain/TerrainGeneratorDialog.h"
@@ -581,6 +582,9 @@ void UserInterfaceModule::registerUICommands()
     // Scatter dialog for placing entities on surfaces
     GlobalCommandSystem().addWithCheck("ScatterDialog", ScatterDialog::Show,
         [] { return GlobalSelectionSystem().countSelected() > 0; });
+
+    // Cable generator dialog for creating cable/pipe geometry
+    GlobalCommandSystem().addCommand("CableGeneratorDialog", CableGeneratorDialog::Show);
 
     // Stairs generator dialog for creating staircase geometry
     GlobalCommandSystem().addCommand("StairsGeneratorDialog", StairsGeneratorDialog::Show);
