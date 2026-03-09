@@ -1208,12 +1208,21 @@ void CamWnd::onMouseScroll(wxMouseEvent& ev)
 {
     // Alt+scroll resizes brush face under cursor when a brush is selected
     // Ctrl+scroll resizes both the hit face and opposite face symmetrically
-    if ((ev.AltDown() || ev.ControlDown()) && GlobalSelectionSystem().countSelected() > 0)
+    // Shift+scroll creates a trim brush from the face, then resizes it
+    if ((ev.AltDown() || ev.ControlDown() || ev.ShiftDown()) && GlobalSelectionSystem().countSelected() > 0)
     {
         int scrollDir = ev.GetWheelRotation() > 0 ? 1 : -1;
-        bool symmetric = ev.ControlDown() && !ev.AltDown();
-        if (resizeBrushFaceUnderCursor(ev, scrollDir, symmetric))
-            return;
+        if (ev.ShiftDown() && !ev.AltDown() && !ev.ControlDown())
+        {
+            if (createTrimBrushFromFace(ev, scrollDir))
+                return;
+        }
+        else
+        {
+            bool symmetric = ev.ControlDown() && !ev.AltDown();
+            if (resizeBrushFaceUnderCursor(ev, scrollDir, symmetric))
+                return;
+        }
     }
     else
     {
@@ -1412,6 +1421,137 @@ bool CamWnd::resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirect
     return true;
 }
 
+bool CamWnd::createTrimBrushFromFace(const wxMouseEvent& ev, int scrollDirection)
+{
+    if (_lockedHitFace && _lockedNode && Node_isSelected(_lockedNode))
+        return resizeBrushFaceUnderCursor(ev, scrollDirection, false);
+
+    Vector2 point(ev.GetX(), ev.GetY());
+    Vector2 devicePos = device_constrained(
+        window_to_normalised_device(point, _camera->getDeviceWidth(), _camera->getDeviceHeight()));
+
+    SelectionTestPtr selTest = _camera->createSelectionTestForPoint(devicePos);
+    const Matrix4& viewProj = selTest->getVolume().GetViewProjection();
+
+    FaceIntersectionFinder finder(*selTest, viewProj);
+    GlobalSceneGraph().root()->traverse(finder);
+
+    FaceIntersection result = finder.getResult();
+    if (!result.valid) return false;
+    if (!Node_isSelected(result.node)) return false;
+
+    IBrush* srcBrush = Node_getIBrush(result.node);
+    if (!srcBrush) return false;
+
+    const Matrix4& l2w = result.node->localToWorld();
+    IFace* hitFace = nullptr;
+
+    for (std::size_t i = 0; i < srcBrush->getNumFaces(); ++i)
+    {
+        IFace& face = srcBrush->getFace(i);
+        Vector3 wn = l2w.transformDirection(face.getPlane3().normal()).getNormalised();
+        if (wn.dot(result.normal) > 0.99)
+        {
+            hitFace = &face;
+            break;
+        }
+    }
+    if (!hitFace) return false;
+
+    const IWinding& winding = hitFace->getWinding();
+    if (winding.size() < 3) return false;
+
+    Vector3 fmins = winding[0].vertex;
+    Vector3 fmaxs = winding[0].vertex;
+    for (std::size_t i = 1; i < winding.size(); ++i)
+    {
+        const Vector3& v = winding[i].vertex;
+        for (int a = 0; a < 3; ++a)
+        {
+            if (v[a] < fmins[a]) fmins[a] = v[a];
+            if (v[a] > fmaxs[a]) fmaxs[a] = v[a];
+        }
+    }
+
+    double gridSize = GlobalGrid().getGridSize();
+    Vector3 normal = result.normal;
+    Vector3 trimMins = fmins;
+    Vector3 trimMaxs = fmaxs;
+
+    for (int a = 0; a < 3; ++a)
+    {
+        if (std::abs(normal[a]) > 0.9)
+        {
+            if (normal[a] > 0)
+            {
+                trimMins[a] = fmaxs[a];
+                trimMaxs[a] = fmaxs[a] + gridSize;
+            }
+            else
+            {
+                trimMaxs[a] = fmins[a];
+                trimMins[a] = fmins[a] - gridSize;
+            }
+            break;
+        }
+    }
+
+    std::string material = hitFace->getShader();
+    scene::INodePtr parent = result.node->getParent();
+    if (!parent) return false;
+
+    double texScale = 0.0078125;
+    Matrix3 proj = Matrix3::getIdentity();
+    proj.xx() = texScale;
+    proj.yy() = texScale;
+
+    auto brushNode = GlobalBrushCreator().createBrush();
+    parent->addChildNode(brushNode);
+
+    auto* brush = Node_getIBrush(brushNode);
+    if (!brush) return false;
+
+    UndoableCommand cmd("createTrimBrushFromFace");
+
+    brush->addFace(Plane3( 1, 0, 0,  trimMaxs.x()), proj, material);
+    brush->addFace(Plane3(-1, 0, 0, -trimMins.x()), proj, material);
+    brush->addFace(Plane3( 0, 1, 0,  trimMaxs.y()), proj, material);
+    brush->addFace(Plane3( 0,-1, 0, -trimMins.y()), proj, material);
+    brush->addFace(Plane3( 0, 0, 1,  trimMaxs.z()), proj, material);
+    brush->addFace(Plane3( 0, 0,-1, -trimMins.z()), proj, material);
+
+    brush->evaluateBRep();
+
+    Node_setSelected(result.node, false);
+    Node_setSelected(brushNode, true);
+
+    IFace* newHitFace = nullptr;
+    IFace* newOppFace = nullptr;
+    double bestOppDot = 1.0;
+
+    for (std::size_t i = 0; i < brush->getNumFaces(); ++i)
+    {
+        IFace& face = brush->getFace(i);
+        Vector3 fn = face.getPlane3().normal().getNormalised();
+        double d = fn.dot(normal);
+        if (d > 0.99 && !newHitFace) {
+            newHitFace = &face;
+        } else if (d < bestOppDot) {
+            bestOppDot = d;
+            newOppFace = &face;
+        }
+    }
+
+    _lockedNode    = brushNode;
+    _lockedHitFace = newHitFace;
+    _lockedOppFace = newOppFace;
+    _lockedNormal  = normal;
+    _lockedFlipped = false;
+
+    SceneChangeNotify();
+    return true;
+}
+
 CameraMouseToolEvent CamWnd::createMouseEvent(const Vector2& point, const Vector2& delta)
 {
     // When freeMove is enabled, snap the mouse coordinates to the center of the view widget
@@ -1575,7 +1715,7 @@ void CamWnd::onGLMouseButtonRelease(wxMouseEvent& ev)
 
 void CamWnd::onGLMouseMove(wxMouseEvent& ev)
 {
-    if (!ev.AltDown() && !ev.ControlDown())
+    if (!ev.AltDown() && !ev.ControlDown() && !ev.ShiftDown())
         clearLockedFace();
 
     MouseToolHandler::onGLMouseMove(ev);

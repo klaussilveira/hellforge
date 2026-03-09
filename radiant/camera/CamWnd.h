@@ -269,6 +269,7 @@ private:
 
     void onMouseScroll(wxMouseEvent& ev);
     bool resizeBrushFaceUnderCursor(const wxMouseEvent& ev, int scrollDirection, bool symmetric = false);
+    bool createTrimBrushFromFace(const wxMouseEvent& ev, int scrollDirection);
 
     // Mouse wheel smart extrusion
     scene::INodePtr _lockedNode;
