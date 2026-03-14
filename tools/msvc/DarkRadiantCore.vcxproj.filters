@@ -289,6 +289,9 @@
     <ClCompile Include="..\..\radiantcore\scenegraph\SceneGraphFactory.cpp">
       <Filter>src\scenegraph</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\ConversionMap.cpp">
+      <Filter>src\map\format</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiantcore\map\format\MapFormatManager.cpp">
       <Filter>src\map\format</Filter>
     </ClCompile>

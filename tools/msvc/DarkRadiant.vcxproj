@@ -385,7 +385,12 @@
     <ClCompile Include="..\..\radiant\ui\brush\QuerySidesDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\brush\CreateTrimDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\transform\TransformPanel.cpp" />
-    <ClCompile Include="..\..\radiant\ui\terrain\TerrainGeneratorDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\arch\ArchGeneratorDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\building\BuildingGeneratorDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\mapconversion\MapConversionDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\osm\OsmImporterDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\sweep\SweepDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\tilemap\TileMapDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\UserInterfaceModule.cpp" />
     <ClCompile Include="..\..\radiant\xyview\GlobalXYWnd.cpp" />
     <ClCompile Include="..\..\radiant\xyview\OrthoView.cpp" />
