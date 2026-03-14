@@ -209,6 +209,9 @@
     <Filter Include="src\ui\cables">
       <UniqueIdentifier>{c3d4e5f6-a7b8-9012-cdef-234567890abc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\cornerpatch">
+      <UniqueIdentifier>{d4e5f6a7-b890-1234-cdef-567890abcdef}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\stairs">
       <UniqueIdentifier>{b2c3d4e5-f6a7-8901-bcde-f12345678901}</UniqueIdentifier>
     </Filter>
@@ -798,6 +801,9 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\cables\CableGeneratorDialog.cpp">
       <Filter>src\ui\cables</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\cornerpatch\CornerPatchDialog.cpp">
+      <Filter>src\ui\cornerpatch</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.cpp">
       <Filter>src\ui\stairs</Filter>
@@ -1607,6 +1613,12 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\cables\CableGeometry.h">
       <Filter>src\ui\cables</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchDialog.h">
+      <Filter>src\ui\cornerpatch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchGeometry.h">
+      <Filter>src\ui\cornerpatch</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.h">
       <Filter>src\ui\stairs</Filter>
