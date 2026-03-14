@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+  <object class="wxPanel" name="ArchGeneratorMainPanel">
+    <style>wxTAB_TRAVERSAL</style>
+    <object class="wxBoxSizer" name="">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALL</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticText" name="ArchGeneratorTopLabel">
+          <label>Generate Arch Geometry</label>
+          <wrap>-1</wrap>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxEXPAND</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Arch Parameters</label>
+          <object class="sizeritem">
+            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <vgap>6</vgap>
+              <hgap>12</hgap>
+              <growablerows></growablerows>
+              <growablecols>1,3</growablecols>
+              <rows>5</rows>
+              <cols>4</cols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Segments:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxSpinCtrl" name="ArchGeneratorSegments">
+                  <style>wxSP_ARROW_KEYS</style>
+                  <value>8</value>
+                  <min>3</min>
+                  <max>128</max>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Inner Radius:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxTextCtrl" name="ArchGeneratorInnerRadius">
+                  <value>64</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Wall Thickness:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxTextCtrl" name="ArchGeneratorWallThickness">
+                  <value>16</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Depth:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxTextCtrl" name="ArchGeneratorDepth">
+                  <value>32</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Length:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxTextCtrl" name="ArchGeneratorLength">
+                  <value>0</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Arc Degrees:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxTextCtrl" name="ArchGeneratorArcDegrees">
+                  <value>180</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Start Angle:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxTextCtrl" name="ArchGeneratorStartAngle">
+                  <value>0</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxFlexGridSizer" name="">
+          <vgap>6</vgap>
+          <hgap>6</hgap>
+          <growablerows></growablerows>
+          <growablecols>1</growablecols>
+          <rows>1</rows>
+          <cols>3</cols>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL</flag>
+            <border>0</border>
+            <option>0</option>
+            <object class="wxStaticText" name="">
+              <label>Material:</label>
+              <wrap>0</wrap>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND</flag>
+            <border>0</border>
+            <option>1</option>
+            <object class="wxTextCtrl" name="ArchGeneratorMaterial">
+              <value>textures/common/caulk</value>
+              <maxlength>0</maxlength>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxLEFT</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxButton" name="ArchGeneratorBrowseMaterial">
+              <size>30,-1</size>
+              <label>...</label>
+              <default>0</default>
+              <auth_needed>0</auth_needed>
+              <markup>0</markup>
+              <bitmap/>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

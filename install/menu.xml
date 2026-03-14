@@ -214,6 +214,7 @@
 		<menuItem name="sphere" caption="Sphere..." command="BrushSphere" />
 		<menuItem name="stairsGenerator" caption="Stairs..." command="StairsGeneratorDialog" />
 		<menuItem name="cableGenerator" caption="Cables..." command="CableGeneratorDialog" />
+		<menuItem name="archGenerator" caption="Arch..." command="ArchGeneratorDialog" />
 		<menuSeparator />
 
 		<subMenu name="csg" caption="CSG">

@@ -64,6 +64,7 @@
 #include "ui/patch/PatchCreateDialog.h"
 #include "ui/patch/PatchPrefabDialog.h"
 #include "ui/patch/BulgePatchDialog.h"
+#include "ui/arch/ArchGeneratorDialog.h"
 #include "ui/cables/CableGeneratorDialog.h"
 #include "ui/scatter/ScatterDialog.h"
 #include "ui/stairs/StairsGeneratorDialog.h"
@@ -588,6 +589,9 @@ void UserInterfaceModule::registerUICommands()
 
     // Stairs generator dialog for creating staircase geometry
     GlobalCommandSystem().addCommand("StairsGeneratorDialog", StairsGeneratorDialog::Show);
+
+    // Arch generator dialog for creating arch geometry
+    GlobalCommandSystem().addCommand("ArchGeneratorDialog", ArchGeneratorDialog::Show);
 
     // Terrain generator dialog for creating patch terrains
     GlobalCommandSystem().addCommand("TerrainGeneratorDialog", TerrainGeneratorDialog::Show);
