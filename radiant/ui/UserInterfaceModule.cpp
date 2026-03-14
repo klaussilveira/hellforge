@@ -65,6 +65,7 @@
 #include "ui/patch/PatchPrefabDialog.h"
 #include "ui/patch/BulgePatchDialog.h"
 #include "ui/arch/ArchGeneratorDialog.h"
+#include "ui/building/BuildingGeneratorDialog.h"
 #include "ui/cables/CableGeneratorDialog.h"
 #include "ui/cornerpatch/CornerPatchDialog.h"
 #include "ui/scatter/ScatterDialog.h"
@@ -586,6 +587,10 @@ void UserInterfaceModule::registerUICommands()
     // Scatter dialog for placing entities on surfaces
     GlobalCommandSystem().addWithCheck("ScatterDialog", ScatterDialog::Show,
         [] { return GlobalSelectionSystem().countSelected() > 0; });
+
+    // Building generator dialog for creating building geometry from a brush
+    GlobalCommandSystem().addWithCheck("BuildingGeneratorDialog", BuildingGeneratorDialog::Show,
+        [] { return GlobalSelectionSystem().countSelected() == 1; });
 
     // Cable generator dialog for creating cable/pipe geometry
     GlobalCommandSystem().addCommand("CableGeneratorDialog", CableGeneratorDialog::Show);

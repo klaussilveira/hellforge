@@ -218,6 +218,7 @@
 		<menuItem name="cornerPatch" caption="Corner Patch..." command="CornerPatchDialog" />
 		<menuItem name="tileMap" caption="Tile Map..." command="TileMapDialog" />
 		<menuItem name="sweep" caption="Sweep..." command="SweepDialog" />
+		<menuItem name="buildingGenerator" caption="Building..." command="BuildingGeneratorDialog" />
 		<menuSeparator />
 
 		<subMenu name="csg" caption="CSG">
