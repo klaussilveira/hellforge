@@ -2,6 +2,7 @@ include(GoogleTest)
 
 add_executable(drtest
                Basic.cpp
+               BuildingGenerator.cpp
                Brush.cpp
                Camera.cpp
                Clipboard.cpp

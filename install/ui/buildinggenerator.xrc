@@ -9,19 +9,17 @@
         <border>12</border>
         <option>0</option>
         <object class="wxStaticText" name="BuildingGeneratorTopLabel">
-          <label>Generate Building from Selected Brush</label>
+          <label>Generate Building Geometry</label>
           <wrap>-1</wrap>
         </object>
       </object>
-
-      <!-- Floor Parameters -->
       <object class="sizeritem">
-        <flag>wxALL|wxEXPAND</flag>
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
         <border>12</border>
         <option>0</option>
-        <object class="wxStaticBoxSizer" name="">
+        <object class="wxStaticBoxSizer" name="BuildingGeneratorDimensionsPanel">
           <orient>wxVERTICAL</orient>
-          <label>Floor Parameters</label>
+          <label>Building Dimensions</label>
           <object class="sizeritem">
             <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
             <border>12</border>
@@ -31,8 +29,84 @@
               <hgap>12</hgap>
               <growablerows></growablerows>
               <growablecols>1</growablecols>
-              <rows>5</rows>
+              <rows>3</rows>
               <cols>2</cols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Width (X):</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="BuildingGeneratorWidth">
+                  <value>256</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Depth (Y):</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="BuildingGeneratorDepth">
+                  <value>256</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Height (Z):</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="BuildingGeneratorHeight">
+                  <value>384</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxALL|wxEXPAND</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Floors</label>
+          <object class="sizeritem">
+            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <vgap>6</vgap>
+              <hgap>12</hgap>
+              <growablerows></growablerows>
+              <growablecols>1,3</growablecols>
+              <rows>3</rows>
+              <cols>4</cols>
               <object class="sizeritem">
                 <flag>wxALIGN_CENTER_VERTICAL</flag>
                 <border>0</border>
@@ -45,7 +119,7 @@
               <object class="sizeritem">
                 <flag>wxEXPAND</flag>
                 <border>0</border>
-                <option>1</option>
+                <option>0</option>
                 <object class="wxSpinCtrl" name="BuildingGeneratorFloorCount">
                   <style>wxSP_ARROW_KEYS</style>
                   <value>3</value>
@@ -65,10 +139,13 @@
               <object class="sizeritem">
                 <flag>wxEXPAND</flag>
                 <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorFloorHeight">
-                  <value>128</value>
-                  <maxlength>0</maxlength>
+                <option>0</option>
+                <object class="wxChoice" name="BuildingGeneratorFloorHeightMode">
+                  <selection>0</selection>
+                  <content>
+                    <item>Automatic (total height / floor count)</item>
+                    <item>Fixed</item>
+                  </content>
                 </object>
               </object>
               <object class="sizeritem">
@@ -76,15 +153,15 @@
                 <border>0</border>
                 <option>0</option>
                 <object class="wxStaticText" name="">
-                  <label>Floor Thickness:</label>
+                  <label>Wall Thickness:</label>
                   <wrap>0</wrap>
                 </object>
               </object>
               <object class="sizeritem">
                 <flag>wxEXPAND</flag>
                 <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorFloorThickness">
+                <option>0</option>
+                <object class="wxTextCtrl" name="BuildingGeneratorWallThickness">
                   <value>8</value>
                   <maxlength>0</maxlength>
                 </object>
@@ -101,43 +178,100 @@
               <object class="sizeritem">
                 <flag>wxEXPAND</flag>
                 <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorTrimHeight">
-                  <value>4</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
                 <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Wall Thickness:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorWallThickness">
+                <object class="wxTextCtrl" name="BuildingGeneratorTrimHeight">
                   <value>8</value>
                   <maxlength>0</maxlength>
                 </object>
               </object>
             </object>
           </object>
+          <object class="sizeritem">
+            <flag>wxLEFT|wxRIGHT</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxCheckBox" name="BuildingGeneratorCornerColumns">
+              <label>Corner Columns</label>
+              <checked>0</checked>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxPanel" name="BuildingGeneratorCornerExtrudePanel">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxFlexGridSizer" name="">
+                <vgap>6</vgap>
+                <hgap>12</hgap>
+                <growablerows></growablerows>
+                <growablecols>1</growablecols>
+                <rows>1</rows>
+                <cols>2</cols>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Column Extrude:</label>
+                    <wrap>0</wrap>
+                  </object>
+                </object>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxTextCtrl" name="BuildingGeneratorCornerExtrude">
+                    <value>0</value>
+                    <maxlength>0</maxlength>
+                  </object>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxPanel" name="BuildingGeneratorFloorHeightPanel">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxFlexGridSizer" name="">
+                <vgap>6</vgap>
+                <hgap>12</hgap>
+                <growablerows></growablerows>
+                <growablecols>1</growablecols>
+                <rows>1</rows>
+                <cols>2</cols>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Height:</label>
+                    <wrap>0</wrap>
+                  </object>
+                </object>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxTextCtrl" name="BuildingGeneratorFloorHeight">
+                    <value>128</value>
+                    <maxlength>0</maxlength>
+                  </object>
+                </object>
+              </object>
+            </object>
+          </object>
         </object>
       </object>
-
-      <!-- Window Parameters -->
       <object class="sizeritem">
         <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
         <border>12</border>
         <option>0</option>
         <object class="wxStaticBoxSizer" name="">
           <orient>wxVERTICAL</orient>
-          <label>Window Parameters</label>
+          <label>Windows</label>
           <object class="sizeritem">
             <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
             <border>12</border>
@@ -147,127 +281,140 @@
               <hgap>12</hgap>
               <growablerows></growablerows>
               <growablecols>1</growablecols>
-              <rows>6</rows>
+              <rows>1</rows>
               <cols>2</cols>
               <object class="sizeritem">
                 <flag>wxALIGN_CENTER_VERTICAL</flag>
                 <border>0</border>
                 <option>0</option>
                 <object class="wxStaticText" name="">
-                  <label>Window Mode:</label>
+                  <label>Windows:</label>
                   <wrap>0</wrap>
                 </object>
               </object>
               <object class="sizeritem">
                 <flag>wxEXPAND</flag>
                 <border>0</border>
-                <option>1</option>
+                <option>0</option>
                 <object class="wxChoice" name="BuildingGeneratorWindowMode">
-                  <selection>0</selection>
+                  <selection>1</selection>
                   <content>
+                    <item>None</item>
                     <item>Automatic</item>
-                    <item>Manual Count</item>
+                    <item>Fixed Count</item>
                   </content>
                 </object>
               </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="BuildingGeneratorWindowsPerWallLabel">
-                  <label>Windows Per Wall:</label>
-                  <wrap>0</wrap>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxPanel" name="BuildingGeneratorWindowCountPanel">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxFlexGridSizer" name="">
+                <vgap>6</vgap>
+                <hgap>12</hgap>
+                <growablerows></growablerows>
+                <growablecols>1</growablecols>
+                <rows>1</rows>
+                <cols>2</cols>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Per Floor:</label>
+                    <wrap>0</wrap>
+                  </object>
+                </object>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxSpinCtrl" name="BuildingGeneratorWindowsPerFloor">
+                    <style>wxSP_ARROW_KEYS</style>
+                    <value>3</value>
+                    <min>1</min>
+                    <max>32</max>
+                  </object>
                 </object>
               </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxSpinCtrl" name="BuildingGeneratorWindowsPerWall">
-                  <style>wxSP_ARROW_KEYS</style>
-                  <value>3</value>
-                  <min>0</min>
-                  <max>64</max>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxPanel" name="BuildingGeneratorWindowParamsPanel">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxFlexGridSizer" name="">
+                <vgap>6</vgap>
+                <hgap>12</hgap>
+                <growablerows></growablerows>
+                <growablecols>1,3</growablecols>
+                <rows>2</rows>
+                <cols>4</cols>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Window Width:</label>
+                    <wrap>0</wrap>
+                  </object>
                 </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Window Width:</label>
-                  <wrap>0</wrap>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxTextCtrl" name="BuildingGeneratorWindowWidth">
+                    <value>48</value>
+                    <maxlength>0</maxlength>
+                  </object>
                 </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorWindowWidth">
-                  <value>32</value>
-                  <maxlength>0</maxlength>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Window Height:</label>
+                    <wrap>0</wrap>
+                  </object>
                 </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Window Height:</label>
-                  <wrap>0</wrap>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxTextCtrl" name="BuildingGeneratorWindowHeight">
+                    <value>56</value>
+                    <maxlength>0</maxlength>
+                  </object>
                 </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorWindowHeight">
-                  <value>48</value>
-                  <maxlength>0</maxlength>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Sill Height:</label>
+                    <wrap>0</wrap>
+                  </object>
                 </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Sill Height:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorWindowSillHeight">
-                  <value>24</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Window Inset:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorWindowInset">
-                  <value>2</value>
-                  <maxlength>0</maxlength>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxTextCtrl" name="BuildingGeneratorSillHeight">
+                    <value>32</value>
+                    <maxlength>0</maxlength>
+                  </object>
                 </object>
               </object>
             </object>
           </object>
         </object>
       </object>
-
-      <!-- Roof Parameters -->
       <object class="sizeritem">
         <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
         <border>12</border>
@@ -291,19 +438,19 @@
                 <border>0</border>
                 <option>0</option>
                 <object class="wxStaticText" name="">
-                  <label>Roof Type:</label>
+                  <label>Type:</label>
                   <wrap>0</wrap>
                 </object>
               </object>
               <object class="sizeritem">
                 <flag>wxEXPAND</flag>
                 <border>0</border>
-                <option>1</option>
+                <option>0</option>
                 <object class="wxChoice" name="BuildingGeneratorRoofType">
                   <selection>0</selection>
                   <content>
                     <item>Flat</item>
-                    <item>Flat with Border Trim</item>
+                    <item>Flat with Border</item>
                     <item>Slanted</item>
                     <item>A-Frame</item>
                   </content>
@@ -311,296 +458,151 @@
               </object>
             </object>
           </object>
-        </object>
-      </object>
-
-      <!-- Border Trim Panel (Roof Type 1) -->
-      <object class="sizeritem">
-        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
-        <border>12</border>
-        <option>0</option>
-        <object class="wxStaticBoxSizer" name="BuildingGeneratorBorderTrimPanel">
-          <orient>wxVERTICAL</orient>
-          <label>Border Trim</label>
           <object class="sizeritem">
-            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
+            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
             <border>12</border>
             <option>0</option>
-            <object class="wxFlexGridSizer" name="">
-              <vgap>6</vgap>
-              <hgap>12</hgap>
-              <growablerows></growablerows>
-              <growablecols>1</growablecols>
-              <rows>1</rows>
-              <cols>2</cols>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Border Height:</label>
-                  <wrap>0</wrap>
+            <object class="wxPanel" name="BuildingGeneratorRoofHeightPanel">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxFlexGridSizer" name="">
+                <vgap>6</vgap>
+                <hgap>12</hgap>
+                <growablerows></growablerows>
+                <growablecols>1</growablecols>
+                <rows>1</rows>
+                <cols>2</cols>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Roof Height:</label>
+                    <wrap>0</wrap>
+                  </object>
+                </object>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxTextCtrl" name="BuildingGeneratorRoofHeight">
+                    <value>64</value>
+                    <maxlength>0</maxlength>
+                  </object>
                 </object>
               </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorRoofBorderHeight">
-                  <value>16</value>
-                  <maxlength>0</maxlength>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxPanel" name="BuildingGeneratorRoofBorderPanel">
+              <style>wxTAB_TRAVERSAL</style>
+              <object class="wxFlexGridSizer" name="">
+                <vgap>6</vgap>
+                <hgap>12</hgap>
+                <growablerows></growablerows>
+                <growablecols>1</growablecols>
+                <rows>1</rows>
+                <cols>2</cols>
+                <object class="sizeritem">
+                  <flag>wxALIGN_CENTER_VERTICAL</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxStaticText" name="">
+                    <label>Border Height:</label>
+                    <wrap>0</wrap>
+                  </object>
+                </object>
+                <object class="sizeritem">
+                  <flag>wxEXPAND</flag>
+                  <border>0</border>
+                  <option>0</option>
+                  <object class="wxTextCtrl" name="BuildingGeneratorRoofBorderHeight">
+                    <value>16</value>
+                    <maxlength>0</maxlength>
+                  </object>
                 </object>
               </object>
             </object>
           </object>
         </object>
       </object>
-
-      <!-- Slanted Roof Panel (Roof Type 2) -->
       <object class="sizeritem">
-        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <flag>wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND</flag>
         <border>12</border>
         <option>0</option>
-        <object class="wxStaticBoxSizer" name="BuildingGeneratorSlantedPanel">
-          <orient>wxVERTICAL</orient>
-          <label>Slanted Roof</label>
+        <object class="wxFlexGridSizer" name="">
+          <vgap>6</vgap>
+          <hgap>6</hgap>
+          <growablerows></growablerows>
+          <growablecols>1</growablecols>
+          <rows>2</rows>
+          <cols>3</cols>
           <object class="sizeritem">
-            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
-            <border>12</border>
+            <flag>wxALIGN_CENTER_VERTICAL</flag>
+            <border>0</border>
             <option>0</option>
-            <object class="wxFlexGridSizer" name="">
-              <vgap>6</vgap>
-              <hgap>12</hgap>
-              <growablerows></growablerows>
-              <growablecols>1</growablecols>
-              <rows>2</rows>
-              <cols>2</cols>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Slope Height:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorRoofSlopeHeight">
-                  <value>64</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Slope Direction:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxChoice" name="BuildingGeneratorRoofSlopeDirection">
-                  <selection>0</selection>
-                  <content>
-                    <item>East (+X)</item>
-                    <item>North (+Y)</item>
-                    <item>West (-X)</item>
-                    <item>South (-Y)</item>
-                  </content>
-                </object>
-              </object>
+            <object class="wxStaticText" name="">
+              <label>Wall Material:</label>
+              <wrap>0</wrap>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND</flag>
+            <border>0</border>
+            <option>0</option>
+            <object class="wxTextCtrl" name="BuildingGeneratorWallMaterial">
+              <value>_default</value>
+              <maxlength>0</maxlength>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxLEFT</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxButton" name="BuildingGeneratorBrowseWallMaterial">
+              <size>30,-1</size>
+              <label>...</label>
+              <default>0</default>
+              <auth_needed>0</auth_needed>
+              <markup>0</markup>
+              <bitmap/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL</flag>
+            <border>0</border>
+            <option>0</option>
+            <object class="wxStaticText" name="">
+              <label>Trim Material:</label>
+              <wrap>0</wrap>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND</flag>
+            <border>0</border>
+            <option>0</option>
+            <object class="wxTextCtrl" name="BuildingGeneratorTrimMaterial">
+              <value>_default</value>
+              <maxlength>0</maxlength>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxLEFT</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxButton" name="BuildingGeneratorBrowseTrimMaterial">
+              <size>30,-1</size>
+              <label>...</label>
+              <default>0</default>
+              <auth_needed>0</auth_needed>
+              <markup>0</markup>
+              <bitmap/>
             </object>
           </object>
         </object>
       </object>
-
-      <!-- A-Frame Roof Panel (Roof Type 3) -->
-      <object class="sizeritem">
-        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
-        <border>12</border>
-        <option>0</option>
-        <object class="wxStaticBoxSizer" name="BuildingGeneratorARoofPanel">
-          <orient>wxVERTICAL</orient>
-          <label>A-Frame Roof</label>
-          <object class="sizeritem">
-            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
-            <border>12</border>
-            <option>0</option>
-            <object class="wxFlexGridSizer" name="">
-              <vgap>6</vgap>
-              <hgap>12</hgap>
-              <growablerows></growablerows>
-              <growablecols>1</growablecols>
-              <rows>2</rows>
-              <cols>2</cols>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Peak Height:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorARoofHeight">
-                  <value>64</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Ridge Direction:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxChoice" name="BuildingGeneratorARoofDirection">
-                  <selection>0</selection>
-                  <content>
-                    <item>East-West Ridge</item>
-                    <item>North-South Ridge</item>
-                  </content>
-                </object>
-              </object>
-            </object>
-          </object>
-        </object>
-      </object>
-
-      <!-- Materials -->
-      <object class="sizeritem">
-        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
-        <border>12</border>
-        <option>0</option>
-        <object class="wxStaticBoxSizer" name="">
-          <orient>wxVERTICAL</orient>
-          <label>Materials</label>
-          <object class="sizeritem">
-            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
-            <border>12</border>
-            <option>0</option>
-            <object class="wxFlexGridSizer" name="">
-              <vgap>6</vgap>
-              <hgap>6</hgap>
-              <growablerows></growablerows>
-              <growablecols>1</growablecols>
-              <rows>3</rows>
-              <cols>3</cols>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Wall Material:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorWallMaterial">
-                  <value>textures/common/caulk</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxLEFT</flag>
-                <border>6</border>
-                <option>0</option>
-                <object class="wxButton" name="BuildingGeneratorBrowseWallMaterial">
-                  <size>30,-1</size>
-                  <label>...</label>
-                  <default>0</default>
-                  <auth_needed>0</auth_needed>
-                  <markup>0</markup>
-                  <bitmap/>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Trim Material:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorTrimMaterial">
-                  <value>textures/common/caulk</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxLEFT</flag>
-                <border>6</border>
-                <option>0</option>
-                <object class="wxButton" name="BuildingGeneratorBrowseTrimMaterial">
-                  <size>30,-1</size>
-                  <label>...</label>
-                  <default>0</default>
-                  <auth_needed>0</auth_needed>
-                  <markup>0</markup>
-                  <bitmap/>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="">
-                  <label>Window Frame:</label>
-                  <wrap>0</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="BuildingGeneratorFrameMaterial">
-                  <value>textures/common/caulk</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxLEFT</flag>
-                <border>6</border>
-                <option>0</option>
-                <object class="wxButton" name="BuildingGeneratorBrowseFrameMaterial">
-                  <size>30,-1</size>
-                  <label>...</label>
-                  <default>0</default>
-                  <auth_needed>0</auth_needed>
-                  <markup>0</markup>
-                  <bitmap/>
-                </object>
-              </object>
-            </object>
-          </object>
-        </object>
-      </object>
-
     </object>
   </object>
 </resource>

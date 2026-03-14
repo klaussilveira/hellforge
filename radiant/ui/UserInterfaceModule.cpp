@@ -592,9 +592,8 @@ void UserInterfaceModule::registerUICommands()
     GlobalCommandSystem().addWithCheck("ScatterDialog", ScatterDialog::Show,
         [] { return GlobalSelectionSystem().countSelected() > 0; });
 
-    // Building generator dialog for creating building geometry from a brush
-    GlobalCommandSystem().addWithCheck("BuildingGeneratorDialog", BuildingGeneratorDialog::Show,
-        [] { return GlobalSelectionSystem().countSelected() == 1; });
+    // Building generator dialog for creating building geometry
+    GlobalCommandSystem().addCommand("BuildingGeneratorDialog", BuildingGeneratorDialog::Show);
 
     // Cable generator dialog for creating cable/pipe geometry
     GlobalCommandSystem().addCommand("CableGeneratorDialog", CableGeneratorDialog::Show);

@@ -10,48 +10,48 @@ namespace ui
 class BuildingGeneratorDialog : public wxutil::Dialog, private wxutil::XmlResourceBasedWidget
 {
 private:
-    wxWindow* _slantedRoofPanel;
-    wxWindow* _aRoofPanel;
-    wxWindow* _borderTrimPanel;
+    wxWindow* _dimensionsPanel;
+    wxWindow* _floorHeightPanel;
+    wxWindow* _windowParamsPanel;
+    wxWindow* _windowCountPanel;
+    wxWindow* _cornerExtrudePanel;
+    wxWindow* _roofHeightPanel;
+    wxWindow* _roofBorderPanel;
+    bool _hasBrushSelection;
 
 public:
-    BuildingGeneratorDialog();
+    BuildingGeneratorDialog(bool hasBrushSelection, double defaultFloorHeight);
 
-    // Floor params
     int getFloorCount();
+    int getFloorHeightMode();
     float getFloorHeight();
-    float getFloorThickness();
-    float getTrimHeight();
     float getWallThickness();
-
-    // Window params
-    int getWindowMode(); // 0=Automatic, 1=Manual count
-    int getWindowsPerWall();
+    float getTrimHeight();
+    int getWindowMode();
+    int getWindowsPerFloor();
     float getWindowWidth();
     float getWindowHeight();
-    float getWindowSillHeight();
-    float getWindowInset();
-
-    // Roof params
-    int getRoofType(); // 0=Flat, 1=Flat+Border, 2=Slanted, 3=A-Frame
+    float getSillHeight();
+    bool getCornerColumns();
+    float getCornerExtrude();
+    int getRoofType();
+    float getRoofHeight();
     float getRoofBorderHeight();
-    float getRoofSlopeHeight();
-    int getRoofSlopeDirection(); // 0=East, 1=North, 2=West, 3=South
-    float getARoofHeight();
-    int getARoofDirection(); // 0=East-West ridge, 1=North-South ridge
-
+    float getBuildingWidth();
+    float getBuildingDepth();
+    float getBuildingHeight();
     std::string getWallMaterial();
     std::string getTrimMaterial();
-    std::string getWindowFrameMaterial();
 
     static void Show(const cmd::ArgumentList& args);
 
 private:
-    void onRoofTypeChanged(wxCommandEvent& ev);
+    void onFloorHeightModeChanged(wxCommandEvent& ev);
     void onWindowModeChanged(wxCommandEvent& ev);
+    void onRoofTypeChanged(wxCommandEvent& ev);
+    void onCornerColumnsChanged(wxCommandEvent& ev);
     void onBrowseWallMaterial(wxCommandEvent& ev);
     void onBrowseTrimMaterial(wxCommandEvent& ev);
-    void onBrowseWindowFrameMaterial(wxCommandEvent& ev);
     void updateControlVisibility();
 };
 

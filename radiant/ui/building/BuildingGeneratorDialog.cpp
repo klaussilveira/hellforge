@@ -5,7 +5,7 @@
 #include "ui/imainframe.h"
 #include "imap.h"
 #include "iselection.h"
-#include "ibrush.h"
+#include "icameraview.h"
 #include "ishaderclipboard.h"
 #include "iundo.h"
 
@@ -14,14 +14,13 @@
 #include "scenelib.h"
 #include "shaderlib.h"
 #include "math/Vector3.h"
-#include "math/AABB.h"
 
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/spinctrl.h>
 #include <wx/choice.h>
-#include <wx/checkbox.h>
 #include <wx/button.h>
+#include <wx/checkbox.h>
 #include <wx/statbox.h>
 #include <wx/msgdlg.h>
 
@@ -40,14 +39,31 @@ inline std::string getSelectedShader()
     return selectedShader;
 }
 
+Vector3 getSpawnPosition()
+{
+    try
+    {
+        return GlobalCameraManager().getActiveView().getCameraOrigin();
+    }
+    catch (const std::runtime_error&) {}
+    return Vector3(0, 0, 0);
+}
+
 } // anonymous namespace
 
 namespace ui
 {
 
-BuildingGeneratorDialog::BuildingGeneratorDialog()
+BuildingGeneratorDialog::BuildingGeneratorDialog(bool hasBrushSelection, double defaultFloorHeight)
     : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
-      _slantedRoofPanel(nullptr), _aRoofPanel(nullptr), _borderTrimPanel(nullptr)
+      _dimensionsPanel(nullptr),
+      _floorHeightPanel(nullptr),
+      _windowParamsPanel(nullptr),
+      _windowCountPanel(nullptr),
+      _cornerExtrudePanel(nullptr),
+      _roofHeightPanel(nullptr),
+      _roofBorderPanel(nullptr),
+      _hasBrushSelection(hasBrushSelection)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "BuildingGeneratorMainPanel"), 1, wxEXPAND | wxALL, 12);
@@ -55,17 +71,25 @@ BuildingGeneratorDialog::BuildingGeneratorDialog()
     wxStaticText* topLabel = findNamedObject<wxStaticText>(_dialog, "BuildingGeneratorTopLabel");
     topLabel->SetFont(topLabel->GetFont().Bold());
 
-    // Get panel references for visibility toggling
-    _slantedRoofPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorSlantedPanel");
-    _aRoofPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorARoofPanel");
-    _borderTrimPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorBorderTrimPanel");
+    _dimensionsPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorDimensionsPanel");
+    _floorHeightPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorFloorHeightPanel");
+    _windowParamsPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorWindowParamsPanel");
+    _windowCountPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorWindowCountPanel");
+    _cornerExtrudePanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorCornerExtrudePanel");
+    _roofHeightPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorRoofHeightPanel");
+    _roofBorderPanel = findNamedObject<wxWindow>(_dialog, "BuildingGeneratorRoofBorderPanel");
 
-    // Bind events
-    findNamedObject<wxChoice>(_dialog, "BuildingGeneratorRoofType")
-        ->Bind(wxEVT_CHOICE, &BuildingGeneratorDialog::onRoofTypeChanged, this);
+    findNamedObject<wxChoice>(_dialog, "BuildingGeneratorFloorHeightMode")
+        ->Bind(wxEVT_CHOICE, &BuildingGeneratorDialog::onFloorHeightModeChanged, this);
 
     findNamedObject<wxChoice>(_dialog, "BuildingGeneratorWindowMode")
         ->Bind(wxEVT_CHOICE, &BuildingGeneratorDialog::onWindowModeChanged, this);
+
+    findNamedObject<wxCheckBox>(_dialog, "BuildingGeneratorCornerColumns")
+        ->Bind(wxEVT_CHECKBOX, &BuildingGeneratorDialog::onCornerColumnsChanged, this);
+
+    findNamedObject<wxChoice>(_dialog, "BuildingGeneratorRoofType")
+        ->Bind(wxEVT_CHOICE, &BuildingGeneratorDialog::onRoofTypeChanged, this);
 
     findNamedObject<wxButton>(_dialog, "BuildingGeneratorBrowseWallMaterial")
         ->Bind(wxEVT_BUTTON, &BuildingGeneratorDialog::onBrowseWallMaterial, this);
@@ -73,15 +97,29 @@ BuildingGeneratorDialog::BuildingGeneratorDialog()
     findNamedObject<wxButton>(_dialog, "BuildingGeneratorBrowseTrimMaterial")
         ->Bind(wxEVT_BUTTON, &BuildingGeneratorDialog::onBrowseTrimMaterial, this);
 
-    findNamedObject<wxButton>(_dialog, "BuildingGeneratorBrowseFrameMaterial")
-        ->Bind(wxEVT_BUTTON, &BuildingGeneratorDialog::onBrowseWindowFrameMaterial, this);
-
-    auto shader = getSelectedShader();
+    std::string shader = getSelectedShader();
     findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWallMaterial")->SetValue(shader);
     findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorTrimMaterial")->SetValue(shader);
-    findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorFrameMaterial")->SetValue(shader);
+
+    int fh = static_cast<int>(defaultFloorHeight);
+    findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorFloorHeight")
+        ->SetValue(string::to_string(fh));
 
     updateControlVisibility();
+}
+
+void BuildingGeneratorDialog::onFloorHeightModeChanged(wxCommandEvent& ev)
+{
+    updateControlVisibility();
+    _dialog->Layout();
+    _dialog->Fit();
+}
+
+void BuildingGeneratorDialog::onWindowModeChanged(wxCommandEvent& ev)
+{
+    updateControlVisibility();
+    _dialog->Layout();
+    _dialog->Fit();
 }
 
 void BuildingGeneratorDialog::onRoofTypeChanged(wxCommandEvent& ev)
@@ -91,11 +129,9 @@ void BuildingGeneratorDialog::onRoofTypeChanged(wxCommandEvent& ev)
     _dialog->Fit();
 }
 
-void BuildingGeneratorDialog::onWindowModeChanged(wxCommandEvent& ev)
+void BuildingGeneratorDialog::onCornerColumnsChanged(wxCommandEvent& ev)
 {
-    bool manual = getWindowMode() == 1;
-    findNamedObject<wxWindow>(_dialog, "BuildingGeneratorWindowsPerWallLabel")->Show(manual);
-    findNamedObject<wxWindow>(_dialog, "BuildingGeneratorWindowsPerWall")->Show(manual);
+    updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
 }
@@ -114,30 +150,38 @@ void BuildingGeneratorDialog::onBrowseTrimMaterial(wxCommandEvent& ev)
     chooser.ShowModal();
 }
 
-void BuildingGeneratorDialog::onBrowseWindowFrameMaterial(wxCommandEvent& ev)
-{
-    wxTextCtrl* entry = findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorFrameMaterial");
-    MaterialChooser chooser(_dialog, MaterialSelector::TextureFilter::Regular, entry);
-    chooser.ShowModal();
-}
-
 void BuildingGeneratorDialog::updateControlVisibility()
 {
-    int roofType = getRoofType();
-    if (_borderTrimPanel) _borderTrimPanel->Show(roofType == 1);
-    if (_slantedRoofPanel) _slantedRoofPanel->Show(roofType == 2);
-    if (_aRoofPanel) _aRoofPanel->Show(roofType == 3);
+    if (_dimensionsPanel)
+        _dimensionsPanel->Show(!_hasBrushSelection);
 
-    bool manual = getWindowMode() == 1;
-    findNamedObject<wxWindow>(_dialog, "BuildingGeneratorWindowsPerWallLabel")->Show(manual);
-    findNamedObject<wxWindow>(_dialog, "BuildingGeneratorWindowsPerWall")->Show(manual);
+    if (_floorHeightPanel)
+        _floorHeightPanel->Show(getFloorHeightMode() == 1);
+
+    if (_cornerExtrudePanel)
+        _cornerExtrudePanel->Show(getCornerColumns());
+
+    int winMode = getWindowMode();
+    if (_windowParamsPanel)
+        _windowParamsPanel->Show(winMode != 0);
+    if (_windowCountPanel)
+        _windowCountPanel->Show(winMode == 2);
+
+    int roof = getRoofType();
+    if (_roofHeightPanel)
+        _roofHeightPanel->Show(roof == 2 || roof == 3);
+    if (_roofBorderPanel)
+        _roofBorderPanel->Show(roof == 1);
 }
-
-// Getters
 
 int BuildingGeneratorDialog::getFloorCount()
 {
     return findNamedObject<wxSpinCtrl>(_dialog, "BuildingGeneratorFloorCount")->GetValue();
+}
+
+int BuildingGeneratorDialog::getFloorHeightMode()
+{
+    return findNamedObject<wxChoice>(_dialog, "BuildingGeneratorFloorHeightMode")->GetSelection();
 }
 
 float BuildingGeneratorDialog::getFloorHeight()
@@ -146,22 +190,16 @@ float BuildingGeneratorDialog::getFloorHeight()
         findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorFloorHeight")->GetValue().ToStdString(), 128.0f);
 }
 
-float BuildingGeneratorDialog::getFloorThickness()
+float BuildingGeneratorDialog::getWallThickness()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorFloorThickness")->GetValue().ToStdString(), 8.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWallThickness")->GetValue().ToStdString(), 8.0f);
 }
 
 float BuildingGeneratorDialog::getTrimHeight()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorTrimHeight")->GetValue().ToStdString(), 4.0f);
-}
-
-float BuildingGeneratorDialog::getWallThickness()
-{
-    return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWallThickness")->GetValue().ToStdString(), 8.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorTrimHeight")->GetValue().ToStdString(), 8.0f);
 }
 
 int BuildingGeneratorDialog::getWindowMode()
@@ -169,38 +207,49 @@ int BuildingGeneratorDialog::getWindowMode()
     return findNamedObject<wxChoice>(_dialog, "BuildingGeneratorWindowMode")->GetSelection();
 }
 
-int BuildingGeneratorDialog::getWindowsPerWall()
+int BuildingGeneratorDialog::getWindowsPerFloor()
 {
-    return findNamedObject<wxSpinCtrl>(_dialog, "BuildingGeneratorWindowsPerWall")->GetValue();
+    return findNamedObject<wxSpinCtrl>(_dialog, "BuildingGeneratorWindowsPerFloor")->GetValue();
 }
 
 float BuildingGeneratorDialog::getWindowWidth()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWindowWidth")->GetValue().ToStdString(), 32.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWindowWidth")->GetValue().ToStdString(), 48.0f);
 }
 
 float BuildingGeneratorDialog::getWindowHeight()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWindowHeight")->GetValue().ToStdString(), 48.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWindowHeight")->GetValue().ToStdString(), 56.0f);
 }
 
-float BuildingGeneratorDialog::getWindowSillHeight()
+float BuildingGeneratorDialog::getSillHeight()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWindowSillHeight")->GetValue().ToStdString(), 24.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorSillHeight")->GetValue().ToStdString(), 32.0f);
 }
 
-float BuildingGeneratorDialog::getWindowInset()
+bool BuildingGeneratorDialog::getCornerColumns()
+{
+    return findNamedObject<wxCheckBox>(_dialog, "BuildingGeneratorCornerColumns")->GetValue();
+}
+
+float BuildingGeneratorDialog::getCornerExtrude()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWindowInset")->GetValue().ToStdString(), 2.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorCornerExtrude")->GetValue().ToStdString(), 0.0f);
 }
 
 int BuildingGeneratorDialog::getRoofType()
 {
     return findNamedObject<wxChoice>(_dialog, "BuildingGeneratorRoofType")->GetSelection();
+}
+
+float BuildingGeneratorDialog::getRoofHeight()
+{
+    return string::convert<float>(
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorRoofHeight")->GetValue().ToStdString(), 64.0f);
 }
 
 float BuildingGeneratorDialog::getRoofBorderHeight()
@@ -209,26 +258,22 @@ float BuildingGeneratorDialog::getRoofBorderHeight()
         findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorRoofBorderHeight")->GetValue().ToStdString(), 16.0f);
 }
 
-float BuildingGeneratorDialog::getRoofSlopeHeight()
+float BuildingGeneratorDialog::getBuildingWidth()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorRoofSlopeHeight")->GetValue().ToStdString(), 64.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWidth")->GetValue().ToStdString(), 256.0f);
 }
 
-int BuildingGeneratorDialog::getRoofSlopeDirection()
-{
-    return findNamedObject<wxChoice>(_dialog, "BuildingGeneratorRoofSlopeDirection")->GetSelection();
-}
-
-float BuildingGeneratorDialog::getARoofHeight()
+float BuildingGeneratorDialog::getBuildingDepth()
 {
     return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorARoofHeight")->GetValue().ToStdString(), 64.0f);
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorDepth")->GetValue().ToStdString(), 256.0f);
 }
 
-int BuildingGeneratorDialog::getARoofDirection()
+float BuildingGeneratorDialog::getBuildingHeight()
 {
-    return findNamedObject<wxChoice>(_dialog, "BuildingGeneratorARoofDirection")->GetSelection();
+    return string::convert<float>(
+        findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorHeight")->GetValue().ToStdString(), 384.0f);
 }
 
 std::string BuildingGeneratorDialog::getWallMaterial()
@@ -241,81 +286,89 @@ std::string BuildingGeneratorDialog::getTrimMaterial()
     return findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorTrimMaterial")->GetValue().ToStdString();
 }
 
-std::string BuildingGeneratorDialog::getWindowFrameMaterial()
-{
-    return findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorFrameMaterial")->GetValue().ToStdString();
-}
-
 void BuildingGeneratorDialog::Show(const cmd::ArgumentList& args)
 {
-    // Require exactly one brush selected
-    if (GlobalSelectionSystem().countSelected() != 1)
+    auto& sel = GlobalSelectionSystem();
+    bool hasBrush = false;
+    AABB brushBounds;
+
+    if (sel.countSelected() == 1)
     {
-        wxMessageBox(_("Please select exactly one brush to use as the building footprint."),
-            _("Building Generator"), wxOK | wxICON_WARNING);
-        return;
+        scene::INodePtr node = sel.ultimateSelected();
+        if (Node_isBrush(node))
+        {
+            brushBounds = node->worldAABB();
+            if (brushBounds.isValid())
+                hasBrush = true;
+        }
     }
 
-    auto selectedNode = GlobalSelectionSystem().ultimateSelected();
-    auto* brush = Node_getIBrush(selectedNode);
-    if (!brush)
-    {
-        wxMessageBox(_("The selected object must be a brush."),
-            _("Building Generator"), wxOK | wxICON_WARNING);
-        return;
-    }
+    double totalHeight = hasBrush
+        ? (brushBounds.getExtents().z() * 2.0)
+        : 384.0;
+    double defaultFloorHeight = totalHeight / 3.0;
 
-    // Get the AABB of the selected brush
-    AABB bounds = selectedNode->worldAABB();
-    if (!bounds.isValid())
-    {
-        wxMessageBox(_("Could not determine the bounds of the selected brush."),
-            _("Building Generator"), wxOK | wxICON_WARNING);
-        return;
-    }
-
-    BuildingGeneratorDialog dialog;
+    BuildingGeneratorDialog dialog(hasBrush, defaultFloorHeight);
 
     if (dialog.run() != IDialog::RESULT_OK)
         return;
 
     building::BuildingParams params;
     params.floorCount = dialog.getFloorCount();
-    params.floorHeight = dialog.getFloorHeight();
-    params.floorThickness = dialog.getFloorThickness();
-    params.trimHeight = dialog.getTrimHeight();
+    params.floorHeight = (dialog.getFloorHeightMode() == 1) ? dialog.getFloorHeight() : 0;
     params.wallThickness = dialog.getWallThickness();
+    params.trimHeight = dialog.getTrimHeight();
 
-    params.windowMode = dialog.getWindowMode();
-    params.windowsPerWall = dialog.getWindowsPerWall();
+    int winMode = dialog.getWindowMode();
+    if (winMode == 0)
+        params.windowsPerFloor = -1;
+    else if (winMode == 1)
+        params.windowsPerFloor = 0;
+    else
+        params.windowsPerFloor = dialog.getWindowsPerFloor();
+
+    params.cornerColumns = dialog.getCornerColumns();
+    params.cornerExtrude = dialog.getCornerExtrude();
     params.windowWidth = dialog.getWindowWidth();
     params.windowHeight = dialog.getWindowHeight();
-    params.windowSillHeight = dialog.getWindowSillHeight();
-    params.windowInset = dialog.getWindowInset();
-
+    params.sillHeight = dialog.getSillHeight();
     params.roofType = dialog.getRoofType();
+    params.roofHeight = dialog.getRoofHeight();
     params.roofBorderHeight = dialog.getRoofBorderHeight();
-    params.roofSlopeHeight = dialog.getRoofSlopeHeight();
-    params.roofSlopeDirection = dialog.getRoofSlopeDirection();
-    params.aRoofHeight = dialog.getARoofHeight();
-    params.aRoofDirection = dialog.getARoofDirection();
-
     params.wallMaterial = dialog.getWallMaterial();
     params.trimMaterial = dialog.getTrimMaterial();
-    params.windowFrameMaterial = dialog.getWindowFrameMaterial();
+
+    Vector3 mins, maxs;
+
+    if (hasBrush)
+    {
+        mins = brushBounds.getOrigin() - brushBounds.getExtents();
+        maxs = brushBounds.getOrigin() + brushBounds.getExtents();
+    }
+    else
+    {
+        Vector3 origin = getSpawnPosition();
+        double w = dialog.getBuildingWidth();
+        double d = dialog.getBuildingDepth();
+        double h = dialog.getBuildingHeight();
+        mins = Vector3(origin.x() - w / 2, origin.y() - d / 2, origin.z());
+        maxs = Vector3(origin.x() + w / 2, origin.y() + d / 2, origin.z() + h);
+    }
 
     UndoableCommand undo("buildingGeneratorCreate");
 
-    // Delete the original brush
-    scene::INodePtr parent = selectedNode->getParent();
-    if (!parent)
-        parent = GlobalMapModule().findOrInsertWorldspawn();
-
-    scene::removeNodeFromParent(selectedNode);
+    if (hasBrush)
+    {
+        scene::INodePtr selectedNode = sel.ultimateSelected();
+        scene::INodePtr parent = selectedNode->getParent();
+        if (parent)
+            scene::removeNodeFromParent(selectedNode);
+    }
 
     GlobalSelectionSystem().setSelectedAll(false);
 
-    building::generateBuilding(bounds, params, parent);
+    scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+    building::generateBuilding(mins, maxs, params, worldspawn);
 }
 
 } // namespace ui
