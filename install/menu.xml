@@ -216,6 +216,7 @@
 		<menuItem name="cableGenerator" caption="Cables..." command="CableGeneratorDialog" />
 		<menuItem name="archGenerator" caption="Arch..." command="ArchGeneratorDialog" />
 		<menuItem name="cornerPatch" caption="Corner Patch..." command="CornerPatchDialog" />
+		<menuItem name="tileMap" caption="Tile Map..." command="TileMapDialog" />
 		<menuSeparator />
 
 		<subMenu name="csg" caption="CSG">

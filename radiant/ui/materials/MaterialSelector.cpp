@@ -241,11 +241,17 @@ void MaterialSelector::onThumbnailSelectionChanged()
 {
     UpdatePreviewsWithDeclaration(_thumbnailBrowser->getSelectedShader());
     _selectionChanged();
+
+    wxDataViewEvent selEvent(wxEVT_DATAVIEW_SELECTION_CHANGED, GetTreeView(), wxDataViewItem());
+    selEvent.SetEventObject(this);
+    ProcessWindowEvent(selEvent);
 }
 
 void MaterialSelector::onThumbnailItemActivated()
 {
-    onTreeViewItemActivated();
+    wxDataViewEvent actEvent(wxEVT_DATAVIEW_ITEM_ACTIVATED, GetTreeView(), wxDataViewItem());
+    actEvent.SetEventObject(this);
+    ProcessWindowEvent(actEvent);
 }
 
 void MaterialSelector::Populate()

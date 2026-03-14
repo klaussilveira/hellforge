@@ -70,6 +70,7 @@
 #include "ui/scatter/ScatterDialog.h"
 #include "ui/stairs/StairsGeneratorDialog.h"
 #include "ui/terrain/TerrainGeneratorDialog.h"
+#include "ui/tilemap/TileMapDialog.h"
 #include "ui/selectionset/SelectionSetToolmenu.h"
 #include "ui/brush/QuerySidesDialog.h"
 #include "ui/brush/CreateTrimDialog.h"
@@ -599,6 +600,9 @@ void UserInterfaceModule::registerUICommands()
 
     // Terrain generator dialog for creating patch terrains
     GlobalCommandSystem().addCommand("TerrainGeneratorDialog", TerrainGeneratorDialog::Show);
+
+    // Tile map editor for quick 2D block-based level design
+    GlobalCommandSystem().addCommand("TileMapDialog", TileMapDialog::Show);
 }
 
 // Static module registration
