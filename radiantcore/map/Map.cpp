@@ -51,6 +51,11 @@
 #include "command/ExecutionNotPossible.h"
 #include "MapPropertyInfoFileModule.h"
 #include "messages/NotificationMessage.h"
+#include "messages/MapConversionRequest.h"
+#include "format/ConversionMap.h"
+
+#include "ibrush.h"
+#include "ipatch.h"
 
 #include <fmt/format.h>
 
@@ -150,6 +155,11 @@ void Map::loadMapResourceFromLocation(const MapLocation& location)
     rMessage() << "Loading map from " << location.path <<
         (location.isArchive ? " [" + location.archiveRelativePath + "]" : "") << std::endl;
 
+	if (location.format)
+	{
+		offerMapConversion(location.format->getMapFormatName(), location.path);
+	}
+
 	// Map loading started
 	emitMapEvent(MapLoading);
 
@@ -181,6 +191,10 @@ void Map::loadMapResourceFromLocation(const MapLocation& location)
         radiant::NotificationMessage::SendError(ex.what());
         clearMapResource();
     }
+
+    ConversionMap::clear();
+
+    applyEntityMappings();
 
     connectToRootNode();
 
@@ -225,6 +239,133 @@ void Map::assignRenderSystem(const scene::IMapRootNodePtr& root)
 {
     root->setRenderSystem(std::dynamic_pointer_cast<RenderSystem>(
         module::GlobalModuleRegistry().getModule(MODULE_RENDERSYSTEM)));
+}
+
+void Map::offerMapConversion(const std::string& formatName, const std::string& mapPath)
+{
+    static const std::set<std::string> externalFormats = {
+        "Quake 1", "Quake 2", "Valve 220", "Valve VMF"
+    };
+
+    if (externalFormats.find(formatName) == externalFormats.end())
+    {
+        return;
+    }
+
+    std::set<std::string> sourceTextures;
+    std::set<std::string> sourceEntities;
+
+    bool isVmf = (formatName == "Valve VMF");
+
+    std::ifstream file(mapPath);
+    if (!file.good()) return;
+
+    auto parseKeyValue = [](const std::string& line, std::string& key, std::string& value) -> bool
+    {
+        if (line.empty() || line[0] != '"') return false;
+
+        auto keyEnd = line.find('"', 1);
+        if (keyEnd == std::string::npos) return false;
+
+        auto valStart = line.find('"', keyEnd + 1);
+        if (valStart == std::string::npos) return false;
+
+        auto valEnd = line.find('"', valStart + 1);
+        if (valEnd == std::string::npos) return false;
+
+        key = line.substr(1, keyEnd - 1);
+        value = line.substr(valStart + 1, valEnd - valStart - 1);
+        return true;
+    };
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        auto start = line.find_first_not_of(" \t");
+        if (start == std::string::npos) continue;
+        std::string trimmed = line.substr(start);
+
+        std::string key, value;
+
+        if (trimmed[0] == '"' && parseKeyValue(trimmed, key, value) && !value.empty())
+        {
+            if (key == "classname")
+                sourceEntities.insert(value);
+            else if (isVmf && key == "material")
+                sourceTextures.insert(value);
+        }
+        else if (!isVmf && trimmed[0] == '(')
+        {
+            int parenSets = 0;
+            std::size_t pos = 0;
+            while (parenSets < 3 && pos < trimmed.size())
+            {
+                if (trimmed[pos] == ')')
+                    parenSets++;
+                pos++;
+            }
+
+            if (parenSets == 3)
+            {
+                while (pos < trimmed.size() && (trimmed[pos] == ' ' || trimmed[pos] == '\t'))
+                    pos++;
+
+                std::size_t texStart = pos;
+                while (pos < trimmed.size() && trimmed[pos] != ' ' && trimmed[pos] != '\t')
+                    pos++;
+
+                if (pos > texStart)
+                {
+                    std::string tex = trimmed.substr(texStart, pos - texStart);
+                    if (!tex.empty() && tex != "(")
+                        sourceTextures.insert(tex);
+                }
+            }
+        }
+    }
+
+    if (sourceTextures.empty() && sourceEntities.empty())
+    {
+        return;
+    }
+
+    radiant::MapConversionRequest request(formatName, sourceTextures, sourceEntities);
+    GlobalRadiantCore().getMessageBus().sendMessage(request);
+
+    if (request.isHandled() && request.getResult().accepted)
+    {
+        ConversionMap::set(request.getResult().textureMappings);
+        _pendingEntityMappings = request.getResult().entityMappings;
+    }
+}
+
+void Map::applyEntityMappings()
+{
+    if (_pendingEntityMappings.empty()) return;
+
+    auto root = _resource->getRootNode();
+    if (!root) return;
+
+    root->foreachNode([this](const scene::INodePtr& node) -> bool
+    {
+        Entity* entity = node->tryGetEntity();
+        if (entity)
+        {
+            std::string classname = entity->getKeyValue("classname");
+            auto it = _pendingEntityMappings.find(classname);
+            if (it != _pendingEntityMappings.end())
+            {
+                entity->setKeyValue("classname", it->second);
+            }
+        }
+
+        return true;
+    });
+
+    rMessage() << "Applied " << _pendingEntityMappings.size()
+               << " entity mappings." << std::endl;
+
+    _pendingEntityMappings.clear();
 }
 
 void Map::finishMergeOperation()

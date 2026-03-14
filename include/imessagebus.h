@@ -59,6 +59,7 @@ public:
         GridSnapRequest,
         FocusMaterialRequest,
         TextureToolRequest,
+        MapConversionRequest,
 
         UserDefinedMessagesGoHigherThanThis = 999,
     };

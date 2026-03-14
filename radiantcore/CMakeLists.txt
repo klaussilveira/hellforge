@@ -102,6 +102,7 @@ add_library(radiantcore MODULE
             map/format/primitiveparsers/PatchDef3.cpp
             map/format/primitiveparsers/Quake1BrushDef.cpp
             map/format/Quake1MapFormat.cpp
+            map/format/ConversionMap.cpp
             map/format/ValveVmfFormat.cpp
             map/format/Quake3MapFormat.cpp
             map/format/Quake3MapReader.cpp

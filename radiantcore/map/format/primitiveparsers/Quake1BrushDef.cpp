@@ -3,6 +3,7 @@
 #include "Quake1BrushDef.h"
 
 #include "../Quake3Utils.h"
+#include "../ConversionMap.h"
 #include "string/convert.h"
 #include "imap.h"
 #include "ibrush.h"
@@ -48,6 +49,12 @@ Plane3 parsePlane(parser::DefTokeniser& tok)
 
 std::string resolveTextureName(const std::string& rawName)
 {
+	const auto& mapped = ConversionMap::lookup(rawName);
+	if (!mapped.empty())
+	{
+		return mapped;
+	}
+
 	std::string prefix = GlobalTexturePrefix_get();
 	std::string fullName = prefix + rawName;
 

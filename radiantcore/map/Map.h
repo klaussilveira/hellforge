@@ -15,6 +15,7 @@
 #include "PointFile.h"
 #include "messages/ApplicationShutdownRequest.h"
 
+#include <map>
 #include <sigc++/signal.h>
 #include "time/StopWatch.h"
 #include "scene/merge/MergeOperation.h"
@@ -297,6 +298,11 @@ private:
     void redoCmd(const cmd::ArgumentList& args);
 
     void assignRenderSystem(const scene::IMapRootNodePtr& root);
+
+    std::map<std::string, std::string> _pendingEntityMappings;
+
+    void offerMapConversion(const std::string& formatName, const std::string& mapPath);
+    void applyEntityMappings();
 };
 
 } // namespace map

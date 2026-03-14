@@ -130,6 +130,7 @@ add_executable(hellforge
                ui/toolbar/ToolbarManager.cpp
                ui/MapCommands.cpp
                ui/MapFileProgressHandler.cpp
+               ui/mapconversion/MapConversionDialog.cpp
                ui/mapinfo/EntityInfoTab.cpp
                ui/mapinfo/LayerInfoTab.cpp
                ui/mapinfo/MapInfoDialog.cpp

@@ -3,6 +3,7 @@
 #include "ValveVmfFormat.h"
 
 #include "Quake3MapWriter.h"
+#include "ConversionMap.h"
 #include "module/StaticModule.h"
 #include "string/convert.h"
 #include "imap.h"
@@ -29,6 +30,12 @@ namespace
 
 std::string resolveTextureName(const std::string& rawName)
 {
+	const auto& mapped = ConversionMap::lookup(rawName);
+	if (!mapped.empty())
+	{
+		return mapped;
+	}
+
 	std::string prefix = GlobalTexturePrefix_get();
 	std::string fullName = prefix + rawName;
 
