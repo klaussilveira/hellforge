@@ -177,6 +177,7 @@ add_executable(hellforge
                ui/terrain/TerrainGeneratorDialog.cpp
                ui/tilemap/TileMapDialog.cpp
                ui/sweep/SweepDialog.cpp
+               ui/osm/OsmImporterDialog.cpp
                ui/script/ScriptMenu.cpp
                ui/script/ScriptWindow.cpp
                ui/selectiongroup/SelectionGroupPanel.cpp
