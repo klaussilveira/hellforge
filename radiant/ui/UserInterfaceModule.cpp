@@ -71,6 +71,7 @@
 #include "ui/stairs/StairsGeneratorDialog.h"
 #include "ui/terrain/TerrainGeneratorDialog.h"
 #include "ui/tilemap/TileMapDialog.h"
+#include "ui/sweep/SweepDialog.h"
 #include "ui/selectionset/SelectionSetToolmenu.h"
 #include "ui/brush/QuerySidesDialog.h"
 #include "ui/brush/CreateTrimDialog.h"
@@ -603,6 +604,9 @@ void UserInterfaceModule::registerUICommands()
 
     // Tile map editor for quick 2D block-based level design
     GlobalCommandSystem().addCommand("TileMapDialog", TileMapDialog::Show);
+
+    // Sweep brushes along a curve path
+    GlobalCommandSystem().addCommand("SweepDialog", SweepDialog::Show);
 }
 
 // Static module registration

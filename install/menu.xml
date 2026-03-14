@@ -217,6 +217,7 @@
 		<menuItem name="archGenerator" caption="Arch..." command="ArchGeneratorDialog" />
 		<menuItem name="cornerPatch" caption="Corner Patch..." command="CornerPatchDialog" />
 		<menuItem name="tileMap" caption="Tile Map..." command="TileMapDialog" />
+		<menuItem name="sweep" caption="Sweep..." command="SweepDialog" />
 		<menuSeparator />
 
 		<subMenu name="csg" caption="CSG">
