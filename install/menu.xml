@@ -226,6 +226,7 @@
 			<menuItem name="csgSubtract" caption="CSG &amp;Subtract" command="CSGSubtract" icon="selection_csgsubtract.png" />
 			<menuItem name="csgMerge" caption="CSG &amp;Merge" command="CSGMerge" icon="selection_csgmerge.png" />
 			<menuItem name="csgIntersect" caption="CSG &amp;Intersect" command="CSGIntersect" icon="selection_csgintersect.png" />
+			<menuItem name="csgBridge" caption="CSG &amp;Bridge" command="CSGBridge" icon="bridge.png" />
 		</subMenu>
 
 		<menuSeparator />

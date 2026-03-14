@@ -138,6 +138,7 @@ inline const std::unordered_map<std::string, CommandInfo>& getCommandMetadata()
 		{"CSGSeal",                     {"CSG: Seal",                       "Seal gap between brushes", CmdCategory::Brush}},
 		{"CSGPassable",                 {"CSG: Make Passable",              "Mark selected brush as passable (non-solid)", CmdCategory::Brush}},
 		{"CSGShell",                    {"CSG: Shell",                      "Create a shell from the selected brush", CmdCategory::Brush}},
+		{"CSGBridge",                   {"CSG: Bridge",                     "Create a brush connecting two selected faces", CmdCategory::Brush}},
 
 		// Clipper
 		{"ToggleClipper",               {"Toggle Clipper",                  "Activate or deactivate the clip tool", CmdCategory::Brush}},

@@ -1,5 +1,6 @@
 #include "CSG.h"
 
+#include <limits>
 #include <map>
 
 #include "i18n.h"
@@ -1058,6 +1059,164 @@ void sealSelectedEntities(const cmd::ArgumentList& args)
 	SceneChangeNotify();
 }
 
+void bridgeSelectedFaces(const cmd::ArgumentList& args)
+{
+    UndoableCommand undo("brushBridge");
+
+    FacePtrVector faces = selection::algorithm::getSelectedFaces();
+
+    if (faces.size() != 2)
+    {
+        throw cmd::ExecutionNotPossible(_("Bridge requires exactly 2 selected faces."));
+    }
+
+    Face* faceA = faces[0];
+    Face* faceB = faces[1];
+
+    if (&faceA->getBrushInternal() == &faceB->getBrushInternal())
+    {
+        throw cmd::ExecutionNotPossible(_("Bridge requires faces from 2 different brushes."));
+    }
+
+    const Winding& windingA = faceA->getWinding();
+    const Winding& windingB = faceB->getWinding();
+
+    if (windingA.size() < 3 || windingB.size() < 3)
+    {
+        throw cmd::ExecutionNotPossible(_("Bridge: selected faces have too few vertices."));
+    }
+
+    if (windingA.size() != windingB.size())
+    {
+        throw cmd::ExecutionNotPossible(_("Bridge requires faces with the same number of vertices."));
+    }
+
+    std::size_t n = windingA.size();
+
+    Vector3 centroidA(0, 0, 0);
+    Vector3 centroidB(0, 0, 0);
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        centroidA += windingA[i].vertex;
+        centroidB += windingB[i].vertex;
+    }
+
+    centroidA /= static_cast<double>(n);
+    centroidB /= static_cast<double>(n);
+
+    Vector3 bridgeCenter = (centroidA + centroidB) * 0.5;
+
+    std::size_t bestRotation = 0;
+    double bestDist = std::numeric_limits<double>::max();
+
+    for (std::size_t rot = 0; rot < n; ++rot)
+    {
+        double totalDist = 0;
+
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            totalDist += (windingA[i].vertex - windingB[(i + rot) % n].vertex).getLengthSquared();
+        }
+
+        if (totalDist < bestDist)
+        {
+            bestDist = totalDist;
+            bestRotation = rot;
+        }
+    }
+
+    bool reverseB = false;
+
+    for (std::size_t rot = 0; rot < n; ++rot)
+    {
+        double totalDist = 0;
+
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            totalDist += (windingA[i].vertex - windingB[(n - 1 - i + rot) % n].vertex).getLengthSquared();
+        }
+
+        if (totalDist < bestDist)
+        {
+            bestDist = totalDist;
+            bestRotation = rot;
+            reverseB = true;
+        }
+    }
+
+    std::vector<Vector3> vertsA(n), vertsB(n);
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        vertsA[i] = windingA[i].vertex;
+
+        if (reverseB)
+            vertsB[i] = windingB[(n - 1 - i + bestRotation) % n].vertex;
+        else
+            vertsB[i] = windingB[(i + bestRotation) % n].vertex;
+    }
+
+    scene::INodePtr newNode = GlobalBrushCreator().createBrush();
+    BrushNodePtr bridgeNode = std::dynamic_pointer_cast<BrushNode>(newNode);
+    Brush& bridge = bridgeNode->getBrush();
+
+    bridge.addFace(-faceA->getPlane3());
+    bridge.addFace(-faceB->getPlane3());
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        std::size_t inext = (i + 1) % n;
+
+        Vector3 p0 = vertsA[i];
+        Vector3 p1 = vertsA[inext];
+        Vector3 p2 = vertsB[i];
+
+        Vector3 edge1 = p1 - p0;
+        Vector3 edge2 = p2 - p0;
+        Vector3 normal = edge1.cross(edge2);
+
+        if (normal.getLengthSquared() < 1e-10)
+        {
+            continue;
+        }
+
+        normal.normalise();
+
+        Vector3 faceMid = (p0 + p1 + p2 + vertsB[inext]) * 0.25;
+
+        if (normal.dot(faceMid - bridgeCenter) < 0)
+        {
+            normal = -normal;
+        }
+
+        double dist = normal.dot(p0);
+        bridge.addFace(Plane3(normal, dist));
+    }
+
+    bridge.removeEmptyFaces();
+
+    BrushNode& ownerNodeA = faceA->getBrushInternal().getBrushNode();
+    scene::INodePtr parent = ownerNodeA.getParent();
+
+    if (!parent)
+    {
+        parent = GlobalMapModule().findOrInsertWorldspawn();
+    }
+
+    scene::addNodeToContainer(newNode, parent);
+    newNode->assignToLayers(ownerNodeA.getLayers());
+
+    GlobalSelectionSystem().setSelectedAllComponents(false);
+    Node_setSelected(newNode, true);
+
+    Node_getBrush(newNode)->forEachFace([](Face& face) {
+        face.applyDefaultTextureScale();
+    });
+
+    SceneChangeNotify();
+}
+
 void registerCommands()
 {
     using selection::pred::haveBrush;
@@ -1071,6 +1230,8 @@ void registerCommands()
     GlobalCommandSystem().addWithCheck("CSGShell", makeShellForSelectedBrushes, haveBrush);
     GlobalCommandSystem().addWithCheck("CSGSeal", sealSelectedEntities,
         [] { return GlobalSelectionSystem().getSelectionInfo().totalCount > 0; });
+    GlobalCommandSystem().addWithCheck("CSGBridge", bridgeSelectedFaces,
+        [] { return GlobalSelectionSystem().getSelectionInfo().componentCount > 0; });
 }
 
 } // namespace algorithm

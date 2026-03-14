@@ -57,6 +57,12 @@ void intersectSelectedBrushes(const cmd::ArgumentList& args);
 void sealSelectedEntities(const cmd::ArgumentList& args);
 
 /**
+ * Creates a new brush connecting two selected faces from different brushes.
+ * Both faces must have the same number of vertices.
+ */
+void bridgeSelectedFaces(const cmd::ArgumentList& args);
+
+/**
  * Connect the various events to the functions in this namespace
  */
 void registerCommands();
