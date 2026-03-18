@@ -1,6 +1,7 @@
 #pragma once
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include "iscript.h"
 #include "iscriptinterface.h"
@@ -9,6 +10,8 @@
 
 #include "SceneGraphInterface.h"
 #include "BrushInterface.h"
+#include "PatchInterface.h"
+#include "EntityInterface.h"
 
 namespace script 
 {
@@ -73,6 +76,11 @@ public:
 
 	ScriptSceneNode ultimateSelected();
 	ScriptSceneNode penultimateSelected();
+
+	py::list getSelectedNodes();
+	py::list getSelectedBrushNodes();
+	py::list getSelectedEntityNodes();
+	py::list getSelectedPatchNodes();
 
 	// IScriptInterface implementation
 	void registerInterface(py::module& scope, py::dict& globals) override;

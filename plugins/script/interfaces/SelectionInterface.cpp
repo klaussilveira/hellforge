@@ -1,6 +1,10 @@
 #include "SelectionInterface.h"
 
-namespace script 
+#include "ibrush.h"
+#include "ipatch.h"
+#include "ientity.h"
+
+namespace script
 {
 
 const SelectionInfo& SelectionInterface::getSelectionInfo() 
@@ -46,6 +50,55 @@ ScriptSceneNode SelectionInterface::penultimateSelected()
 	return GlobalSelectionSystem().penultimateSelected();
 }
 
+py::list SelectionInterface::getSelectedNodes()
+{
+	py::list result;
+	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+	{
+		result.append(ScriptSceneNode(node));
+	});
+	return result;
+}
+
+py::list SelectionInterface::getSelectedBrushNodes()
+{
+	py::list result;
+	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+	{
+		if (Node_isBrush(node))
+		{
+			result.append(ScriptBrushNode(node));
+		}
+	});
+	return result;
+}
+
+py::list SelectionInterface::getSelectedEntityNodes()
+{
+	py::list result;
+	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+	{
+		if (Node_isEntity(node))
+		{
+			result.append(ScriptEntityNode(node));
+		}
+	});
+	return result;
+}
+
+py::list SelectionInterface::getSelectedPatchNodes()
+{
+	py::list result;
+	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+	{
+		if (Node_isPatch(node))
+		{
+			result.append(ScriptPatchNode(node));
+		}
+	});
+	return result;
+}
+
 // IScriptInterface implementation
 void SelectionInterface::registerInterface(py::module& scope, py::dict& globals)
 {
@@ -79,6 +132,10 @@ void SelectionInterface::registerInterface(py::module& scope, py::dict& globals)
 	selSys.def("setSelectedAllComponents", &SelectionInterface::setSelectedAllComponents);
 	selSys.def("ultimateSelected", &SelectionInterface::ultimateSelected);
 	selSys.def("penultimateSelected", &SelectionInterface::penultimateSelected);
+	selSys.def("getSelectedNodes", &SelectionInterface::getSelectedNodes);
+	selSys.def("getSelectedBrushNodes", &SelectionInterface::getSelectedBrushNodes);
+	selSys.def("getSelectedEntityNodes", &SelectionInterface::getSelectedEntityNodes);
+	selSys.def("getSelectedPatchNodes", &SelectionInterface::getSelectedPatchNodes);
 
 	// Now point the Python variable "GlobalSelectionSystem" to this instance
 	globals["GlobalSelectionSystem"] = this;
