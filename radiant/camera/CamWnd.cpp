@@ -1139,6 +1139,7 @@ void CamWnd::onIdle(wxIdleEvent& ev)
 
     _updateRequested = false;
     _wxGLWidget->Refresh(false);
+    _wxGLWidget->Update();
 }
 
 const Vector3& CamWnd::getCameraOrigin() const
