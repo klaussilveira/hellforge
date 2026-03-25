@@ -5,7 +5,6 @@
 #include "igroupnode.h"
 #include "ilightnode.h"
 #include "ipatch.h"
-#include "Translatable.h"
 
 #include "scene/EntityNode.h"
 #include "registry/registry.h"
@@ -17,23 +16,16 @@ namespace scene
 namespace
 {
 
-class ChildPrimitiveTranslator : public scene::NodeVisitor
+class PatchTranslator : public scene::NodeVisitor
 {
 	Vector3 _translation;
 public:
-	ChildPrimitiveTranslator(const Vector3& translation) :
+	PatchTranslator(const Vector3& translation) :
 		_translation(translation)
 	{}
 
 	bool pre(const scene::INodePtr& node) override
 	{
-		Translatable* t = dynamic_cast<Translatable*>(node.get());
-		if (t)
-		{
-			t->translate(_translation);
-			return true;
-		}
-
 		IPatch* patch = Node_getIPatch(node);
 		if (patch)
 		{
@@ -51,9 +43,9 @@ public:
 	}
 };
 
-void translateChildren(const scene::INodePtr& node, const Vector3& translation)
+void translateChildPatches(const scene::INodePtr& node, const Vector3& translation)
 {
-	ChildPrimitiveTranslator translator(translation);
+	PatchTranslator translator(translation);
 	node->traverseChildren(translator);
 }
 
@@ -87,7 +79,7 @@ public:
 			{
 				Vector3 origin = string::convert<Vector3>(
 					entity->getKeyValue("origin"));
-				translateChildren(node, -origin);
+				translateChildPatches(node, -origin);
 				return false;
 			}
 		}
@@ -122,7 +114,7 @@ public:
 			{
 				Vector3 origin = string::convert<Vector3>(
 					entity->getKeyValue("origin"));
-				translateChildren(node, origin);
+				translateChildPatches(node, origin);
 				return false;
 			}
 		}
