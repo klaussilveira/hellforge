@@ -505,11 +505,20 @@ void OpenGLShader::determineBlendModeForEditorPass(OpenGLState& pass, const ISha
     if (!diffuseLayer && _material->getNumLayers() > 0 && _material->getName() != "_default")
     {
 		pass.setRenderFlag(RENDER_BLEND);
+		pass.clearRenderFlag(RENDER_LIGHTING);
+		pass.setDepthFunc(GL_LEQUAL);
 		pass.setSortPosition(OpenGLState::SORT_TRANSLUCENT);
 
-		BlendFunc bf = _material->getLayer(0)->getBlendFunc();
+		auto layer = _material->getLayer(0);
+		BlendFunc bf = layer->getBlendFunc();
 		pass.m_blend_src = bf.src;
 		pass.m_blend_dst = bf.dest;
+
+		auto layerTex = layer->getTexture();
+		if (layerTex)
+		{
+			pass.texture0 = layerTex->getGLTexNum();
+		}
     }
 }
 
@@ -573,15 +582,19 @@ void OpenGLShader::constructEditorPreviewPassFromMaterial()
     previewPass.polygonOffset = _material->getPolygonOffset();
 
     // Apply translucency to utility textures (clip, caulk, trigger, etc.)
-    float utilityAlpha = registry::getValue<float>(RKEY_UTILITY_TEXTURE_ALPHA, 1.0f);
-    if (utilityAlpha < 1.0f && GlobalFilterSystem().isFilteredTexture(_name))
+    // Skip this for materials that already define their own blend mode
+    if (!previewPass.testRenderFlag(RENDER_BLEND))
     {
-        previewPass.setRenderFlag(RENDER_BLEND);
-        previewPass.clearRenderFlag(RENDER_DEPTHWRITE);
-        previewPass.m_blend_src = GL_SRC_ALPHA;
-        previewPass.m_blend_dst = GL_ONE_MINUS_SRC_ALPHA;
-        previewPass.setColour(Colour4(1, 1, 1, utilityAlpha));
-        previewPass.setSortPosition(OpenGLState::SORT_TRANSLUCENT);
+        float utilityAlpha = registry::getValue<float>(RKEY_UTILITY_TEXTURE_ALPHA, 1.0f);
+        if (utilityAlpha < 1.0f && GlobalFilterSystem().isFilteredTexture(_name))
+        {
+            previewPass.setRenderFlag(RENDER_BLEND);
+            previewPass.clearRenderFlag(RENDER_DEPTHWRITE);
+            previewPass.m_blend_src = GL_SRC_ALPHA;
+            previewPass.m_blend_dst = GL_ONE_MINUS_SRC_ALPHA;
+            previewPass.setColour(Colour4(1, 1, 1, utilityAlpha));
+            previewPass.setSortPosition(OpenGLState::SORT_TRANSLUCENT);
+        }
     }
 }
 

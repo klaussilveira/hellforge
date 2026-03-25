@@ -395,6 +395,8 @@ public:
                 glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                current.m_blend_src = GL_SRC_ALPHA;
+                current.m_blend_dst = GL_ONE_MINUS_SRC_ALPHA;
                 debug::assertNoGlErrors();
             }
             else if (changingBitsMask & ~requiredState & RENDER_LINE_SMOOTH)
@@ -410,6 +412,8 @@ public:
                 glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                current.m_blend_src = GL_SRC_ALPHA;
+                current.m_blend_dst = GL_ONE_MINUS_SRC_ALPHA;
                 debug::assertNoGlErrors();
             }
             else if (changingBitsMask & ~requiredState & RENDER_POINT_SMOOTH)
