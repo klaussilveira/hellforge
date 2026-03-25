@@ -31,10 +31,14 @@ private:
     // The default type to assign to untyped blocks
     Type _defaultDeclType;
 
+    // Optional preprocessor applied to file content before parsing
+    IDeclarationManager::DeclFilePreprocessor _preprocessor;
+
 public:
     DeclarationFolderParser(DeclarationManager& owner, Type declType,
         const std::string& baseDir, const std::string& extension,
-        const std::map<std::string, Type, string::ILess>& typeMapping);
+        const std::map<std::string, Type, string::ILess>& typeMapping,
+        IDeclarationManager::DeclFilePreprocessor preprocessor = {});
 
     ~DeclarationFolderParser() override
     {

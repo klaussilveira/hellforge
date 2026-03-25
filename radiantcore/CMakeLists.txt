@@ -281,6 +281,7 @@ add_library(radiantcore MODULE
             shaders/CameraCubeMapDecl.cpp
             shaders/CShader.cpp
             shaders/Doom3ShaderLayer.cpp
+            shaders/GuideManager.cpp
             shaders/MaterialManager.cpp
             shaders/ExpressionSlots.cpp
             shaders/MapExpression.cpp

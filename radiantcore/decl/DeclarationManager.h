@@ -79,7 +79,8 @@ private:
 public:
     void registerDeclType(const std::string& typeName, const IDeclarationCreator::Ptr& parser) override;
     void unregisterDeclType(const std::string& typeName) override;
-    void registerDeclFolder(Type defaultType, const std::string& inputFolder, const std::string& inputExtension) override;
+    void registerDeclFolder(Type defaultType, const std::string& inputFolder, const std::string& inputExtension,
+        DeclFilePreprocessor preprocessor = {}) override;
     IDeclaration::Ptr findDeclaration(Type type, const std::string& name) override;
     IDeclaration::Ptr findOrCreateDeclaration(Type type, const std::string& name) override;
     void foreachDeclaration(Type type, const std::function<void(const IDeclaration::Ptr&)>& functor) override;

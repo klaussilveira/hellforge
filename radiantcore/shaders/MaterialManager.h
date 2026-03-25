@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "ShaderLibrary.h"
+#include "GuideManager.h"
 #include "textures/GLTextureManager.h"
 
 namespace shaders
@@ -35,6 +36,8 @@ class MaterialManager: public IMaterialManager
     sigc::signal<void, const std::string&> _sigMaterialRemoved;
 
     sigc::connection _materialsReloadedConn;
+
+    std::shared_ptr<GuideManager> _guideManager;
 
 public:
     MaterialManager();

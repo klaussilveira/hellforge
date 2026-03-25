@@ -101,8 +101,9 @@ void PrimitiveSelector::testNode(const scene::INodePtr& node)
 	scene::INodePtr parent = getParentGroupEntity(node);
 
 	// Don't select primitives of non-worldspawn entities,
-	// the EntitySelector is taking care of that case
-	if (parent == NULL || entityIsWorldspawn(parent))
+	// the EntitySelector is taking care of that case.
+	// func_group is treated as transparent (like worldspawn) for selection.
+	if (parent == NULL || Node_isWorldspawnOrFuncGroup(parent))
 	{
 		performSelectionTest(node, node);
 	}
@@ -116,7 +117,7 @@ void GroupChildPrimitiveSelector::testNode(const scene::INodePtr& node)
 	// Node is not an entity, check parent
 	scene::INodePtr parent = getParentGroupEntity(node);
 
-	if (parent != NULL && !entityIsWorldspawn(parent))
+	if (parent != NULL && !Node_isWorldspawnOrFuncGroup(parent))
 	{
 		performSelectionTest(node, node);
 	}
@@ -130,32 +131,29 @@ void AnySelector::testNode(const scene::INodePtr& node)
 
 	if (entity != NULL)
 	{
-		// skip worldspawn
-		if (entityIsWorldspawn(entity)) return;
+		// skip worldspawn and func_group (func_group is transparent for selection)
+		if (Node_isWorldspawnOrFuncGroup(entity)) return;
 
 		// Use this entity as selectable
 		candidate = entity;
 	}
 	else if (Node_isPrimitive(node))
 	{
-		// Primitives are ok, check for func_static children
 		scene::INodePtr parentEntity = getParentGroupEntity(node);
 
 		if (parentEntity != NULL)
 		{
-			// If this node is a child of worldspawn, it can be directly selected
-			// Otherwise this node is a child primitve of a non-worldspawn entity,
-			// in which case we want to select the parent entity
-			candidate = (entityIsWorldspawn(parentEntity)) ? node : parentEntity;
+			// If this node is a child of worldspawn or func_group, it can be directly selected.
+			// Otherwise this node is a child primitive of a non-worldspawn entity,
+			// in which case we want to select the parent entity.
+			candidate = Node_isWorldspawnOrFuncGroup(parentEntity) ? node : parentEntity;
 		}
 		else
 		{
-			// A primitive without parent group entity? Error?
-			return; // skip
+			return;
 		}
 	}
 
-	// The entity is the selectable, but the actual node will be tested for selection
 	performSelectionTest(candidate, node);
 }
 

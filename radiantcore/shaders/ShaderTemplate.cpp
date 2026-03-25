@@ -1156,6 +1156,16 @@ bool ShaderTemplate::parseStageModifiers(parser::DefTokeniser& tokeniser,
 	{
 		_currentLayer->setStageFlag(IShaderLayer::FLAG_FILTER_LINEAR);
 	}
+	else if (token == "shaderparm")
+	{
+		tokeniser.nextToken();
+		ShaderExpression::createFromTokens(tokeniser);
+	}
+	else if (token == "shadertexture")
+	{
+		tokeniser.nextToken();
+		tokeniser.nextToken();
+	}
 	else
 	{
 		return false; // unrecognised token, return false
@@ -1166,6 +1176,40 @@ bool ShaderTemplate::parseStageModifiers(parser::DefTokeniser& tokeniser,
 
 bool ShaderTemplate::parseMaterialType(parser::DefTokeniser& tokeniser, const std::string& token)
 {
+    if (token == "materialtype")
+    {
+        auto value = string::to_lower_copy(tokeniser.nextToken());
+
+        for (const auto& pair : SurfaceTypeMapping)
+        {
+            if (value == pair.first)
+            {
+                _surfaceType = pair.second;
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    if (token == "materialimage")
+    {
+        tokeniser.nextToken();
+        return true;
+    }
+
+    if (token == "inlineguide" || token == "portalimage")
+    {
+        tokeniser.nextToken();
+        return true;
+    }
+
+    if (token == "portaldistancenear" || token == "portaldistancefar")
+    {
+        tokeniser.nextToken();
+        return true;
+    }
+
     for (const auto& pair : SurfaceTypeMapping)
     {
         if (token == pair.first)

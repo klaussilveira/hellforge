@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <sigc++/signal.h>
 #include "imodule.h"
 #include "ifilesystem.h"
@@ -141,7 +142,10 @@ public:
     // All explicitly typed resources will be processed using the parser that has been previously
     // associated in registerDeclType()
     // Registering a folder will immediately trigger parsing of all contained files matching the criteria.
-    virtual void registerDeclFolder(Type defaultType, const std::string& vfsFolder, const std::string& extension) = 0;
+    using DeclFilePreprocessor = std::function<std::string(const std::string&)>;
+
+    virtual void registerDeclFolder(Type defaultType, const std::string& vfsFolder, const std::string& extension,
+        DeclFilePreprocessor preprocessor = {}) = 0;
 
     // Find the declaration with the given type and name
     // Returns an empty reference if no declaration with that name could be found

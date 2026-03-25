@@ -53,6 +53,18 @@ inline bool Node_isWorldspawn(const scene::INodePtr& node)
 	return entity != nullptr && entity->isWorldspawn();
 }
 
+inline bool Node_isFuncGroup(const scene::INodePtr& node)
+{
+	Entity* entity = node->tryGetEntity();
+
+	return entity != nullptr && entity->getKeyValue("classname") == "func_group";
+}
+
+inline bool Node_isWorldspawnOrFuncGroup(const scene::INodePtr& node)
+{
+	return Node_isWorldspawn(node) || Node_isFuncGroup(node);
+}
+
 /**
  * greebo: Changing the entity classname is a non-trivial operation in DarkRadiant, as
  * the actual c++ class of an entity is depending on it. Changing the classname

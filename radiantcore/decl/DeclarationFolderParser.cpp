@@ -1,5 +1,6 @@
 #include "DeclarationFolderParser.h"
 
+#include <iterator>
 #include "DeclarationManager.h"
 #include "parser/DefBlockSyntaxParser.h"
 #include "string/trim.h"
@@ -29,19 +30,32 @@ namespace
 
 DeclarationFolderParser::DeclarationFolderParser(DeclarationManager& owner, Type declType,
     const std::string& baseDir, const std::string& extension,
-    const std::map<std::string, Type, string::ILess>& typeMapping) :
-    ThreadedDeclParser<void>(declType, baseDir, extension, 1),
+    const std::map<std::string, Type, string::ILess>& typeMapping,
+    IDeclarationManager::DeclFilePreprocessor preprocessor) :
+    ThreadedDeclParser<void>(declType, baseDir, extension, 8),
     _owner(owner),
     _typeMapping(typeMapping),
-    _defaultDeclType(declType)
+    _defaultDeclType(declType),
+    _preprocessor(std::move(preprocessor))
 {}
 
 void DeclarationFolderParser::parse(std::istream& stream, const vfs::FileInfo& fileInfo, const std::string& modDir)
 {
-    // Parse the incoming stream into syntax blocks
-    parser::DefBlockSyntaxParser<std::istream> parser(stream);
+    std::shared_ptr<parser::DefSyntaxTree> syntaxTree;
 
-    auto syntaxTree = parser.parse();
+    if (_preprocessor)
+    {
+        std::string content((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+        content = _preprocessor(content);
+
+        parser::DefBlockSyntaxParser<const std::string> parser(content);
+        syntaxTree = parser.parse();
+    }
+    else
+    {
+        parser::DefBlockSyntaxParser<std::istream> parser(stream);
+        syntaxTree = parser.parse();
+    }
 
     for (const auto& node : syntaxTree->getRoot()->getChildren())
     {

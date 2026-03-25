@@ -54,7 +54,8 @@ void DeclarationManager::unregisterDeclType(const std::string& typeName)
     _creatorsByTypename.erase(existing);
 }
 
-void DeclarationManager::registerDeclFolder(Type defaultType, const std::string& inputFolder, const std::string& inputExtension)
+void DeclarationManager::registerDeclFolder(Type defaultType, const std::string& inputFolder,
+    const std::string& inputExtension, DeclFilePreprocessor preprocessor)
 {
     // Sanitise input strings
     auto vfsPath = os::standardPathWithSlash(inputFolder);
@@ -69,7 +70,8 @@ void DeclarationManager::registerDeclFolder(Type defaultType, const std::string&
     auto& decls = _declarationsByType.try_emplace(defaultType, Declarations()).first->second;
 
     // Start the parser thread
-    decls.parser = std::make_unique<DeclarationFolderParser>(*this, defaultType, vfsPath, extension, getTypenameMapping());
+    decls.parser = std::make_unique<DeclarationFolderParser>(*this, defaultType, vfsPath, extension,
+        getTypenameMapping(), std::move(preprocessor));
     decls.parser->start();
 }
 

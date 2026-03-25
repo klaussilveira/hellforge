@@ -335,15 +335,15 @@ public:
 					}
 					break;
 				case SelectionMode::Primitive:
-					// Never select the worldspawn entity
-					if (entity == nullptr || !entity->isWorldspawn())
+					// Never select worldspawn or func_group entities
+					if (entity == nullptr || !Node_isWorldspawnOrFuncGroup(node))
 					{
 						selectable->setSelected(!selectable->isSelected());
 					}
 					break;
 				case SelectionMode::GroupPart:
-					// All child primitives can be selected (worldspawn entity is filtered out)
-					if (entity == nullptr && Node_isEntity(node->getParent()))
+					// All child primitives can be selected (worldspawn and func_group are filtered out)
+					if (entity == nullptr && Node_isEntity(node->getParent()) && !Node_isFuncGroup(node->getParent()))
 					{
 						selectable->setSelected(!selectable->isSelected());
 					}
@@ -368,8 +368,8 @@ public:
 				return false;
 			}
 
-			// In primitive mode, we want to traverse worldspawn only
-			return entity->isWorldspawn();
+			// In primitive mode, we want to traverse worldspawn and func_group
+			return Node_isWorldspawnOrFuncGroup(node);
 		}
 
 		// We can traverse all non-entities by default

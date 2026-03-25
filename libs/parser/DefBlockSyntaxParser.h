@@ -920,11 +920,21 @@ private:
                     headerNodes.emplace_back(std::make_shared<DefNameSyntax>(token));
                     continue;
                 }
-                
-                rWarning() << "Invalid number of decl block headers, already got a name and type: " 
-                    << headerNodes.at(typeIndex)->getString() << " " 
-                    << headerNodes.at(nameIndex)->getString() << std::endl;
-                break;
+
+                // Third token without hitting a brace: this is not a block declaration
+                // (e.g. a Q4 "guide" directive). Consume remaining tokens on this
+                // logical line so they don't contaminate the next block.
+                while (!_tokIter.isExhausted())
+                {
+                    auto peek = *_tokIter;
+                    if (peek.type == DefSyntaxToken::Type::BracedBlock)
+                        break;
+                    ++_tokIter;
+                    if (peek.type == DefSyntaxToken::Type::Whitespace &&
+                        peek.value.find('\n') != std::string::npos)
+                        break;
+                }
+                return headerNodes;
             }
         }
 

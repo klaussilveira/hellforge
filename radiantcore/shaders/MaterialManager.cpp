@@ -325,7 +325,11 @@ void MaterialManager::initialiseModule(const IApplicationContext& ctx)
         "material",
         std::make_shared<decl::DeclarationCreator<ShaderTemplate>>(decl::Type::Material)
     );
-    GlobalDeclarationManager().registerDeclFolder(decl::Type::Material, "materials/", ".mtr");
+    _guideManager = std::make_shared<GuideManager>();
+    _guideManager->loadFromVfs();
+
+    GlobalDeclarationManager().registerDeclFolder(decl::Type::Material, "materials/", ".mtr",
+        [guides = _guideManager](const std::string& content) { return guides->expandGuides(content); });
 
     // Connect to materials reloaded signal
     auto& materialsReloadedSig = GlobalDeclarationManager().signal_DeclsReloaded(
