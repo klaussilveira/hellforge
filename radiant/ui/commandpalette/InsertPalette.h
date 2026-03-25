@@ -35,18 +35,29 @@ private:
 		AssetType type;
 	};
 
+	struct SceneEntity
+	{
+		std::string name;
+		std::size_t index;
+	};
+
 	wxTextCtrl* _searchBox;
 	InsertPaletteListBox* _list;
 
 	std::vector<AssetEntry> _allAssets;
+	std::vector<SceneEntity> _sceneEntities;
 	std::vector<int> _filtered;
+	bool _goToMode;
 
 	InsertPalette(wxWindow* parent);
 
 	void populateAssets();
+	void populateSceneEntities();
 	void applyFilter(const std::string& text);
+	void applyGoToFilter(const std::string& text);
 	void updateList();
 	void insertSelected();
+	void goToSelected();
 
 	static bool fuzzyMatch(const std::string& text, const std::string& pattern);
 	static const char* typeLabel(AssetType type);

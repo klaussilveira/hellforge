@@ -12,6 +12,10 @@
 #include "iselection.h"
 #include "icameraview.h"
 #include "igrid.h"
+#include "iorthoview.h"
+#include "iscenegraph.h"
+#include "scenelib.h"
+#include "iselectable.h"
 #include "ui/imainframe.h"
 
 #include <wx/sizer.h>
@@ -60,7 +64,6 @@ void InsertPaletteListBox::OnDrawItem(wxDC& dc, const wxRect& rect, size_t n) co
 {
 	if (n >= _palette->_filtered.size()) return;
 
-	const auto& entry = _palette->_allAssets[_palette->_filtered[n]];
 	bool selected = IsSelected(n);
 
 	wxColour titleColour = selected
@@ -78,6 +81,34 @@ void InsertPaletteListBox::OnDrawItem(wxDC& dc, const wxRect& rect, size_t n) co
 
 	int x = rect.GetLeft() + TEXT_LEFT_MARGIN;
 	int rightEdge = rect.GetRight() - TEXT_RIGHT_MARGIN;
+
+	if (_palette->_goToMode)
+	{
+		const auto& ent = _palette->_sceneEntities[_palette->_filtered[n]];
+
+		wxString typeLbl = wxString::Format("Entity %zu", ent.index);
+		dc.SetFont(typeFont);
+		int typeWidth = dc.GetTextExtent(typeLbl).GetWidth() + TYPE_RIGHT_MARGIN;
+		int textRight = rightEdge - typeWidth;
+
+		dc.SetFont(titleFont);
+		dc.SetTextForeground(titleColour);
+		wxString titleText = ent.name;
+		titleText = wxControl::Ellipsize(titleText, dc, wxELLIPSIZE_END, textRight - x);
+		int titleY = rect.GetTop() + (rect.GetHeight() - dc.GetTextExtent(titleText).GetHeight()) / 2;
+		dc.DrawText(titleText, x, titleY);
+
+		dc.SetFont(typeFont);
+		dc.SetTextForeground(typeColour);
+		wxSize tlSize = dc.GetTextExtent(typeLbl);
+		int tlX = rightEdge - tlSize.GetWidth();
+		int tlY = rect.GetTop() + (rect.GetHeight() - tlSize.GetHeight()) / 2;
+		dc.DrawText(typeLbl, tlX, tlY);
+
+		return;
+	}
+
+	const auto& entry = _palette->_allAssets[_palette->_filtered[n]];
 
 	// Measure type label width to reserve space
 	const char* typeLbl = InsertPalette::typeLabel(entry.type);
@@ -130,11 +161,7 @@ wxCoord InsertPaletteListBox::OnMeasureItem(size_t n) const
 {
 	if (n >= _palette->_filtered.size()) return 30;
 
-	const auto& entry = _palette->_allAssets[_palette->_filtered[n]];
-
 	wxFont titleFont = GetFont();
-	wxFont descFont = GetFont();
-	descFont.SetPointSize(descFont.GetPointSize() - 1);
 
 	wxBitmap bmp(1, 1);
 	wxMemoryDC dc(bmp);
@@ -142,10 +169,17 @@ wxCoord InsertPaletteListBox::OnMeasureItem(size_t n) const
 	dc.SetFont(titleFont);
 	int titleH = dc.GetTextExtent("Xg").GetHeight();
 
+	if (_palette->_goToMode)
+		return ROW_PADDING + titleH + ROW_PADDING;
+
+	const auto& entry = _palette->_allAssets[_palette->_filtered[n]];
+
 	int totalH = ROW_PADDING + titleH + ROW_PADDING;
 
 	if (!entry.description.empty())
 	{
+		wxFont descFont = GetFont();
+		descFont.SetPointSize(descFont.GetPointSize() - 1);
 		dc.SetFont(descFont);
 		int descH = dc.GetTextExtent("Xg").GetHeight();
 		totalH = ROW_PADDING + titleH + DESC_TOP_GAP + descH + ROW_PADDING;
@@ -155,7 +189,8 @@ wxCoord InsertPaletteListBox::OnMeasureItem(size_t n) const
 }
 
 InsertPalette::InsertPalette(wxWindow* parent) :
-	DialogBase("", parent)
+	DialogBase("", parent),
+	_goToMode(false)
 {
 	SetWindowStyleFlag(wxBORDER_SIMPLE | wxSTAY_ON_TOP);
 	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -164,7 +199,7 @@ InsertPalette::InsertPalette(wxWindow* parent) :
 
 	_searchBox = new wxTextCtrl(this, wxID_ANY, wxEmptyString,
 		wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-	_searchBox->SetHint(_("Search entities, models, prefabs, particles..."));
+	_searchBox->SetHint(_("Search entity to insert, or type : to go to entity..."));
 
 	auto searchFont = _searchBox->GetFont();
 	searchFont.SetPointSize(searchFont.GetPointSize() + 2);
@@ -183,7 +218,9 @@ InsertPalette::InsertPalette(wxWindow* parent) :
 
 	_searchBox->Bind(wxEVT_TEXT, &InsertPalette::onSearchChanged, this);
 	_searchBox->Bind(wxEVT_KEY_DOWN, &InsertPalette::onKeyDown, this);
-	_list->Bind(wxEVT_LISTBOX_DCLICK, [this](wxCommandEvent&) { insertSelected(); });
+	_list->Bind(wxEVT_LISTBOX_DCLICK, [this](wxCommandEvent&) {
+		if (_goToMode) goToSelected(); else insertSelected();
+	});
 	Bind(wxEVT_ACTIVATE, &InsertPalette::onDeactivate, this);
 
 	_searchBox->SetFocus();
@@ -261,6 +298,57 @@ void InsertPalette::populateAssets()
 		{
 			return a.name < b.name;
 		});
+}
+
+void InsertPalette::populateSceneEntities()
+{
+	_sceneEntities.clear();
+
+	if (!GlobalMapModule().getRoot())
+		return;
+
+	std::size_t entityIndex = 0;
+
+	GlobalSceneGraph().root()->foreachNode([this, &entityIndex](const scene::INodePtr& node) -> bool
+	{
+		if (Node_isEntity(node))
+		{
+			_sceneEntities.push_back({ node->name(), entityIndex });
+			++entityIndex;
+		}
+		return true;
+	});
+}
+
+void InsertPalette::applyGoToFilter(const std::string& text)
+{
+	_filtered.clear();
+
+	bool isNumber = !text.empty() && std::all_of(text.begin(), text.end(),
+		[](unsigned char c) { return std::isdigit(c); });
+
+	if (isNumber)
+	{
+		std::size_t targetIndex = std::stoul(text);
+		for (int i = 0; i < static_cast<int>(_sceneEntities.size()); ++i)
+		{
+			if (_sceneEntities[i].index == targetIndex)
+			{
+				_filtered.push_back(i);
+				break;
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < static_cast<int>(_sceneEntities.size()); ++i)
+		{
+			const auto& ent = _sceneEntities[i];
+			std::string indexStr = std::to_string(ent.index);
+			if (fuzzyMatch(ent.name, text) || fuzzyMatch(indexStr, text))
+				_filtered.push_back(i);
+		}
+	}
 }
 
 bool InsertPalette::fuzzyMatch(const std::string& text, const std::string& pattern)
@@ -370,6 +458,39 @@ void InsertPalette::insertSelected()
 	}
 }
 
+void InsertPalette::goToSelected()
+{
+	int sel = _list->GetSelection();
+	if (sel < 0 || sel >= static_cast<int>(_filtered.size()))
+		return;
+
+	const auto& ent = _sceneEntities[_filtered[sel]];
+
+	EndModal(wxID_OK);
+
+	std::size_t idx = ent.index;
+	scene::INodePtr foundNode;
+	GlobalSceneGraph().root()->foreachNode([&](const scene::INodePtr& node) -> bool
+	{
+		if (Node_isEntity(node) && idx-- == 0)
+		{
+			foundNode = node;
+			return false;
+		}
+		return true;
+	});
+
+	if (foundNode)
+	{
+		GlobalSelectionSystem().setSelectedAll(false);
+		Node_setSelected(foundNode, true);
+
+		auto originAndAngles = scene::getOriginAndAnglesToLookAtNode(*foundNode);
+		GlobalCommandSystem().executeCommand("FocusViews",
+			cmd::ArgumentList{ originAndAngles.first, originAndAngles.second });
+	}
+}
+
 const char* InsertPalette::typeLabel(AssetType type)
 {
 	switch (type)
@@ -384,7 +505,23 @@ const char* InsertPalette::typeLabel(AssetType type)
 
 void InsertPalette::onSearchChanged(wxCommandEvent& ev)
 {
-	applyFilter(_searchBox->GetValue().ToStdString());
+	std::string text = _searchBox->GetValue().ToStdString();
+
+	if (!text.empty() && text[0] == ':')
+	{
+		if (!_goToMode)
+		{
+			_goToMode = true;
+			populateSceneEntities();
+		}
+		applyGoToFilter(text.substr(1));
+	}
+	else
+	{
+		_goToMode = false;
+		applyFilter(text);
+	}
+
 	updateList();
 }
 
@@ -409,7 +546,10 @@ void InsertPalette::onKeyDown(wxKeyEvent& ev)
 
 	if (key == WXK_RETURN || key == WXK_NUMPAD_ENTER)
 	{
-		insertSelected();
+		if (_goToMode)
+			goToSelected();
+		else
+			insertSelected();
 		return;
 	}
 
