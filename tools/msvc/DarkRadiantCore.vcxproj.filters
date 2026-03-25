@@ -1075,6 +1075,9 @@
     <ClCompile Include="..\..\radiantcore\decl\DeclarationFolderParser.cpp">
       <Filter>src\decl</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiantcore\shaders\GuideManager.cpp">
+      <Filter>src\shaders</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiantcore\shaders\MaterialManager.cpp">
       <Filter>src\shaders</Filter>
     </ClCompile>
@@ -2213,6 +2216,9 @@
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\decl\DeclarationFolderParser.h">
       <Filter>src\decl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiantcore\shaders\GuideManager.h">
+      <Filter>src\shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\shaders\MaterialManager.h">
       <Filter>src\shaders</Filter>
