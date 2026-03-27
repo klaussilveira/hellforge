@@ -921,14 +921,17 @@ private:
                     continue;
                 }
 
-                // Third token without hitting a brace: this is not a block declaration
-                // (e.g. a Q4 "guide" directive). Consume remaining tokens on this
-                // logical line so they don't contaminate the next block.
+                // Third token without hitting a brace: consume remaining tokens
+                // on this logical line. If a brace follows (e.g. "type name extra {}")
+                // treat it as a block using the first two tokens as type/name.
                 while (!_tokIter.isExhausted())
                 {
                     auto peek = *_tokIter;
                     if (peek.type == DefSyntaxToken::Type::BracedBlock)
-                        break;
+                    {
+                        ++_tokIter;
+                        return { std::make_shared<DefBlockSyntax>(peek, std::move(headerNodes), nameIndex, typeIndex) };
+                    }
                     ++_tokIter;
                     if (peek.type == DefSyntaxToken::Type::Whitespace &&
                         peek.value.find('\n') != std::string::npos)
