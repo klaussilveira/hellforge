@@ -281,6 +281,7 @@ void OrthoView::forceRedraw()
 void OrthoView::queueDraw()
 {
     _updateRequested = true;
+    _wxGLWidget->Refresh(false);
 }
 
 void OrthoView::onSceneGraphChange()
@@ -1653,7 +1654,7 @@ void OrthoView::onIdle(wxIdleEvent& ev)
     if (_updateRequested)
     {
         _updateRequested = false;
-        _wxGLWidget->Refresh(false);
+        _wxGLWidget->Update();
     }
 }
 

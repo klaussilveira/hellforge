@@ -1131,6 +1131,7 @@ void CamWnd::releaseStates()
 void CamWnd::queueDraw()
 {
     _updateRequested = true;
+    _wxGLWidget->Refresh(false);
 }
 
 void CamWnd::onIdle(wxIdleEvent& ev)
@@ -1138,7 +1139,6 @@ void CamWnd::onIdle(wxIdleEvent& ev)
     if (!_updateRequested) return;
 
     _updateRequested = false;
-    _wxGLWidget->Refresh(false);
     _wxGLWidget->Update();
 }
 

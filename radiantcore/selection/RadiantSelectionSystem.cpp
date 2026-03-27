@@ -795,6 +795,9 @@ void RadiantSelectionSystem::onSelectionPerformed()
     // invoke getWorkZone() here. Since the core binary doesn't have any idle processing
     // anymore, we need to recalculate the workzone after the user is done selecting
     getWorkZone();
+
+    // Notify all views to redraw so selection state is visually in sync
+    SceneChangeNotify();
 }
 
 void RadiantSelectionSystem::onManipulationStart()
@@ -1433,6 +1436,8 @@ void RadiantSelectionSystem::deselectCmd(const cmd::ArgumentList& args)
             }
 		}
 	}
+
+	SceneChangeNotify();
 }
 
 void RadiantSelectionSystem::onMapEvent(IMap::MapEvent ev)
