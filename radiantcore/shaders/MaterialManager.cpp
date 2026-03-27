@@ -327,6 +327,7 @@ void MaterialManager::initialiseModule(const IApplicationContext& ctx)
     );
     _guideManager = std::make_shared<GuideManager>();
     _guideManager->loadFromVfs();
+    _guideManager->connectToReloadSignal();
 
     GlobalDeclarationManager().registerDeclFolder(decl::Type::Material, "materials/", ".mtr",
         [guides = _guideManager](const std::string& content) { return guides->expandGuides(content); });

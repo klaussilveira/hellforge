@@ -32,6 +32,8 @@ public:
 	bool onPreSave() override;
 	void onPageShown() override;
 	void onClose() override;
+	void loadConfig(const game::GameConfiguration& config) override;
+	const game::GameConfiguration& getConfiguration() override;
 
 private:
 	void constructPaths();

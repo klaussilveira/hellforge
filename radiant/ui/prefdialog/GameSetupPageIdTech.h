@@ -28,6 +28,8 @@ public:
 	const char* getType() override;
 	void validateSettings() override;
 	void onPageShown() override;
+	void loadConfig(const game::GameConfiguration& config) override;
+	const game::GameConfiguration& getConfiguration() override;
 
 private:
 	void constructPaths();

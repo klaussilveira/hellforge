@@ -168,6 +168,40 @@ void GameSetupPageIdTech::onPageShown()
 	}
 }
 
+void GameSetupPageIdTech::loadConfig(const game::GameConfiguration& config)
+{
+	_config = config;
+	_enginePathEntry->setValue(config.enginePath);
+
+	if (!config.modPath.empty())
+	{
+		std::string fsGame = os::getRelativePath(config.modPath, config.enginePath);
+		string::trim_right(fsGame, "/");
+		_fsGameEntry->SetValue(fsGame);
+	}
+	else
+	{
+		_fsGameEntry->SetValue("");
+	}
+
+	if (!config.modBasePath.empty())
+	{
+		std::string fsGameBase = os::getRelativePath(config.modBasePath, config.enginePath);
+		string::trim_right(fsGameBase, "/");
+		_fsGameBaseEntry->SetValue(fsGameBase);
+	}
+	else
+	{
+		_fsGameBaseEntry->SetValue("");
+	}
+}
+
+const game::GameConfiguration& GameSetupPageIdTech::getConfiguration()
+{
+	constructPaths();
+	return _config;
+}
+
 void GameSetupPageIdTech::constructPaths()
 {
 	_config.enginePath = _enginePathEntry->getEntryWidget()->GetValue().ToStdString();

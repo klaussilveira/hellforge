@@ -33,6 +33,7 @@ private:
         std::string folder;
         std::string extension;
         Type defaultType;
+        DeclFilePreprocessor preprocessor;
     };
 
     std::vector<RegisteredFolder> _registeredFolders;

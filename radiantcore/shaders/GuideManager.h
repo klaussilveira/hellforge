@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <sigc++/connection.h>
+
 namespace shaders
 {
 
@@ -18,9 +20,13 @@ struct GuideTemplate
 class GuideManager
 {
     std::map<std::string, GuideTemplate> _templates;
+    sigc::connection _reloadConn;
 
 public:
+    ~GuideManager();
+
     void loadFromVfs();
+    void connectToReloadSignal();
     std::string expandGuides(const std::string& input) const;
 
 private:

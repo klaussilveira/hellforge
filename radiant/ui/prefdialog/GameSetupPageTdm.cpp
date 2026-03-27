@@ -302,6 +302,30 @@ void GameSetupPageTdm::onPageShown()
 	}
 }
 
+void GameSetupPageTdm::loadConfig(const game::GameConfiguration& config)
+{
+	_config = config;
+	_enginePathEntry->setValue(config.enginePath);
+
+	if (!config.modPath.empty())
+	{
+		std::string fmPath = config.enginePath + _fmFolder;
+		std::string fmName = os::getRelativePath(config.modPath, fmPath);
+		string::trim(fmName, "/");
+		_missionEntry->SetValue(fmName);
+	}
+	else
+	{
+		_missionEntry->SetValue("");
+	}
+}
+
+const game::GameConfiguration& GameSetupPageTdm::getConfiguration()
+{
+	constructPaths();
+	return _config;
+}
+
 void GameSetupPageTdm::constructPaths()
 {
 	_config.enginePath = _enginePathEntry->getEntryWidget()->GetValue().ToStdString();

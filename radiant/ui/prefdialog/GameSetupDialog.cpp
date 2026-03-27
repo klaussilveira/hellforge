@@ -10,21 +10,44 @@
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/choicebk.h>
+#include <wx/choice.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
+#include <wx/textdlg.h>
 
 namespace ui
 {
 
 GameSetupDialog::GameSetupDialog(wxWindow* parent) :
 	DialogBase(_("Game Setup"), parent),
-	_book(nullptr)
+	_book(nullptr),
+	_savedConfigsChoice(nullptr)
 {
 	SetSizer(new wxBoxSizer(wxVERTICAL));
 
-	// 12-pixel spacer
 	wxBoxSizer* mainVbox = new wxBoxSizer(wxVERTICAL);
 	GetSizer()->Add(mainVbox, 1, wxEXPAND | wxALL, 12);
+
+	wxStaticText* configLabel = new wxStaticText(this, wxID_ANY, _("Saved Configurations:"));
+	configLabel->SetFont(configLabel->GetFont().Bold());
+	mainVbox->Add(configLabel, 0, wxBOTTOM, 6);
+
+	wxBoxSizer* configHBox = new wxBoxSizer(wxHORIZONTAL);
+	_savedConfigsChoice = new wxChoice(this, wxID_ANY);
+	_savedConfigsChoice->SetMinSize(wxSize(200, -1));
+	_savedConfigsChoice->Connect(wxEVT_CHOICE, wxCommandEventHandler(GameSetupDialog::onSavedConfigSelected), nullptr, this);
+
+	wxButton* saveConfigBtn = new wxButton(this, wxID_ANY, _("Save As..."));
+	saveConfigBtn->Connect(wxEVT_BUTTON, wxCommandEventHandler(GameSetupDialog::onSaveConfig), nullptr, this);
+
+	wxButton* deleteConfigBtn = new wxButton(this, wxID_ANY, _("Delete"));
+	deleteConfigBtn->Connect(wxEVT_BUTTON, wxCommandEventHandler(GameSetupDialog::onDeleteConfig), nullptr, this);
+
+	configHBox->Add(_savedConfigsChoice, 1, wxRIGHT, 6);
+	configHBox->Add(saveConfigBtn, 0, wxRIGHT, 6);
+	configHBox->Add(deleteConfigBtn, 0);
+
+	mainVbox->Add(configHBox, 0, wxEXPAND | wxBOTTOM, 12);
 
 	_book = new wxChoicebook(this, wxID_ANY);
 	_book->Connect(wxEVT_CHOICEBOOK_PAGE_CHANGED, wxBookCtrlEventHandler(GameSetupDialog::onPageChanged), nullptr, this);
@@ -37,11 +60,9 @@ GameSetupDialog::GameSetupDialog(wxWindow* parent) :
 
 	wxBoxSizer* buttonHBox = new wxBoxSizer(wxHORIZONTAL);
 
-	// Create the Save button
-	wxButton* saveButton = new wxButton(this, wxID_SAVE);
+	wxButton* saveButton = new wxButton(this, wxID_SAVE, _("Load"));
 	saveButton->Connect(wxEVT_BUTTON, wxCommandEventHandler(GameSetupDialog::onSave), nullptr, this);
 
-	// Create the assign shortcut button
 	wxButton* cancelButton = new wxButton(this, wxID_CANCEL);
 	cancelButton->Connect(wxEVT_BUTTON, wxCommandEventHandler(GameSetupDialog::onCancel), nullptr, this);
 
@@ -80,6 +101,20 @@ void GameSetupDialog::initialiseControls()
 
 	// Select the currently active game type
 	setSelectedPage(registry::getValue<std::string>(RKEY_GAME_TYPE));
+
+	populateSavedConfigs();
+}
+
+void GameSetupDialog::populateSavedConfigs()
+{
+	_savedConfigs = game::GameConfigUtil::LoadNamedConfigs();
+
+	_savedConfigsChoice->Clear();
+
+	for (const auto& pair : _savedConfigs)
+	{
+		_savedConfigsChoice->Append(pair.first);
+	}
 }
 
 void GameSetupDialog::setSelectedPage(const std::string& name)
@@ -111,7 +146,7 @@ GameSetupPage* GameSetupDialog::getSelectedPage()
 GameSetupPage* GameSetupDialog::getPage(int num)
 {
 	// Find the actual GameSetupPage in the window hierarchy
-	wxWindow* container = _book->GetPage(_book->GetSelection());
+	wxWindow* container = _book->GetPage(num);
 	return dynamic_cast<GameSetupPage*>(wxWindow::FindWindowByName("GameSetupPage", container));
 }
 
@@ -234,6 +269,68 @@ void GameSetupDialog::HandleGameConfigMessage(game::ConfigurationNeeded& message
 		message.setConfig(config);
 		message.setHandled(true);
 	});
+}
+
+void GameSetupDialog::onSavedConfigSelected(wxCommandEvent& ev)
+{
+	int sel = _savedConfigsChoice->GetSelection();
+	if (sel == wxNOT_FOUND) return;
+
+	std::string name = _savedConfigsChoice->GetString(sel).ToStdString();
+	auto it = _savedConfigs.find(name);
+	if (it == _savedConfigs.end()) return;
+
+	const game::GameConfiguration& config = it->second;
+
+	setSelectedPage(config.gameType);
+
+	GameSetupPage* page = getSelectedPage();
+	if (page != nullptr)
+	{
+		page->loadConfig(config);
+	}
+}
+
+void GameSetupDialog::onSaveConfig(wxCommandEvent& ev)
+{
+	GameSetupPage* page = getSelectedPage();
+	if (page == nullptr) return;
+
+	wxTextEntryDialog dlg(this, _("Configuration name:"), _("Save Configuration"));
+
+	int sel = _savedConfigsChoice->GetSelection();
+	if (sel != wxNOT_FOUND)
+	{
+		dlg.SetValue(_savedConfigsChoice->GetString(sel));
+	}
+
+	if (dlg.ShowModal() != wxID_OK) return;
+
+	std::string name = dlg.GetValue().ToStdString();
+	if (name.empty()) return;
+
+	game::GameConfigUtil::SaveNamedConfig(name, page->getConfiguration());
+	populateSavedConfigs();
+
+	for (unsigned int i = 0; i < _savedConfigsChoice->GetCount(); ++i)
+	{
+		if (_savedConfigsChoice->GetString(i) == name)
+		{
+			_savedConfigsChoice->SetSelection(i);
+			break;
+		}
+	}
+}
+
+void GameSetupDialog::onDeleteConfig(wxCommandEvent& ev)
+{
+	int sel = _savedConfigsChoice->GetSelection();
+	if (sel == wxNOT_FOUND) return;
+
+	std::string name = _savedConfigsChoice->GetString(sel).ToStdString();
+
+	game::GameConfigUtil::DeleteNamedConfig(name);
+	populateSavedConfigs();
 }
 
 }

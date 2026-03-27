@@ -63,7 +63,7 @@ void DeclarationManager::registerDeclFolder(Type defaultType, const std::string&
 
     {
         std::lock_guard folderLock(_registeredFoldersLock);
-        _registeredFolders.emplace_back(RegisteredFolder{ vfsPath, extension, defaultType });
+        _registeredFolders.emplace_back(RegisteredFolder{ vfsPath, extension, defaultType, preprocessor });
     }
 
     std::lock_guard declLock(_declarationAndCreatorLock);
@@ -365,7 +365,7 @@ void DeclarationManager::runParsersForAllFolders()
         for (const auto& folder : _registeredFolders)
         {
             auto& parser = parsers.emplace_back(
-                std::make_unique<DeclarationFolderParser>(*this, folder.defaultType, folder.folder, folder.extension, typeMapping)
+                std::make_unique<DeclarationFolderParser>(*this, folder.defaultType, folder.folder, folder.extension, typeMapping, folder.preprocessor)
             );
             parser->start();
         }

@@ -59,6 +59,8 @@ public:
 		return true; // return true by default, don't veto
 	}
 
+	virtual void loadConfig(const game::GameConfiguration& config) {}
+
 	// Overridable event which is fired before the page is closed
 	virtual void onClose()
 	{}

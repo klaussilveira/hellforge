@@ -2,9 +2,12 @@
 
 #include "igame.h"
 
+#include "iregistry.h"
 #include "registry/registry.h"
 #include "os/path.h"
 #include "os/file.h"
+
+#include <map>
 
 namespace game
 {
@@ -43,6 +46,46 @@ public:
 		config.enginePath = os::standardPathWithSlash(config.enginePath);
 		config.modPath = os::standardPathWithSlash(config.modPath);
 		config.modBasePath = os::standardPathWithSlash(config.modBasePath);
+	}
+
+	static std::map<std::string, GameConfiguration> LoadNamedConfigs()
+	{
+		std::map<std::string, GameConfiguration> result;
+
+		xml::NodeList nodes = GlobalRegistry().findXPath("user/game/configs//config");
+
+		for (const auto& node : nodes)
+		{
+			GameConfiguration config;
+			std::string name = node.getAttributeValue("name");
+			config.gameType = node.getAttributeValue("gameType");
+			config.enginePath = node.getAttributeValue("enginePath");
+			config.modPath = node.getAttributeValue("modPath");
+			config.modBasePath = node.getAttributeValue("modBasePath");
+
+			if (!name.empty())
+			{
+				result[name] = config;
+			}
+		}
+
+		return result;
+	}
+
+	static void SaveNamedConfig(const std::string& name, const GameConfiguration& config)
+	{
+		DeleteNamedConfig(name);
+
+		xml::Node node = GlobalRegistry().createKeyWithName("user/game/configs", "config", name);
+		node.setAttributeValue("gameType", config.gameType);
+		node.setAttributeValue("enginePath", config.enginePath);
+		node.setAttributeValue("modPath", config.modPath);
+		node.setAttributeValue("modBasePath", config.modBasePath);
+	}
+
+	static void DeleteNamedConfig(const std::string& name)
+	{
+		GlobalRegistry().deleteXPath("user/game/configs/config[@name='" + name + "']");
 	}
 
 	// Returns true if the paths in this config are pointing to valid OS folders

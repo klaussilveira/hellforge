@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <sstream>
+#include "ideclmanager.h"
 #include "ifilesystem.h"
 #include "itextstream.h"
 #include "parser/DefBlockSyntaxParser.h"
@@ -134,6 +135,18 @@ void GuideManager::parseGuideFile(std::istream& stream)
 
         _templates[templateName] = std::move(tmpl);
     }
+}
+
+GuideManager::~GuideManager()
+{
+    _reloadConn.disconnect();
+}
+
+void GuideManager::connectToReloadSignal()
+{
+    _reloadConn = GlobalDeclarationManager().signal_DeclsReloading(decl::Type::Material).connect(
+        sigc::mem_fun(*this, &GuideManager::loadFromVfs)
+    );
 }
 
 void GuideManager::loadFromVfs()
