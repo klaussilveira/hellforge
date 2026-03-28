@@ -8,6 +8,7 @@
 
 class wxFlexGridSizer;
 class wxButton;
+class wxStaticText;
 
 namespace ui
 {
@@ -22,6 +23,8 @@ private:
 
 	wxFlexGridSizer* _controlContainer;
     wxButton* _rescanButton;
+    wxButton* _loadFileButton;
+    wxStaticText* _statusLabel;
 
 	sigc::connection _mapEventSlot;
 
@@ -37,15 +40,15 @@ private:
     void connectListeners();
     void disconnectListeners();
 
-    // Re-populates the window
 	void refresh();
-
-	// Updates the state of all controls
 	void update();
 
 	void populateWindow();
     void createButtons();
 	void clearControls();
+
+    void onLoadFile();
+    void loadAasFileFromPath(const std::string& absolutePath);
 
 	void onMapEvent(IMap::MapEvent ev);
 };

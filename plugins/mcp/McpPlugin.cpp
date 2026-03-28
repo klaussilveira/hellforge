@@ -17,6 +17,7 @@
 #include "ifilesystem.h"
 #include "igame.h"
 #include "imapresource.h"
+#include "iaasfile.h"
 #include "entitylib.h"
 #include "scene/PrefabBoundsAccumulator.h"
 #include "ui/ieventmanager.h"
@@ -74,7 +75,8 @@ StringSet McpPlugin::getDependencies() const
         MODULE_SHADERSYSTEM, MODULE_SOUNDMANAGER,
         MODULE_PARTICLESMANAGER, MODULE_MODELSKINCACHE,
         MODULE_VIRTUALFILESYSTEM, MODULE_MAPRESOURCEMANAGER,
-        MODULE_GAMEMANAGER, MODULE_EVENTMANAGER
+        MODULE_GAMEMANAGER, MODULE_EVENTMANAGER,
+        MODULE_AASFILEMANAGER
     };
     return _dependencies;
 }
@@ -312,6 +314,11 @@ JsonValue McpPlugin::dispatch(const std::string& method, const JsonValue& params
     if (method == "get_command_shortcut") return getCommandShortcut(params);
     if (method == "capture_view") return captureView(params);
     if (method == "list_maps") return listMaps(params);
+
+    // AAS tools
+    if (method == "list_aas_files") return listAasFiles(params);
+    if (method == "get_aas_flags") return getAasFlags(params);
+    if (method == "get_aas_areas") return getAasAreas(params);
 
     // CSG operations (all work on current selection)
     if (method == "csg_subtract") { GlobalCommandSystem().executeCommand("CSGSubtract"); return jsonObject({{"success", true}}); }
@@ -3096,6 +3103,157 @@ JsonValue McpPlugin::deleteParticleDef(const JsonValue& params)
     return jsonObject({
         {"success", true},
         {"name", name}
+    });
+}
+
+// AAS tools
+
+JsonValue McpPlugin::listAasFiles(const JsonValue& params)
+{
+    auto aasFiles = GlobalAasFileManager().getAasFilesForMap(GlobalMapModule().getMapName());
+
+    JsonValue::Array files;
+    for (const auto& info : aasFiles)
+    {
+        files.push_back(jsonObject({
+            {"path", info.absolutePath},
+            {"type", info.type.fileExtension}
+        }));
+    }
+
+    return jsonObject({
+        {"files", JsonValue(std::move(files))},
+        {"count", static_cast<int>(aasFiles.size())}
+    });
+}
+
+JsonValue McpPlugin::getAasFlags(const JsonValue& params)
+{
+    return jsonObject({
+        {"area_flags", jsonArray({
+            jsonObject({{"name", "AREA_FLOOR"},          {"value", 1},   {"description", "AI can stand on the floor in this area"}}),
+            jsonObject({{"name", "AREA_GAP"},            {"value", 2},   {"description", "Area has a gap"}}),
+            jsonObject({{"name", "AREA_LEDGE"},          {"value", 4},   {"description", "AI bounding box partly floats above a ledge"}}),
+            jsonObject({{"name", "AREA_LADDER"},         {"value", 8},   {"description", "Area contains one or more ladder faces"}}),
+            jsonObject({{"name", "AREA_LIQUID"},         {"value", 16},  {"description", "Area contains a liquid"}}),
+            jsonObject({{"name", "AREA_CROUCH"},         {"value", 32},  {"description", "AI cannot walk but can only crouch in this area"}}),
+            jsonObject({{"name", "AREA_REACHABLE_WALK"}, {"value", 64},  {"description", "Area is reachable by walking or swimming"}}),
+            jsonObject({{"name", "AREA_REACHABLE_FLY"},  {"value", 128}, {"description", "Area is reachable by flying"}}),
+            jsonObject({{"name", "AREA_DOOR"},           {"value", 256}, {"description", "Area contains one or more doors"}})
+        })},
+        {"area_contents", jsonArray({
+            jsonObject({{"name", "AREACONTENTS_SOLID"},         {"value", 1},  {"description", "Solid, not a valid area"}}),
+            jsonObject({{"name", "AREACONTENTS_WATER"},         {"value", 2},  {"description", "Area contains water"}}),
+            jsonObject({{"name", "AREACONTENTS_CLUSTERPORTAL"}, {"value", 4},  {"description", "Area is a cluster portal"}}),
+            jsonObject({{"name", "AREACONTENTS_OBSTACLE"},      {"value", 8},  {"description", "Area contains part of a dynamic obstacle"}}),
+            jsonObject({{"name", "AREACONTENTS_TELEPORTER"},    {"value", 16}, {"description", "Area contains part of a teleporter trigger"}})
+        })},
+        {"travel_flags", jsonArray({
+            jsonObject({{"name", "TFL_INVALID"},     {"value", 1},       {"description", "Not valid"}}),
+            jsonObject({{"name", "TFL_WALK"},        {"value", 2},       {"description", "Walking"}}),
+            jsonObject({{"name", "TFL_CROUCH"},      {"value", 4},       {"description", "Crouching"}}),
+            jsonObject({{"name", "TFL_WALKOFFLEDGE"},{"value", 8},       {"description", "Walking off a ledge"}}),
+            jsonObject({{"name", "TFL_BARRIERJUMP"}, {"value", 16},      {"description", "Jumping onto a barrier"}}),
+            jsonObject({{"name", "TFL_JUMP"},        {"value", 32},      {"description", "Jumping"}}),
+            jsonObject({{"name", "TFL_LADDER"},      {"value", 64},      {"description", "Climbing a ladder"}}),
+            jsonObject({{"name", "TFL_SWIM"},        {"value", 128},     {"description", "Swimming"}}),
+            jsonObject({{"name", "TFL_WATERJUMP"},   {"value", 256},     {"description", "Jumping out of the water"}}),
+            jsonObject({{"name", "TFL_TELEPORT"},    {"value", 512},     {"description", "Teleportation"}}),
+            jsonObject({{"name", "TFL_ELEVATOR"},    {"value", 1024},    {"description", "Travel by elevator"}}),
+            jsonObject({{"name", "TFL_FLY"},         {"value", 2048},    {"description", "Flying"}}),
+            jsonObject({{"name", "TFL_SPECIAL"},     {"value", 4096},    {"description", "Special"}}),
+            jsonObject({{"name", "TFL_WATER"},       {"value", 2097152}, {"description", "Travel through water"}}),
+            jsonObject({{"name", "TFL_AIR"},         {"value", 4194304}, {"description", "Travel through air"}})
+        })}
+    });
+}
+
+JsonValue McpPlugin::getAasAreas(const JsonValue& params)
+{
+    std::string path;
+
+    if (params.has("path"))
+    {
+        path = params["path"].getString();
+    }
+    else
+    {
+        auto aasFiles = GlobalAasFileManager().getAasFilesForMap(GlobalMapModule().getMapName());
+        if (aasFiles.empty())
+            throw std::runtime_error("No AAS files found for the current map");
+
+        if (params.has("type"))
+        {
+            std::string requestedType = params["type"].getString();
+            for (const auto& info : aasFiles)
+            {
+                if (info.type.fileExtension == requestedType)
+                {
+                    path = info.absolutePath;
+                    break;
+                }
+            }
+            if (path.empty())
+                throw std::runtime_error("AAS type not found: " + requestedType);
+        }
+        else
+        {
+            path = aasFiles.front().absolutePath;
+        }
+    }
+
+    auto file = GlobalFileSystem().openTextFileInAbsolutePath(path);
+    if (!file)
+        throw std::runtime_error("Could not open AAS file: " + path);
+
+    std::istream stream(&file->getInputStream());
+    auto loader = GlobalAasFileManager().getLoaderForStream(stream);
+    if (!loader)
+        throw std::runtime_error("No suitable loader for AAS file: " + path);
+
+    stream.seekg(0, std::ios_base::beg);
+    auto aasFile = loader->loadFromStream(stream);
+    if (!aasFile)
+        throw std::runtime_error("Failed to parse AAS file: " + path);
+
+    unsigned short flagFilter = 0;
+    if (params.has("flags_require"))
+        flagFilter = static_cast<unsigned short>(params["flags_require"].getInt());
+
+    unsigned short flagExclude = 0;
+    if (params.has("flags_exclude"))
+        flagExclude = static_cast<unsigned short>(params["flags_exclude"].getInt());
+
+    JsonValue::Array areas;
+    for (std::size_t i = 0; i < aasFile->getNumAreas(); ++i)
+    {
+        const auto& area = aasFile->getArea(static_cast<int>(i));
+
+        if (flagFilter && !(area.flags & flagFilter))
+            continue;
+
+        if (flagExclude && (area.flags & flagExclude))
+            continue;
+
+        const auto& origin = area.bounds.origin;
+        const auto& extents = area.bounds.extents;
+
+        areas.push_back(jsonObject({
+            {"index", static_cast<int>(i)},
+            {"center", jsonArray({area.center.x(), area.center.y(), area.center.z()})},
+            {"bounds_origin", jsonArray({origin.x(), origin.y(), origin.z()})},
+            {"bounds_extents", jsonArray({extents.x(), extents.y(), extents.z()})},
+            {"flags", static_cast<int>(area.flags)},
+            {"contents", static_cast<int>(area.contents)},
+            {"travel_flags", area.travelFlags}
+        }));
+    }
+
+    return jsonObject({
+        {"path", path},
+        {"total_areas", static_cast<int>(aasFile->getNumAreas())},
+        {"returned_areas", static_cast<int>(areas.size())},
+        {"areas", JsonValue(std::move(areas))}
     });
 }
 

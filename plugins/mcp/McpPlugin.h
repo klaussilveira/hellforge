@@ -138,6 +138,11 @@ private:
     JsonValue cloneParticleDef(const JsonValue& params);
     JsonValue deleteParticleDef(const JsonValue& params);
 
+    // AAS tools
+    JsonValue listAasFiles(const JsonValue& params);
+    JsonValue getAasFlags(const JsonValue& params);
+    JsonValue getAasAreas(const JsonValue& params);
+
     std::thread _serverThread;
     std::atomic<bool> _running{false};
     int _serverFd = -1;

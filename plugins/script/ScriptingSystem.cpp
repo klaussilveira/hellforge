@@ -28,6 +28,7 @@
 #include "interfaces/LayerInterface.h"
 #include "interfaces/DeclarationManagerInterface.h"
 #include "interfaces/FxManagerInterface.h"
+#include "interfaces/AasFileInterface.h"
 
 #include "PythonModule.h"
 #include "SceneNodeBuffer.h"
@@ -252,6 +253,7 @@ void ScriptingSystem::initialiseModule(const IApplicationContext& ctx)
     addInterface("LayerInterface", std::make_shared<LayerInterface>());
     addInterface("DeclarationManager", std::make_shared<DeclarationManagerInterface>());
     addInterface("FxManager", std::make_shared<FxManagerInterface>());
+    addInterface("AasFileManager", std::make_shared<AasFileInterface>());
 
     GlobalCommandSystem().addCommand(
         "RunScript",

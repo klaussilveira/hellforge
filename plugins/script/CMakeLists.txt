@@ -1,4 +1,5 @@
 add_library(script MODULE
+            interfaces/AasFileInterface.cpp
             interfaces/BrushInterface.cpp
             interfaces/CameraInterface.cpp
             interfaces/CommandSystemInterface.cpp

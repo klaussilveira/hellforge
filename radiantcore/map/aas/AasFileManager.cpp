@@ -6,6 +6,7 @@
 #include "ieclass.h"
 #include "ifilesystem.h"
 #include "eclass.h"
+#include "os/path.h"
 
 #include "module/StaticModule.h"
 
@@ -114,11 +115,22 @@ std::list<AasFileInfo> AasFileManager::getAasFilesForMap(const std::string& mapP
 
     AasTypeList types = getAasTypes();
 
+    std::string absoluteMapPath = mapPath;
+
+    if (!absoluteMapPath.empty() && !path_is_absolute(absoluteMapPath.c_str()))
+    {
+        std::string vfsRoot = GlobalFileSystem().findFile(mapPath);
+
+        if (!vfsRoot.empty())
+        {
+            absoluteMapPath = vfsRoot + mapPath;
+        }
+    }
+
     for (const AasType& type : types)
     {
-        std::string path = mapPath;
+        std::string path = absoluteMapPath;
 
-        // Cut off the extension
         path = path.substr(0, path.rfind('.'));
         path += "." + type.fileExtension;
 
@@ -126,7 +138,6 @@ std::list<AasFileInfo> AasFileManager::getAasFilesForMap(const std::string& mapP
 
         if (file)
         {
-            // Add this file to the list
             list.push_back(AasFileInfo());
             list.back().absolutePath = path;
             list.back().type = type;
