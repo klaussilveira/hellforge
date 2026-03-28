@@ -46,7 +46,7 @@ Start HellForge normally. The MCP plugin will begin listening on port 13646. The
 
 ### 3. Verify
 
-In Claude Code, run `/mcp` to check the server is connected. You should see `hellforge` listed with 30+ tools.
+In Claude Code, run `/mcp` to check the server is connected. You should see `hellforge` listed with 75+ tools.
 
 ## Example: Creating a Simple Room
 

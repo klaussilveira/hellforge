@@ -1,4 +1,4 @@
-= DarkRadiant User Guide
+= HellForge User Guide
 :toc: left
 :toclevels: 3
 :imagesdir: img
@@ -7,25 +7,21 @@
 
 == Introduction
 
-DarkRadiant is a level editor for Doom 3 and The Dark Mod, developed by The Dark
-Mod team. It may also be used for editing levels for similar *id Software* games
-such as Quake 4.
+HellForge is a fork of https://www.darkradiant.net[DarkRadiant], a level editor
+for idTech4-based games. While DarkRadiant focuses primarily on The Dark Mod,
+HellForge is tailored for editing generic maps targeting
+https://github.com/klaussilveira/hellcore[HellCore],
+https://github.com/RobertBeckebans/RBDOOM-3-BFG[RBDOOM-3-BFG],
+https://github.com/dhewm/dhewm3[dhewm3] and Storm Engine 2. HellForge also
+supports Quake 1, Quake 2, Quake 4 and Valve map formats.
 
-This User Guide describes the features and functionality of DarkRadiant, however
+This User Guide describes the features and functionality of HellForge, however
 it is not intended as a guide to mapping techniques. Level design is a complex
 topic, and is covered by various other learning resources, some of which are
 listed below.
 
-http://wiki.thedarkmod.com/index.php?title=Main_Page[The Dark Mod Wiki]:: The
-starting point for most Dark Mod documentation and tutorials, including
-gameplay, configuration and editing.
-
 https://modwiki.xnet.fi[ModWiki]:: Online wiki covering editing topics for
-vanilla Doom 3 and similar engines.
-
-http://forums.thedarkmod.com[The Dark Mod forums]:: Online community for
-discussion of the Dark Mod, including various ad-hoc mapping tutorial threads
-posted by individual users.
+Doom 3 and similar idTech 4 engines.
 
 === Editing workflow
 
@@ -35,10 +31,10 @@ The level editing process starts off with basic assets: models, textures,
 sounds, entity definitions, skins, animations and so on. Many of these assets
 will be packaged with a particular game installation, but a level designer may
 also choose to create custom assets for a specific mission. These assets are
-installed into a directory tree which is accessible both by DarkRadiant (for
+installed into a directory tree which is accessible both by HellForge (for
 editing) and the game engine itself (for playing the mission).
 
-Once assets have been arranged in DarkRadiant according to the wishes of the
+Once assets have been arranged in HellForge according to the wishes of the
 level designer, a `.map` file is saved to disk. This is a text file in a format
 understood by the game engine, and includes both level geometry and references
 to the assets used in the map. Since the `.map` file is simply text, and does
@@ -47,14 +43,14 @@ not actually embed the binary asset data, it tends to be fairly small.
 The game engine includes functionality to _compile_ the `.map` file into a
 `.proc` file containing low-level vertex geometry derived from the brushes and
 patches within the `.map` file. The game engine can then render the mission in
-realtime, making use of the same assets that were accessed by DarkRadiant during
+realtime, making use of the same assets that were accessed by HellForge during
 editing.
 
-DarkRadiant also maintains its own separate file containing various editing
+HellForge also maintains its own separate file containing various editing
 information, such as object layers used within a map. This `.darkradiant` file
 is never used by the game engine, and is non-critical -- a `.map` file with no
-accompanying `.darkradiant` file can still be edited with DarkRadiant, although
-certain DarkRadiant-specific state may be lost.
+accompanying `.darkradiant` file can still be edited with HellForge, although
+certain HellForge-specific state may be lost.
 
 === What's in a MAP?
 
@@ -87,55 +83,45 @@ situations where the distinction between brush and patch is not important.
 The entities, brushes and patches in a map are arranged in a hierarchy: not
 every entity has children, but every primitive must have an entity as a parent.
 Each map therefore starts with a single default entity called the *worldspawn*,
-which acts as the parent for new brushes and patches created in DarkRadiant.
+which acts as the parent for new brushes and patches created in HellForge.
 
 == Initial configuration
 
 [[GameSetup]]
 === Choosing a game type
 
-When running DarkRadiant for the first time, the *Game Setup* dialog will be
+When running HellForge for the first time, the *Game Setup* dialog will be
 shown. This is where you configure the path to the game installation from which
-DarkRadiant will load assets, such as textures, models and entity definitions.
+HellForge will load assets, such as textures, models and entity definitions.
 
 image::GameSetupDialog.png[align="center"]
 
 The *Game Setup* dialog contains the following options:
 
-*Game Type*:: DarkRadiant ships with support for several different game engines,
- each of which is contained within a `.game` file. For editing Dark Mod
- missions, the default choice of `The Dark Mod 2.0 (Standalone)` is the one to
- use, but it is also possible to edit stock Doom 3 or Quake 4 missions.
+*Game Type*:: HellForge ships with support for several different game engines,
+ each of which is contained within a `.game` file. Choose the game type that
+ matches the engine you are targeting (Doom 3, Quake 4, The Dark Mod, etc.).
 
-*DarkMod Path* / *Engine Path*:: This is the path to the game installation on
- the system. The label text will change depending on whether the selected game
- is `The Dark Mod` or another engine.
+*Engine Path*:: This is the path to the game installation on the system.
 
-*Mission*:: Optional path to a subdirectory containing assets specific to a
- particular mission which is being worked on. For game types other than `The
- Dark Mod`, this will be displayed as *Mod (fs_game)*, and should be set to the
- path of a subdirectory containing a particular game mod, if one is being used.
+*Mod (fs_game)*:: Optional path to a subdirectory containing assets specific to
+ a particular mod which is being worked on.
 
-*Mod Base (fs_game_base)*:: This field only appears for non-DarkMod game types.
- It allows a two-level mod structure, where the *Mod Base* can point to a major
- game mod, possibly downloaded from elsewhere, while *Mod* can be set to point
+*Mod Base (fs_game_base)*:: This field allows a two-level mod structure, where
+ the *Mod Base* can point to a major game mod, while *Mod* can be set to point
  to an entirely local "sub-mod" which contains local changes and overrides.
- Before the release of Dark Mod standalone, this field would have been set to
- `darkmod` while the *Mod* field would have been set to the local mission,
- however this is no longer necessary when `The Dark Mod 2.0 (Standalone)` is
- being used.
 
 Once the game paths are set up, click the *Save* button to proceed to the main
-DarkRadiant interface.
+HellForge interface.
 
 NOTE: It is possible to *Cancel* the *Game Setup* dialog and proceed to the main
-window without configuring a game installation, in which case DarkRadiant will
-show a warning and ask if you wish to proceed. If you do, DarkRadiant will run
+window without configuring a game installation, in which case HellForge will
+show a warning and ask if you wish to proceed. If you do, HellForge will run
 but there will be no available textures, models, entities or other game assets.
 
 === Interface layout
 
-DarkRadiant uses a flexible layout system based on dockable windows which can be moved into
+HellForge uses a flexible layout system based on dockable windows which can be moved into
 various positions around the edges of the main window, or floated as separate top-level
 windows. The arrangement and sizes of these windows are saved into settings and persisted
 between sessions.
@@ -160,13 +146,12 @@ view, if desired.
 [[ColourSchemes]]
 === Colour schemes
 
-DarkRadiant defaults to a black-on-white colour scheme in the 2D windows, but ships with
-four other colour schemes, which can be chosen with the *View -> Colours...* dialog. If you
-prefer a dark theme, the `Black & Green` scheme might be suitable, whereas the
-`Maya/Max/Lightwave Emulation` and `Super Mal` themes provide a more neutral, low-contrast
-look.
+HellForge defaults to a dark colour scheme. Several other colour schemes are available and
+can be chosen with the *Edit -> Themes...* dialog. The `Maya/Max/Lightwave` and
+`Super Mal` themes provide a more neutral, low-contrast look, while the original
+`DarkRadiant` scheme provides a traditional black-on-white look.
 
-Colour schemes only affect what is rendered in the 2D and 3D views by DarkRadiant itself.
+Colour schemes only affect what is rendered in the 2D and 3D views by HellForge itself.
 The appearance of the user interface is determined by the *wxWidgets* toolkit based on the
 system-wide widget theme, and can only be changed via system settings or other applications
 (such as `gnome-tweaks` on Linux).
@@ -174,15 +159,15 @@ system-wide widget theme, and can only be changed via system settings or other a
 [align="center",cols="^.<a,^.<a,^.<a",grid="none"]
 |===
 |image:DarkRadiantDefaultTheme.png[] +
-*DarkRadiant Default*
+*DarkRadiant*
 |image:BlackGreenTheme.png[] +
-*Black and Green*
+*Black & Green*
 |image:Q3RadiantTheme.png[] +
-*QE3Radiant Original*
+*QE3Radiant*
 |image:SuperMalTheme.png[] +
 *Super Mal*
 |image:MayaEmulationTheme.png[] +
-*Maya/Max/Lightwave Emulation*
+*Maya/Max/Lightwave*
 |
 |===
 
@@ -201,7 +186,7 @@ the *Colours* dialog.
 The game world is a three-dimensional vector space with a central origin,
 rendered in the 2D editing window as a grid. The unit of measurement is an
 arbitrary game unit which does not directly correspond to any real-world
-measurement system -- in The Dark Mod, a typical human stands around 80 - 90
+measurement system -- in Doom 3, a typical human stands around 80 - 90
 game units high, making a game unit about 2 cm.
 
 Each 2D window shows which axes it is representing with an icon in the top-left
@@ -218,11 +203,9 @@ The following commands are available within the 2D view:
 
 [cols="1h,3"]
 |===
-|Right drag|Scroll the view horizontally or vertically
+|Middle drag|Scroll the view horizontally or vertically
 |Mouse wheel|Zoom the view
 |Shift + Right drag|Zoom the view (alternative binding)
-|Ctrl + Middle click|Move the camera directly to the clicked position
-|Middle click|Rotate the camera to look directly at the clicked point
 |Ctrl + TAB|Change view axis (XY, XZ, YZ)
 |Ctrl + Shift + TAB|Center 2D view on current camera position
 |===
@@ -231,9 +214,10 @@ The following commands are available within the 2D view:
 
 The grid shown in the 2D view is used to snap the position and size of brushes
 and patches, as well as the centerpoints of entities. The size of the grid can
-be configured, in powers of 2, from 0.125 up to 256, using the *1-9* keys on the
+be configured, in powers of 2, from 1 up to 256, using the *1-9* keys on the
 main keyboard (not the numeric keypad), or the equivalent options in the *Grid*
-menu.
+menu. Smaller grid sizes (0.125, 0.25, 0.5) are available from the *Grid* menu
+but have no default key binding.
 
 The *0* key on the main keyboard can be used to toggle the display of the grid.
 Note that objects will still be snapped to the grid even if the grid is not
@@ -309,7 +293,7 @@ and fully lit by in-game light sources. While the 2D view is the main interface
 for creating and aligning level geometry, the 3D view is a vital tool for tasks
 such as texturing, or configuring light parameters.
 
-IMPORTANT: The fully lit rendering mode in DarkRadiant is not identical to what
+IMPORTANT: The fully lit rendering mode in HellForge is not identical to what
 the game engine will ultimately render. Certain advanced rendering features such
 as reflections and fog lights are not currently supported.
 
@@ -348,10 +332,8 @@ Move the far clip plane further away from the camera.
 |===
 
 The 3D view always renders the scene from a particular camera position, which is
-shown in the 2D view as a blue diamond. This camera position can be set directly
-from the 2D view with *Ctrl + Middle click*, and the camera view direction can
-be set with *Middle click*. There are also various options within the 3D view
-itself to adjust the camera position.
+shown in the 2D view as a blue diamond. There are various options within the 3D
+view itself to adjust the camera position.
 
 [cols="1h,3"]
 |===
@@ -368,8 +350,54 @@ without changing its height on the Z axis.
 the same.
 |Up/Down arrow|Move ("dolly") the camera forwards or backwards along its view
 axis
-
 |===
+
+==== Creating brushes in the 3D view
+
+HellForge allows you to create brushes directly in the 3D camera view, without
+needing to switch to the 2D ortho views.
+
+To create a brush, ensure that nothing is selected, then *Left drag* on any
+surface in the 3D view. HellForge will detect the surface plane under the
+cursor and project the drag onto it, creating a new brush that snaps to the
+grid and avoids overlapping with nearby brushes. If no surface is found, the
+brush is created on a horizontal plane at the current work zone height.
+
+The following modifiers affect brush creation while dragging:
+
+[cols="1h,3"]
+|===
+|Shift|Constrain the brush base to a square (equal X and Y dimensions).
+|Alt|Switch to height-only mode. Moving the mouse vertically adjusts the brush
+height while keeping the base dimensions locked.
+|Shift + Alt|Create a perfect cube (equal X, Y and Z dimensions).
+|===
+
+==== Resizing brushes with the scroll wheel
+
+When a brush is selected, the scroll wheel in the 3D view can be used to
+resize it with different modifiers:
+
+[cols="1h,3"]
+|===
+|Alt + scroll wheel|Resize the brush face directly under the cursor. Scrolling
+moves that face inward or outward along its normal. If the face reaches
+minimum thickness, the opposite face is moved instead.
+|Ctrl + scroll wheel|Resize both the face under the cursor and the opposite
+face symmetrically. The brush grows or shrinks equally on both sides.
+|Shift + scroll wheel|Create a new trim brush at the face under the cursor.
+The new brush is one grid unit deep and is automatically selected, allowing
+subsequent scroll to resize it. Useful for quickly adding trim, frames, or
+detail geometry onto existing surfaces.
+|===
+
+Without any modifier, the scroll wheel moves the camera forward and backward.
+Holding *Shift* without a selection doubles the camera movement speed.
+
+==== Polygon tool in 3D
+
+The polygon tool also works in the 3D viewport. When enabled, you can click
+points directly on surfaces in the 3D view to draw polygon shapes.
 
 === Manipulating objects
 
@@ -391,13 +419,17 @@ For more advanced ways to select objects, see
 |Shift + Left drag|Draw a selection rectangle, which will select any objects
  contained (fully or partially) within it.
 |ESC|Deselect all objects
-|Left drag (_inside_ object)|Move the selected object(s)
+|Left drag (_inside_ object)|Move the selected object(s). Hold *Alt* to
+constrain movement to the Z axis only, or *Shift* to constrain to the XY
+plane. Hold *Ctrl* to disable grid snapping.
 |Left drag (_outside_ object)|Resize the selected object(s) (if available)
 |Space|Duplicate the selected object(s)
 |Backspace|Delete the selected object(s)
+|Tab|Cycle forward through items in a selected group
+|Shift + Tab|Cycle backward through items in a selected group
 |===
 
-TIP: Like other editors in the Radiant family, DarkRadiant offers a rather
+TIP: Like other editors in the Radiant family, HellForge offers a rather
 unusual system for resizing objects. Rather than clicking exactly on the edge,
 or on a dedicated resizing handle, you can click and drag anywhere outside an
 edge to move that edge inwards or outwards. Dragging outside a corner allows you
@@ -405,7 +437,7 @@ to move two edges at once.
 
 ==== Flipping and rotating
 
-DarkRadiant provides six buttons to quickly flip or rotate objects (in 90 degree
+HellForge provides six buttons to quickly flip or rotate objects (in 90 degree
 increments) around each of the three world axes. These are available on the
 left-hand vertical toolbar.
 
@@ -453,16 +485,13 @@ leaking.
 
 .Additive versus subtractive geometry
 ****
-If you are used to mapping for the legacy Thief games using Dromed or T3Edit,
-the system used by DarkRadiant may seem somewhat back-to-front. In previous
-games, the world starts out as an infinite solid, in which you "carve out" rooms
-using subtractive brushes. In DarkRadiant, the world starts out as an infinite
-void, and all brushes are solid. The space in which the mission happens must be
-fully enclosed by solid brushes, otherwise the map will "leak" and fail to
-compile.
+Unlike editors that use subtractive geometry (where the world starts as an
+infinite solid and rooms are carved out), HellForge uses additive geometry:
+the world starts as an infinite void, and all brushes are solid. The play area
+must be fully enclosed by solid brushes, otherwise the map will "leak" and fail
+to compile.
 
-The need to deal with map leaks may at first seem like a burden, however the
-exclusive use of solid brushes frees the engine from needing to worry about
+The exclusive use of solid brushes frees the engine from needing to worry about
 "brush ordering", and allows an important performance optimisation: by "flood
 filling" the map interior, the map compiler can efficiently discard geometry
 that never needs to be rendered.
@@ -489,7 +518,7 @@ brush.
 ==== More complex brush shapes
 
 Although each brush starts out as a six-sided cuboid, it doesn't have to stay
-that way. DarkRadiant offers several options for creating multi-sided brushes in
+that way. HellForge offers several options for creating multi-sided brushes in
 more complex shapes. To create one of these shapes, first define a regular
 cuboid brush covering the volume you want the new shape to occupy, then choose
 the appropriate option from the *Brush* menu:
@@ -524,7 +553,7 @@ spheres or cones created with patches or static meshes.
 
 Although it is not too difficult to create a hollow room by creating floor,
 ceiling and wall brushes manually, this is a common enough operation that
-DarkRadiant provides a couple of shortcuts. These options can be found on the
+HellForge provides a couple of shortcuts. These options can be found on the
 vertical toolbar at the far left of the main window.
 
 [cols="1,4"]
@@ -543,11 +572,11 @@ wall thickness will be equal to the current grid size, but the wall brushes will
 overlap at the corners, rather than just touching each other as with *Create
 Room*.
 
-This is legacy tool from GtkRadiant, and generally inferior to *Create Room*.
+This is a legacy tool and generally inferior to *Create Room*.
 The overlapping wall brushes make it more difficult to precisely align interior
 textures, since part of the inner face is obscured (and therefore removed during
 map compilation). However, there may be occasional situations in which *Hollow*
-is useful, so it is retained in DarkRadiant.
+is useful, so it is retained in HellForge.
 |===
 
 The room creation tools do not require the initial brush to be rectangular --
@@ -560,7 +589,7 @@ to hollow out a 7-sided sphere is probably ill-advised.
 ==== Splitting brushes
 
 Sometimes it is necessary to divide a brush into two or more pieces, perhaps to
-create a doorway or other opening. The *Clipper* tool, accessed with the *X*
+create a doorway or other opening. The *Clipper* tool, accessed with the *C*
 key, is used for this purpose.
 
 .Splitting a brush into two parts
@@ -568,7 +597,7 @@ image::ClipTool3D.png[align="center"]
 
 . Select the brush to be split (the Clipper can be activated with nothing
 selected, but it will not do anything useful).
-. Press *X* to activate the Clipper, or click on the respective icon on the
+. Press *C* to activate the Clipper, or click on the respective icon on the
 left-hand editing toolbar.
 . Click in the 2D window at two different positions, to define the plane along
 which the brush will be split. The proposed split plane will be highlighted in
@@ -582,7 +611,7 @@ appear _clockwise_ on the brush edge according to the current 2D view. If in
 doubt, just use *Shift + Enter* to keep both parts, and delete the unwanted one
 afterwards.
 . Repeat the process to perform additional splits on the selected brush, or
-disable the Clipper with the *X* key. The Clipper is a toggled tool and will
+disable the Clipper with the *C* key. The Clipper is a toggled tool and will
 remain active until disabled.
 
 NOTE: It is possible to create _three_ split points before executing the split,
@@ -599,7 +628,7 @@ accessed via the *Select Edges* tool on the upper toolbar, or with the *E* key.
 image::EdgeEditing.png[align="center"]
 
 . Select a brush.
-. Activate *Select Edges* with the toolbar button or *E* key. DarkRadiant will
+. Activate *Select Edges* with the toolbar button or *E* key. HellForge will
 place a green control point at the center of each brush edge.
 . In either the 2D or the 3D view, click and drag on a control point to move its
 edge. The control point will turn blue and move along with the cursor. In the 2D
@@ -632,6 +661,33 @@ designed to allow you to quickly select objects that are adjacent to real map
 geometry.
 |===
 
+==== CSG operations
+
+HellForge provides several Constructive Solid Geometry (CSG) operations in the
+*Brush -> CSG* menu for combining or modifying brushes.
+
+[cols="1h,3"]
+|===
+|Make Hollow|Create a hollow room from the selected brush, with overlapping
+wall brushes at the corners. The wall thickness equals the current grid size.
+|Make Room|Create a hollow room from the selected brush, without overlapping
+walls. The wall thickness equals the current grid size.
+|Seal|Create a sealing brush that encloses the bounding box of the current
+selection. Useful for quickly sealing a map from the void.
+|Make Passable|Turn solid brush volumes into wall shells and carve away interior
+geometry to create passable spaces.
+|Make Shell|Similar to Passable, but repositions brushes to avoid overlap.
+|CSG Subtract (*Shift+U*)|Subtract the selected brush from all brushes it
+overlaps. An option to preserve texture on the target brushes is available.
+|CSG Merge (*Ctrl+U*)|Merge two or more overlapping brushes into a single
+convex brush, if possible.
+|CSG Intersect|Compute the intersection of selected brushes, keeping only the
+overlapping volume.
+|CSG Bridge|Create connecting geometry between two selected faces from different
+brushes. Requires exactly two faces to be selected, each with the same number
+of vertices.
+|===
+
 === Working with patches
 
 Patches are smooth-shaded Bezier surfaces that can be created and manipulated in
@@ -655,7 +711,7 @@ orientation.
 . <<CreatingABrush,Create a rectangular brush>> to define the width and height of
 the patch in the current 2D view (the third dimension is not important, since
 the patch will be infinitely thin once created).
-. With the brush selected, choose *Create Simple Patch Mesh* from the *Patch*
+. With the brush selected, choose *Create Simple Patch...* from the *Patch*
 menu.
 . In the dialog, choose the number of control points to define the shape of the
 patch along its width and height. A patch can have between 3 and 15 control
@@ -737,7 +793,7 @@ solid, you can <<Group,group>> the patches together.
 
 ==== More complex patch shapes
 
-Just like with brushes, DarkRadiant offers several default patch shapes beyond
+Just like with brushes, HellForge offers several default patch shapes beyond
 the flat simple patch. These can be created by choosing the corresponding option
 in the *Patch* menu. There is no need to have a brush selected first in order to
 create these shapes, however if a brush _is_ selected, it will be removed and
@@ -749,7 +805,7 @@ used to define the size of the patch shape.
 *Sphere*
 
 An approximation of a sphere (the quadratic Bezier patch implementation in Doom
-3 and DarkRadiant does not permit the creation of a perfect sphere).
+3 and HellForge does not permit the creation of a perfect sphere).
 
 |image:PatchCylinder.png[]|
 *Cylinder*
@@ -790,13 +846,132 @@ image::PatchSubdivision.png[align="center"]
 
 To subdivide a patch:
 
-. Select *Patch Inspector* in the *View* menu to make the inspector widget
+. Toggle the *Patch Inspector* with *Shift+S* to make the inspector widget
 visible.
 . With the patch selected, enable the *Fixed Subdivisions* checkbox.
 . Use the *Horizontal* and *Vertical* numeric spinboxes to set the number of
 polygons to divide the patch into. The value can range from *1*, making the
 patch completely flat regardless of control point positions, up to a maximum of
 *32*. Each dimension can have a different subdivision level, if required.
+
+=== Generators
+
+HellForge provides a *Generate* menu with tools for procedurally creating
+complex geometry from configurable parameters.
+
+==== Sweep
+
+The Sweep tool (*Generate -> Sweep...*) extrudes one or more selected brushes
+along a curve entity (CatmullRom spline or NURBS). Select the brushes to sweep
+and a curve entity, then configure the number of segments. The brushes are
+extruded along the curve to create curved corridors, pipes, or other swept
+shapes.
+
+==== Stairs
+
+The Stairs generator (*Generate -> Stairs...*) creates staircases with several
+layout options:
+
+* *Straight stairs*: configurable step count, height, depth, and width.
+* *Spiral stairs*: configurable inner/outer radius and total arc angle.
+* *L-shaped stairs*: with a landing and a 90-degree turn.
+* *U-shaped stairs*: with a landing and a 180-degree turn.
+
+Materials can be assigned to the stair surfaces.
+
+==== Cables
+
+The Cable generator (*Generate -> Cables...*) creates cable and rope geometry
+between points. Options include cable presets, gravity simulation, density,
+spacing, radius, material, and subdivision control.
+
+==== Arch
+
+The Arch generator (*Generate -> Arch...*) creates curved arch structures with
+configurable inner radius, wall thickness, arc angle, starting angle, segment
+count, depth, and material.
+
+==== Corner Patch
+
+The Corner Patch generator (*Generate -> Corner Patch...*) creates curved
+patch surfaces for smooth corners with configurable arc degrees, radius,
+segment resolution, and optional inversion.
+
+==== Building
+
+The Building generator (*Generate -> Building...*) creates complete building
+structures from configurable parameters. If a brush is selected, its bounds are
+used as the building footprint. Otherwise, the building is created at the
+current spawn position.
+
+The dialog provides the following options:
+
+*Dimensions*:: Building width, depth, and overall height.
+
+*Floors*:: Number of floors. Floor height can be set automatically (evenly
+divided) or specified manually.
+
+*Walls*:: Wall thickness in map units.
+
+*Windows*:: Window mode (none, regular grid, or custom count), with
+configurable width, height, and sill height (distance from floor to window
+base).
+
+*Roof*:: Roof type (Flat, Flat with Border, Slanted, or A-Frame), roof height
+and border height.
+
+*Columns*:: Optional corner columns with configurable extrusion amount.
+
+*Trim*:: Trim height for edge details, with a separate material assignment.
+
+*Materials*:: Separate material selections for walls and trim surfaces, with
+browse buttons to pick from the material library.
+
+==== Tile Map
+
+The Tile Map designer (*Generate -> Tile Map...*) provides a visual grid-based
+editor for quickly designing dungeon-style layouts.
+
+The workflow is paint-based: you configure a grid, click to place tiles on a
+canvas, then generate the geometry.
+
+*Grid*:: Grid columns and rows (default 16x16), tile width and height (default
+128 units), ceiling height per floor, and floor gap spacing between floors.
+
+*Tile types*:: Solid blocks, slope tiles (NW, NE, SW, SE), and curve tiles (NW,
+NE, SW, SE). Solid tiles appear green on the canvas, empty tiles in dark gray.
+Slopes and curves display as triangles and arcs in the preview.
+
+*Room style*:: Each tile can be generated as Solid (filled brush), Room (hollow
+with interior space), Shell (walls only), or Passable (platforms).
+
+*Wall thickness*:: Configurable at 8, 16, 32, or 64 units.
+
+*Multi-floor*:: Each floor maintains its own independent tile layout. Use the
+up/down buttons to switch between floors, and add new floors as needed.
+
+*Materials*:: Separate material selections for floor, ceiling, and wall
+surfaces.
+
+*Stairs*:: Mark tiles for staircase placement with configurable material, step
+count, step height, direction, and an option to build solid from the base.
+
+*Lighting*:: Mark tiles for automatic light placement with configurable radius,
+colour (RGB), and light texture.
+
+==== Terrain Generator
+
+The Terrain Generator (*Patch -> Create Terrain...*) creates procedural terrain
+patches using noise algorithms. It supports Perlin, Simplex, Fractional Brownian
+Motion (FBm) and Ridged Multifractal noise, with configurable seed, scale, and
+amplitude parameters.
+
+==== OSM Importer
+
+The OSM importer (*File -> Import OSM...*) is an experimental tool that imports
+OpenStreetMap data to generate real-world building and road geometry. Options
+include scale control (units per meter), level height, and material assignment
+for walls, roofs, floors, roads, and sidewalks.
 
 === Applying textures
 
@@ -859,7 +1034,7 @@ all the textures which are currently loaded in the current map.
 
 image::TexturesTab.png[align="center"]
 
-When DarkRadiant first starts up no textures are loaded and this panel is empty.
+When HellForge first starts up no textures are loaded and this panel is empty.
 New textures can only be loaded via the *Media* tab (described in the
 <<MediaTab,previous section>>), either by applying a texture directly to a
 brush, or by using the *Load in Textures view* command to explicitly load an
@@ -875,8 +1050,8 @@ will highlight the clicked texture in the *Media* tab.
 
 Once a texture is applied via the Media or Textures tabs, you will most likely
 wish to adjust the alignment and scale of the texture on the brush or patch
-face. DarkRadiant provides the *Surface Inspector* for this purpose, which can
-be toggled with the *S* key or by choosing the option in the *View* menu.
+face. HellForge provides the *Surface Inspector* for this purpose, which can
+be toggled with the *S* key.
 
 image::SurfaceInspector.png[align="center"]
 
@@ -949,7 +1124,7 @@ resized), you will want to disable *Texture Lock*.
 
 While constructing a map it will frequently be necessary to apply the same
 texture to several different surfaces such that they appear seamless in game. In
-order to assist with this, DarkRadiant provides a *shader clipboard* which
+order to assist with this, HellForge provides a *shader clipboard* which
 allows shaders to be copied and pasted between primitives, and is independent of
 the main clipboard used for copying and pasting other objects.
 
@@ -959,8 +1134,8 @@ There are two ways to copy a shader to the shader clipboard.
 
 1. Select a _single face_ (not an entire brush) with *Ctrl + Shift + Left click*
  in the 3D view, then choose *Edit -> Copy shader*.
-2. Directly *Middle click* the face in the 3D view (there is no need to select
-it first).
+2. Directly *Alt + Middle click* the face in the 3D view (there is no need to
+select it first).
 
 In both cases, the *ShaderClipboard* section of the bottom status bar will
 update to show the new value of the shader clipboard. If the *Media* or
@@ -976,7 +1151,7 @@ Once a shader is on the shader clipboard, it can be pasted onto another surface
 in a number of ways:
 
 1. Select the destination face with *Ctrl + Shift + Left click*, then choose
-*Edit -> Paste shader* or *Edit -> Paste shader (natural)*.
+*Edit -> Paste shader* or *Edit -> Paste shader (Natural)*.
 2. Directly *Middle click* the destination face while holding down either *Ctrl*
 (to paste the shader with projected coordinates) or *Shift* (to paste the shader
 with natural coordinates).
@@ -1008,7 +1183,7 @@ also various functional entity types which provide vital metadata to the game
 engine, such as determining where the player should start, or how creatures
 should navigate between locations.
 
-DarkRadiant provides certain common functionality to all entities, such as the
+HellForge provides certain common functionality to all entities, such as the
 ability to edit properties using the *Entity* tab. Particular entity types are
 sufficiently common, however, that they have their own dedicated creation and
 editing tools.
@@ -1021,7 +1196,7 @@ cast shadows, and can even be animated to flicker or flash.
 
 *Model (func_static)*:: Model entities represent geometry that is not compiled
 as part of the map itself. The model geometry can either be derived from brushes
-and patches created inside DarkRadiant, or from an external model file in ASE or
+and patches created inside HellForge, or from an external model file in ASE or
 LWO format. Model files are the primary mechanism for including fine detail in a
 map which would be cumbersome to create with brushes and patches.
 
@@ -1129,7 +1304,7 @@ are created with an external 3D application such as Blender, Lightwave or Maya,
 and saved into the game asset tree in LWO or ASE format.
 
 To insert a model, ensure that nothing is selected, then *Right click* in the 2D
-view and choose *Create model…*. DarkRadiant will show the model selector
+view and choose *Create model…*. HellForge will show the model selector
 dialog:
 
 image::ModelSelector.png[align="center"]
@@ -1154,11 +1329,11 @@ which the player should enter the map. Without such an entity the map will be
 unplayable.
 
 To create this entity, ensure that nothing is selected then *Right click* in the
-2D view and choose *Create player start here*. DarkRadiant will create the
+2D view and choose *Place Player Start here*. HellForge will create the
 player start entity at the clicked position.
 
-Since it makes no sense to have more than one player start location, DarkRadiant
-will not enable the *Create player start here* menu option if there is already
+Since it makes no sense to have more than one player start location, HellForge
+will not enable the *Place Player Start here* menu option if there is already
 an `info_player_start` in the map. Instead, you may choose *Move player start
 here* to move the existing entity to the clicked position.
 
@@ -1247,11 +1422,11 @@ containing all of the primitives which define the world geometry. However,
 *worldspawn* is not the only entity which can contain brushes and patches as
 children.
 
-When you create a model using the <<CreatingModels,model selector>>, DarkRadiant
+When you create a model using the <<CreatingModels,model selector>>, HellForge
 will insert a type of entity called a *func_static* into the map to represent
 the model geometry. A *func_static* can contain a model file loaded from disk in
 LWO or ASE format, but it can also be used as a parent for one or more
-primitives created within DarkRadiant. In either case, the behaviour of
+primitives created within HellForge. In either case, the behaviour of
 *func_static* is the same: it represents a static mesh which is rendered in
 game but is considered separate from the main world geometry, meaning that it
 does not participate in map compilation, will not seal the map from leaks, and
@@ -1266,7 +1441,7 @@ geometry.
 The *func_static* entity class is not the only type of entity which can contain
 primitives: there are several other *func_* entities which perform various
 functions, for example *func_rotating* which allows geometry to rotate
-continuously. DarkRadiant offers dedicated commands to convert to/from a
+continuously. HellForge offers dedicated commands to convert to/from a
 *func_static* since this is a very common operation, however the ability to
 <<SelectChildPrimitives,select>>, <<AddRemoveChildPrimitives,add and remove>>
 individual primitives behaves the same for all types of primitive-containing
@@ -1300,7 +1475,7 @@ dragging any one of its primitives.
 
 However, it is still possible to perform operations on a single primitive, for
 example resizing a brush, by selecting it with the *TAB* key. Each press of
-*TAB* will cause DarkRadiant to select a different primitive contained within
+*TAB* will cause HellForge to select a different primitive contained within
 the entity, after which it will return to selecting the entire entity. With only
 a single primitive selected, all of the normal operations are possible on that
 primitive, for example deleting or resizing it.
@@ -1334,11 +1509,11 @@ entity from scratch.
 
 === Compiling a map
 
-DarkRadiant does not include functionality for compiling a map into the form
+HellForge does not include functionality for compiling a map into the form
 needed by the game engine; instead, you must use external tools or the map
 compiler built into the game itself.
 
-For Doom 3 and the Dark Mod, the following commands are used within the in-game
+For Doom 3 and similar idTech 4 engines, the following commands are used within the in-game
 console (which can normally be accessed with the key immediately above `TAB`):
 
 [horizontal]
@@ -1351,7 +1526,7 @@ engine and start playing it immediately.
 
 TIP: When compiling and testing maps, it may be helpful to set your game to
 play in windowed mode, with a reduced resolution. This will allow both the game
-and DarkRadiant to be visible on the screen as separate windows, which you can
+and HellForge to be visible on the screen as separate windows, which you can
 easily switch between during the compile and test cycle.
 
 ==== Preventing leaks
@@ -1386,7 +1561,7 @@ No matter how hard you try to avoid leaks, occasionally they will happen. In
 this case the *pointfile* functionality is helpful to identify the location of
 the leak.
 
-After the map compilation has failed with a leak, return to DarkRadiant and
+After the map compilation has failed with a leak, return to HellForge and
 choose *Pointfile* from the *File* menu. This will automatically load the point
 file associated with the current map, which contains a series of points
 identifying the path to the leak. This path will be rendered as a bright red
@@ -1398,9 +1573,53 @@ image::Pointfile.png[align="center"]
 In this example we can clearly see that the map has leaked because the far wall
 brush does not join up with the ceiling.
 
+== HellForge features
+
+=== Command Palette
+
+The Command Palette (*Ctrl+Shift+P*) provides a quick way to search and execute
+any available command in HellForge. Type to filter the list using fuzzy matching.
+Each entry shows the command name, description, and keyboard shortcut if one is
+assigned.
+
+=== Insert Palette
+
+The Insert Palette (*Ctrl+P*) allows quick entity insertion via a searchable
+list. It also includes a goto feature for navigating directly to entities by
+name, similar to Sublime Text's goto line number feature.
+
+=== Learner Mode
+
+Learner mode is an onboarding feature for new users that displays keyboard
+shortcut hints in the 3D viewport while editing.
+
+=== Game Configuration Manager
+
+The Game Configuration Manager allows managing multiple game setups from the
+*File -> Game/Project Setup...* dialog. This is useful when working with
+different engines or multiple mod configurations for the same game.
+
+=== Map Format Support
+
+HellForge supports importing and opening maps in several formats beyond the
+standard idTech4 `.map` format:
+
+* *Valve VMF*: Source engine map format (*File -> Import Map...*)
+* *Quake 1 MAP*: Standard Quake 1 map format
+* *Quake 2 MAP*: Standard Quake 2 map format
+* *Valve 220 MAP*: Extended MAP format with 220-style texture alignment
+
+=== Model Format Support
+
+In addition to the standard ASE and LWO model formats, HellForge supports:
+
+* *MD5v10*: Standard idTech 4 MD5 model format
+* *MD5v11*: Enemy Territory: Quake Wars (ETQW) model format
+* *MD5v12*: Storm Engine 2 model format
+
 == Organising a map
 
-Since a fully developed Dark Mod map is large and complex, DarkRadiant provides
+Since a fully developed map is large and complex, HellForge provides
 several tools to make organising a large map easier. Objects can be grouped,
 sorted into user-defined layers and filtered using various criteria, while the
 prefab system allows large chunks of map to be reused or shared with other
@@ -1409,7 +1628,7 @@ mappers.
 [[Group]]
 === Grouping objects
 
-DarkRadiant allows a number of objects to be grouped together, so that they can
+HellForge allows a number of objects to be grouped together, so that they can
 be selected and manipulated as a single unit.
 
 To *create* a group:
@@ -1431,7 +1650,7 @@ groups will be restored.
 [[WorkingWithPrefabs]]
 === Working with prefabs
 
-DarkRadiant allows a collection of objects to be saved to disk as a *prefab*,
+HellForge allows a collection of objects to be saved to disk as a *prefab*,
 which can then be imported into other maps. You can use prefabs to store
 anything from a single small object to a vast section of map geometry complete
 with lights and AI.
@@ -1443,15 +1662,15 @@ with lights and AI.
 . Use the file chooser dialog to choose a location and name for the prefab file.
 
 TIP: Unlike actual `.map` files which must be accessible by the game engine,
-prefabs are a DarkRadiant-only feature that have no significance to the engine.
+prefabs are a HellForge-only feature that have no significance to the engine.
 You are therefore free to store prefab files wherever you wish, either inside or
 outside the game installation directory.
 
 [[ImportPrefab]]
 ==== Importing a prefab
 
-Either right-click in the 2D window and choose *Insert prefab...*, or open the
-*File* menu and choose *Import prefab...*. This will show the prefab browser.
+Either right-click in the 2D window and choose *Import Prefab...*, or open the
+*File* menu and choose *Import Prefab...*. This will show the prefab browser.
 
 image::PrefabChooser.png[align="center"]
 
@@ -1481,10 +1700,10 @@ separate selectable objects.
 
 === Exporting models
 
-DarkRadiant provides a limited ability to export scene geometry into a number of
+HellForge provides a limited ability to export scene geometry into a number of
 3D model file formats: ASCII Scene Export (ASE), Lightwave (LWO) or
 Wavefront OBJ. This functionality is provided to help with organising
-frequently-used map elements — DarkRadiant is not intended to compete with
+frequently-used map elements — HellForge is not intended to compete with
 full-featured 3D modelling applications such as Blender or 3DS Max.
 
 Exporting to a model is similar to exporting to a prefab, except that models can
@@ -1495,7 +1714,7 @@ for creating map-specific static meshes in a more powerful modelling tool.
 
 To export a model:
 
-. Select the geometry to be exported. Note that DarkRadiant currently does not
+. Select the geometry to be exported. Note that HellForge currently does not
 complain if you select non-geometry such as lights, however these will not
 appear in the resulting model file.
 . Open the *File* menu and choose *Export selected as model...*
@@ -1520,9 +1739,9 @@ another layer for brushwork, and so on.
 
 ==== The Layers window
 
-To show or hide the *Layers* window, choose `Layers` from the `Edit` menu. The
-window lists all of the layers which exist in the current project, and allows
-you to perform various operations on them.
+To show or hide the *Layers* window, press *Ctrl+L*. The window lists all of
+the layers which exist in the current project, and allows you to perform
+various operations on them.
 
 image::LayersWindow.png[align="center"]
 
@@ -1575,7 +1794,7 @@ copy objects between layers using the options in the 2D view's context menu.
 === Filtering map elements
 
 While the Layers feature allows maps to be organised into manual groupings of
-objects, DarkRadiant also provides a mechanism for controlling the visibility of
+objects, HellForge also provides a mechanism for controlling the visibility of
 items based on their characteristics. This is controlled via the *Filter*
 menu.
 
@@ -1589,7 +1808,7 @@ filter will be hidden; the remaining visible objects will be those which are not
 matched by any active filters.
 
 TIP: Active filters are persisted into settings, and are therefore retained
-between DarkRadiant sessions.
+between HellForge sessions.
 
 The built-in filters include:
 
@@ -1625,7 +1844,7 @@ Aside from the list of filters, the *Filter* menu contains three other options:
 
 ==== Customising filters
 
-In addition to the filters supplied with the mod distribution, DarkRadiant also
+In addition to the filters supplied with the mod distribution, HellForge also
 allows you to add your own custom filters to the list by choosing the *Edit
 Filters...* menu option. This displays a dialog containing the list of all
 available filters, including built-in ones. Use the *Add* and *Delete* buttons
@@ -1673,12 +1892,11 @@ Each rule has the following components:
 === The entity list
 
 As a map becomes larger and more complex, keeping track of its contents may
-become more challenging. To assist with this, DarkRadiant provides an *Entity
+become more challenging. To assist with this, HellForge provides an *Entity
 List* which functions as an "outline" view of the map, listing all entities and
 their child brushes and patches (if any).
 
-The entity list can be accessed by choosing the *Entity List* option from the
-*View* menu.
+The entity list can be accessed by pressing *J*.
 
 .The entity list, showing a number of entities in a small test map
 image::EntityList.png[align="center"]
@@ -1695,138 +1913,26 @@ additionally be moved to view the clicked entity.
 By enabling the *List visible nodes only* checkbox, you can limit the entity
 list to show only entities which are not currently hidden via filters.
 
-== Dark Mod features
-
-The Dark Mod is a considerably more complex game than vanilla Doom 3, and its
-maps therefore include certain settings and features that would be cumbersome to
-configure manually by entering property values on entities. DarkRadiant
-therefore provides a number of Dark Mod specific dialogs which are described in
-this section.
-
-NOTE: Most Dark Mod features are compiled as separate plugins, and may not be
-built by default on certain platforms. If these features seem to be missing,
-contact the distributor of your DarkRadiant binary package for advice, or
-examine the build options if you are compiling DarkRadiant yourself from source
-code.
-
-=== The Difficulty editor
-
-Most Dark Mod maps can be played on one of three possible difficulty settings,
-typically named "Easy", "Medium" and "Difficult" (although these names can be
-overridden). The precise effects of each of these difficulty settings are fully
-under the control of the map author, and might include such effects as spawning
-or despawning particular enemies, changing enemy health or patrol routes, or
-modifying the details of objectives.
-
-DarkRadiant provides a Difficulty editor dialog to facilitate one particular
-class of difficulty-dependent modification: making global changes to entity
-classes throughout the map. This could be used, for example, to change the
-health of every instance of a particular enemy, or (as shown in the diagram)
-removing a particular enemy type's ability to relight torches.
-
-.The Difficulty editor, showing a modified property on a particular entity class
-image::DifficultyEditor.png[align="center"]
-
-The Difficulty editor shows the names of the available difficulty levels in a
-dropdown widget, beneath which are the settings for the selected difficulty
-level. The difficulty names are customisable on a per-map basis — normally these
-will be the default values of "Easy", "Medium" and "Difficult", but if the
-current map has customised difficulty names DarkRadiant will adjust the tab
-names accordingly.
-
-On the left is a tree view showing all of the property overrides for the current
-difficulty level. Each top-level item is a particular entity class, which
-contains all of the property changes that are made to this entity class in this
-difficulty level. In this example, the `ai_builder_guard` entity has its
-`canLightTorches` property set to 0 on the Easy difficulty setting, meaning that
-all enemies of this particular type will not be able to relight torches.
-
-*Adding a setting*:: To add a new property setting for the current difficulty
- level, click the *Add* button. The widgets on the right hand side will become
- available, allowing you to choose an entity class, a property ("Spawnarg") to
- change, and the change to make ("Argument"). You can choose a number of
- mathematical operations for the modification, including a simple value
- assignment, or an addition or multiplication. After specifying the values, make
- sure you click the *Save* button to commit the changes into the list view.
-
-*Removing a setting*:: Select an item in the list view and click the *Delete*
- button to remove a particular setting. You can only remove individual
- assignments from the list; to remove all of the assignments for a particular
- entity class, you must select and delete each one individually.
-
-*Editing the difficulty name*:: To edit the name of the current difficulty
- level, click the edit button to the right of the dropdown, and enter a new name
- in the text box. The modified name will be written into a property on the
- `worldspawn` entity and reflected both in game and in DarkRadiant.
-
-TIP: For details of more advanced difficulty-dependent changes, such as
-modifying the behaviour of a *single* entity (rather than an entire entity
-class), consult the Dark Mod Wiki.
-
-=== Game Connection
-
-The Dark Mod includes functionality to dynamically interact with a DarkRadiant
-session running on the same machine, allowing certain information (such as
-camera position) to be synchronised both to and from the game, and for certain
-entity property changes to be pushed to the running game without needing to
-restart.
-
-These features are accessed in DarkRadiant through the *Connection* menu and
-buttons on the camera view toolbar.
-
-==== Activating the connection
-
-. In *The Dark Mod*, load the map which you are currently editing in DarkRadiant.
-. Bring down the game console and enter the command
-[listing]
-com_automation 1
-+
-This should result in a status message indicating that the game is listening for
-connections on a particular network port.
-[listing]
-Automation now listens on port 3879
-
-The game process is now ready to exchange data with DarkRadiant.
-
-==== Synchronising camera position
-
-You can synchronise the DarkRadiant camera position and the game player position
-in both directions: editor to game and game to editor. This feature is most
-easily controlled with the buttons on the camera view toolbar, but it can also
-be activated from the *Connection* menu.
-
-[cols="^1h,3h,10"]
-|===
-|image:CameraSync.png[align="center",width=24]
-|Game position follows DarkRadiant camera|
-Any motion of the DarkRadiant camera will be transmitted in realtime to the
-game, resulting in the player position moving (in *noclip* mode) to the same
-position and view direction.
-
-This is a toggled option which remains active until switched off.
-|image:CameraSyncBack.png[align="center",width=24]
-|Move camera to current game position|
-Update the DarkRadiant camera to match the current player position and view
-direction in game.
-
-This is a single-shot command; there is no mechanism to continuously move the
-DarkRadiant camera in response to player motion in game.
-|===
-
 == Command reference
 
 === File menu
 
-*New map*:: Prompt to save and close the current map (if necessary), then start
+*New Map*:: Prompt to save and close the current map (if necessary), then start
  working on a new empty map.
 
-*Open map...*:: Prompt to save and close the current map (if necessary), then
+*Open...*:: Prompt to save and close the current map (if necessary), then
  display a file browser to choose and load an existing map file from disk.
 
-*Import map...*:: Display a file browser to choose and load an existing map file
- from disk, merging the contents with the existing map
+*Open Map from Project...*:: Browse and open a map file from the currently
+ configured game project directory.
 
-*Import prefab...*:: Display the <<ImportPrefab,prefab browser>> to choose and
+*Import Map...*:: Display a file browser to choose and load an existing map file
+ from disk, merging the contents with the existing map.
+
+*Merge Map...*:: Open the map merge panel for merging another map into the
+ current map with visual diff and conflict resolution.
+
+*Import Prefab...*:: Display the <<ImportPrefab,prefab browser>> to choose and
  import a prefab from disk.
 
 NOTE: Importing a map and importing a prefab are functionally identical
@@ -1836,6 +1942,9 @@ browsing, previewing and importing from a library of frequently-used map
 elements, while *Import map* may be more useful for merging two or more
 partially-complete maps.
 
+*Import OSM...*:: Open the experimental OpenStreetMap importer to generate map
+ geometry from OSM data files.
+
 *Save*:: Save the current map to disk under its existing file name.
 
 *Save as...*:: Display a file browser to choose a new name for the current map,
@@ -1844,26 +1953,37 @@ partially-complete maps.
 *Save copy as...*:: Display a file browser to choose a new filename to save this
  map into, without changing the current map name for future *Save* operations.
 
+*Export Map...*:: Export the current map to a chosen file format and location.
+
 *Save selected as Map...*:: Choose a file name and save the currently-selected
  items into a new map file without changing the current map name. Equivalent to
  *Save copy as* but it only saves the selected items, not the entire map.
 
-*Save selected as prefab...*:: Equivalent to *Save selected as Map* but it saves
+*Export selected as Prefab...*:: Equivalent to *Save selected as Map* but it saves
  the selected items into a <<WorkingWithPrefabs,prefab>> (`*.pfb`) file in the
  standard prefab location.
 
-*Save selected as Collision Model...*:: Allows a selected map object (typically
+*Export selected as Model...*:: Export the selected brushes and patches into an
+ external model file (ASE, LWO or OBJ format).
+
+*Export selected as Collision Model...*:: Allows a selected map object (typically
  a brush) to be set as the collision model for a particular ASE or LWO model.
- After choosing this option, DarkRadiant will display the model chooser dialog,
+ After choosing this option, HellForge will display the model chooser dialog,
  allowing you to choose the particular model that the selected object should be
  associated with. The selected brush is then saved, and associated with the
  model so that subsequent insertions of the same model will use the new
  collision geometry.
 
-*Reload Models/Selected Models/Skins/Scripts/Readable Guis/Materials/Defs/Particles*::
- Forces DarkRadiant to re-read the selected category of items from disk,
+*Export Region...*:: Save only the objects within the currently-defined region
+ to a separate map file.
+
+*Import/Convert Model...*:: Import an external model file and optionally convert
+ it between supported formats.
+
+*Reload Declarations / Reload Images / Reload Models / Reload Selected Models*::
+ Forces HellForge to re-read the selected category of items from disk,
  refreshing its internal data structures. This is necessary if you have edited
- or re-exported some asset which DarkRadiant is using in the current map and you
+ or re-exported some asset which HellForge is using in the current map and you
  want to see the latest changes.
 
 *Game/Project Setup...*:: Show the <<GameSetup,Game Setup>> dialog for
@@ -1876,7 +1996,7 @@ displayed if there is no current pointfile (which is usually the case if the
 current map has not leaked during compilation). Choose this option a second time
 to hide the rendered pointfile.
 
-*Exit*:: Exit DarkRadiant, prompting to save the current map if necessary.
+*Exit*:: Exit HellForge, prompting to save the current map if necessary.
 
 === Edit menu
 
@@ -1926,7 +2046,10 @@ works for entities which can contain primitives (e.g. func_static).
 <<ShaderClipboard,shader clipboard>>.
 
 *Paste shader*:: Paste the shader currently on the <<ShaderClipboard,shader
-clipboard>> to all selected faces.
+clipboard>> to all selected faces with projected coordinates.
+
+*Paste shader (Natural)*:: Paste the shader with natural coordinates, which
+flow more naturally over curved surfaces.
 
 *Clear selection*:: De-select all selected objects.
 
@@ -1945,11 +2068,31 @@ dimensions. See <<BrushBasedSelection, brush-based selection>>.
 *Select fully inside*:: Like *Select inside*, except that contained brushes
 which touch the boundary of the selection brush will not be selected.
 
-*Select children*:: Select primitives which are children of the
+*Select Children*:: Select primitives which are children of the
 currently-selected entity. See <<ReparentingPrimitives,reparenting primitives>>.
 
-*Select parent entities*:: Select the parent entity of the currently-selected
+*Select Parent Entities*:: Select the parent entity of the currently-selected
 primitive. See <<ReparentingPrimitives,reparenting primitives>>.
+
+*Expand selection to all Siblings*:: Select all objects that share the same
+ parent entity as the currently-selected primitive.
+
+*Select all of type*:: Select all objects in the map that share the same entity
+ class as the currently-selected object.
+
+*Command Palette...*:: Open the command palette (*Ctrl+Shift+P*) for quick
+command search and execution.
+
+*Insert Palette...*:: Open the insert palette (*Ctrl+P*) for quick entity
+insertion and goto navigation.
+
+*Keyboard Shortcuts...*:: Open the keyboard shortcut editor for viewing and
+ customising all keyboard bindings.
+
+*Mouse Bindings...*:: Open the mouse tool mapping dialog for viewing and
+ customising mouse button bindings in different view contexts.
+
+*Themes...*:: Open the theme manager for switching between UI colour themes.
 
 === View menu
 
@@ -1957,7 +2100,98 @@ primitive. See <<ReparentingPrimitives,reparenting primitives>>.
 
 *New Camera view*:: Create a new dockable 3D camera view.
 
-*Colours...*:: Show a dialog for choosing and editing <<ColourSchemes,colour schemes>>.
+*Camera -> Center*:: Center the camera on the current selection.
+
+*Camera -> Up Floor / Down Floor*:: Move the camera to the floor above or below.
+
+*Camera -> Far Clip Plane In / Out*:: Move the far clip plane closer to or
+ further from the camera.
+
+*Camera -> Next leak spot / Previous leak spot*:: Navigate along a loaded
+ pointfile to the next or previous leak location.
+
+*Orthographic -> Next (XY, XZ, YZ)*:: Cycle the current 2D view through the
+ three axis orientations.
+
+*Orthographic -> XY (Top) / YZ / XZ*:: Set the 2D view to a specific axis
+ orientation.
+
+*Orthographic -> XY 100% / XY Zoom In / XY Zoom Out*:: Reset zoom level or
+ zoom the 2D view in or out.
+
+*Show -> Show Angles / Names / Blocks / Coordinates / Window Outline / Axes /
+ Workzone / size info*:: Toggle the display of various overlay elements in
+ the 2D and 3D views.
+
+*Hide/Show -> Hide Selected*:: Hide the currently selected objects.
+
+*Hide/Show -> Hide Deselected*:: Hide all objects that are not selected.
+
+*Hide/Show -> Show hidden*:: Make all hidden objects visible again.
+
+*Region -> Switch off*:: Disable the current region.
+
+*Region -> Set from XY view*:: Define a region from the visible area of the
+ current 2D view.
+
+*Region -> Set from Brush*:: Use the selected brush as the region boundary.
+
+*Region -> Set from Selection*:: Use the bounding box of the current selection
+ as the region boundary.
+
+*Background Image...*:: Configure a background image for the 2D view.
+
+=== Modify menu
+
+*Components -> Edges*:: Enter edge editing mode for the selected brush.
+
+*Components -> Vertices*:: Enter vertex editing mode for the selected brush or patch.
+
+*Components -> Faces*:: Enter face editing mode for the selected brush.
+
+*Components -> Entities*:: Enter entity drag mode for selecting and moving entities.
+
+*Nudge -> Left / Right / Up / Down*:: Move the selected object(s) by one grid
+ unit in the specified direction.
+
+*Rotate -> X / Y / Z*:: Rotate the selected object(s) by 90 degrees around the
+ specified axis.
+
+*Mirror -> X / Y / Z*:: Mirror (flip) the selected object(s) along the
+ specified axis.
+
+*Rotate Objects independently*:: Toggle whether each selected object rotates
+ around its own center or around the common center of the selection.
+
+*Rotate and scale...*:: Open the transform dialog for entering precise rotation
+ and scale values.
+
+*Create Array...*:: Create an array of copies of the selected object(s) with
+ configurable count and spacing.
+
+*Scatter...*:: Scatter copies of the selected object(s) over a surface with
+ configurable density and randomness.
+
+=== Grid menu
+
+*Snap selected to grid*:: Snap the selected object(s) to the current grid.
+
+*Grid 0.125 .. Grid 256*:: Set the grid size to the specified value. Grid sizes
+ 1 through 256 are accessible via the *1-9* number keys. Sizes 0.125, 0.25 and
+ 0.5 are available from the menu only.
+
+=== Map menu
+
+*Find brush...*:: Search for a specific brush by number.
+
+*Find and replace textures...*:: Open a dialog to search for and replace
+ textures across the map.
+
+*Map info...*:: Display information about the current map, including counts of
+ entities, brushes and patches.
+
+*Skin Editor...*:: Open the skin editor for creating and editing model skin
+ definitions.
 
 === Entity menu
 
@@ -1967,9 +2201,31 @@ second selected entity.
 *Bind selected entities*:: Set a `bind` spawnarg on the first selected entity pointing to the
 second selected entity.
 
-*Entity class tree...*:: Show a tree of all available entity types in the current game, along with
+*EntityDef Tree...*:: Show a tree of all available entity types in the current game, along with
 all of their properties. Unlike the tree shown in the *Create Entity* dialog, this entity class
 tree shows an inheritance-based hierarchy and does not include a 3D preview.
+
+*MD5 Animation Viewer*:: Open a viewer for previewing MD5 model animations.
+
+*Particle Editor...*:: Open the particle system editor for creating and modifying particle effects.
+
+=== Generate menu
+
+*Sweep...*:: Extrude selected brushes along a curve path.
+
+*Stairs...*:: Generate staircase geometry (straight, spiral, L-shaped, U-shaped).
+
+*Cables...*:: Generate cable/rope geometry between points.
+
+*Arch...*:: Generate curved arch structures.
+
+*Corner Patch...*:: Generate curved corner patch surfaces.
+
+*Building...*:: Generate complete building structures with floors, walls, windows,
+and roofing.
+
+*Tile Map...*:: Open the visual tile-based level designer for grid-based map
+layout.
 
 === Brush menu
 
@@ -1987,6 +2243,20 @@ tree shows an inheritance-based hierarchy and does not include a 3D preview.
 *CSG -> Make Room*:: Create a hollow room from the selected brush, without any overlapping walls.
 See <<CreatingARoom,creating a room>>.
 
+*CSG -> Seal*:: Create a sealing brush that encloses the bounding box of the current selection.
+
+*CSG -> Make Passable*:: Turn solid volumes into wall shells and carve away interior geometry.
+
+*CSG -> Make Shell*:: Similar to Make Passable but repositions brushes to avoid overlap.
+
+*CSG -> CSG Subtract*:: Subtract the selected brush from overlapping brushes.
+
+*CSG -> CSG Merge*:: Merge overlapping brushes into a single convex brush.
+
+*CSG -> CSG Intersect*:: Keep only the overlapping volume of selected brushes.
+
+*CSG -> CSG Bridge*:: Create connecting geometry between two selected faces.
+
 *Clipper -> Clip Selection*:: Split the selected brush along the defined clip plane, keeping one
 half. See <<SplittingBrushes,splitting brushes>>.
 
@@ -1997,12 +2267,185 @@ halves. See <<SplittingBrushes,splitting brushes>>.
 *Clip Selection* command. Difficult to use in practice; instead just *Split Selection* and delete
 the unwanted half manually. See <<SplittingBrushes,splitting brushes>>.
 
-*Make Detail / Make Structural*:: These options only exist to support legacy games, and are not
-used in the Dark Mod.
+*Polygon Mode*:: Toggle the polygon drawing tool for creating arbitrary polygon shapes.
 
-== Configuring DarkRadiant
+*Texture lock*:: Toggle whether texture alignment is preserved when brushes are moved or resized.
 
-DarkRadiant offers a large number of configurable options which can be used to
+*Create Decal Patches*:: Create decal patches on the selected brush faces.
+
+*Make Visportal*:: Convert the selected brush into a visportal for controlling rendering visibility.
+
+*Make Detail / Make Structural*:: These options exist to support legacy games with detail/structural
+brush classification.
+
+=== Patch menu
+
+*Create Simple Patch...*:: Create a flat rectangular patch from the selected brush.
+
+*Create Terrain...*:: Open the terrain generator to create procedural terrain patches.
+
+*Create End cap / Create Bevel*:: Create arch-shaped patch surfaces.
+
+*Create Cone / Create Cylinder / Create Sphere*:: Create standard patch shapes.
+
+*More cylinders -> Dense Cylinder / Very Dense Cylinder / Square Cylinder*::
+ Create cylinder variants with different control point densities.
+
+*Insert -> Insert 2 columns/rows at beginning/end*:: Add control points without
+ changing patch dimensions.
+
+*Extend -> Extend by 2 columns/rows at beginning/end*:: Add control points while
+ extending the patch.
+
+*Delete -> Delete 2 columns/rows from beginning/end*:: Remove control points
+ without changing patch dimensions.
+
+*Matrix -> Invert*:: Invert the curve direction.
+
+*Matrix -> Re-disperse -> Rows / Columns*:: Redistribute control points evenly.
+
+*Matrix -> Transpose*:: Swap the row and column dimensions of the patch.
+
+*Thicken...*:: Extrude the patch to give it thickness.
+
+*Cap...*:: Cap the open ends of a patch to create a closed surface.
+
+*Stitch Patch Textures*:: Align textures across adjacent patches.
+
+*Bulge Patch...*:: Apply a bulge deformation to the selected patch.
+
+*Weld/Merge Patches*:: Weld or merge two selected patches into one.
+
+=== Curve menu
+
+*Create NURBS Curve*:: Create a NURBS spline curve entity.
+
+*Create CatmullRom Curve*:: Create a Catmull-Rom spline curve entity.
+
+*Convert NURBS <-> CatmullRom*:: Convert a curve between NURBS and Catmull-Rom
+ representations.
+
+*Append Curve Control Point*:: Add a new control point at the end of the curve.
+
+*Insert Curve Control Points*:: Insert new control points between existing ones.
+
+*Remove Curve Control Points*:: Remove control points from the curve.
+
+=== Help menu
+
+*About*:: Display version and build information about HellForge.
+
+*Community Forum*:: Open the community forum in a web browser.
+
+*Script Reference Wiki Article*:: Open the scripting reference documentation
+ in a web browser.
+
+*User Guide (Online)*:: Open the online version of this user guide.
+
+*User Guide (Local)*:: Open the local copy of this user guide.
+
+== MCP Server
+
+HellForge includes an MCP (Model Context Protocol) server that allows AI agents
+to operate the editor programmatically. This enables AI-assisted level design
+workflows where an agent can build and modify maps using natural language
+instructions.
+
+=== Architecture
+
+The MCP system consists of two components:
+
+* *HellForge MCP Plugin*: A C++ plugin loaded by HellForge that starts a TCP
+  server on `localhost:13646` and exposes editor operations as JSON-RPC methods.
+  All operations are dispatched to the main wxWidgets thread for thread safety.
+* *Python MCP Server*: Bridges the MCP protocol to the HellForge plugin. This
+  is what AI tools like Claude Code connect to.
+
+=== Setup
+
+==== 1. Configure your AI tool
+
+Add the MCP server to your tool's configuration. For Claude Code, add to
+`.claude/settings.json`:
+
+----
+{
+  "mcpServers": {
+    "hellforge": {
+      "command": "/path/to/hellforge/tools/mcp-server/run.sh",
+      "args": []
+    }
+  }
+}
+----
+
+The `run.sh` wrapper handles the working directory and runs the server using
+https://docs.astral.sh/uv/[uv]. Alternatively, install and run the package
+directly:
+
+----
+$ cd tools/mcp-server
+$ uv pip install .
+----
+
+==== 2. Launch HellForge
+
+Start HellForge normally. The MCP plugin will begin listening on port 13646.
+The Python server connects to it automatically when a tool is called.
+
+==== 3. Verify
+
+In Claude Code, run `/mcp` to check the server is connected. The `hellforge`
+server should be listed with 75+ tools.
+
+=== Capabilities
+
+The MCP server exposes tools for:
+
+* Creating and manipulating brushes and entities
+* Browsing and applying materials
+* Creating particles in the particle editor
+* Exploring and querying existing maps
+* Capturing camera views for visual feedback
+* Saving maps
+
+=== Example
+
+The following sequence of tool calls creates a simple sealed room with a light
+and player start:
+
+----
+get_game_config()
+list_materials(filter="floor", limit=10)
+create_brush(min=[-128,-128,0], max=[128,128,8],
+     material="textures/common/caulk")
+create_brush(min=[-128,-128,120], max=[128,128,128],
+     material="textures/common/caulk")
+create_brush(min=[-128,-128,0], max=[-120,128,120],
+     material="textures/base_wall/lfwall27")
+create_entity(classname="light", origin=[0,0,96],
+     properties={"light_radius": "200 200 200"})
+create_entity(classname="info_player_start", origin=[0,0,16])
+save_map(path="/path/to/my_room.map")
+----
+
+=== Troubleshooting
+
+*MCP server not showing*: Check that `run.sh` is executable and that `uv` is
+installed and on PATH. Try running `uv run hellforge_mcp.py` manually from
+`tools/mcp-server/` to see errors.
+
+*Tools return "Connection error"*: Make sure HellForge is running with the MCP
+plugin loaded. Check the HellForge console for `[MCP] Listening on
+localhost:13646`. Verify nothing else is using port 13646.
+
+*`list_materials` returns empty*: HellForge must have loaded a game
+configuration with `.mtr` files. Make sure a game is configured and the VFS
+paths are set.
+
+== Configuring HellForge
+
+HellForge offers a large number of configurable options which can be used to
 tailor its behaviour to your desired workflow. Most of these options can be
 found either in the Preferences dialog or exposed directly as menu items.
 
@@ -2102,33 +2545,33 @@ the 2D views.
 
 *Higher selection priority for entities*:: When using the mouse to click on and
  select an entity which is in front of, behind or inside a brush, this option
- controls whether DarkRadiant will prefer to select the entity (enabled) or the
+ controls whether HellForge will prefer to select the entity (enabled) or the
  brush (disabled).
 
 ==== User Interface settings
 
 *Start on Monitor*:: If you have more than one monitor, you can choose which
-monitor DarkRadiant will start on using this combo box.
+monitor HellForge will start on using this combo box.
 
 *Source view font size*:: This controls the point size of the monospace font
 used in source code view widgets, such as those which show material or skin
 source declarations.
 
 *Language*:: This combo box lists all of the installed language packs, allowing
-you to choose which language is used for the DarkRadiant interface.
+you to choose which language is used for the HellForge interface.
 
 ==== Autosave settings
 
 *Enable Autosave*:: Controls whether the autosave feature is active or disabled.
 
-*Autosave Interval*:: Use this slider to choose how often DarkRadiant will make
+*Autosave Interval*:: Use this slider to choose how often HellForge will make
  an autosave. By default, autosaves are made every 5 minutes.
 
-*Save Snapshots*:: If this option is enabled, DarkRadiant will make each
+*Save Snapshots*:: If this option is enabled, HellForge will make each
  autosave into a separate copy of the map file, allowing you to potentially
  revert changes which were made several autosaves ago. If this option is
  disabled, there will only ever be a single autosave file, which will protect
- against DarkRadiant or system crashes but not against long-term erroneous
+ against HellForge or system crashes but not against long-term erroneous
  changes.
 
 *Snapshot folder*:: This specifies the name of the folder used to store snapshot
@@ -2137,7 +2580,7 @@ you to choose which language is used for the DarkRadiant interface.
 *Max Snapshot size per map*:: This allows you to control the amount of disk
  space used for storing snapshots, by specifying a maximum number of megabytes
  that will be used for storing the snapshots for a single map. If the disk usage
- grows above this limit, DarkRadiant will start to delete old snapshots.
+ grows above this limit, HellForge will start to delete old snapshots.
 
 ==== Clipper settings
 
@@ -2166,7 +2609,7 @@ behaviour of the grid.
 
 *Ignore light volume bounds when calculating default rotation pivot location*::
  This option affects the behaviour of the <<ManipulatorModes,rotation tool>>
- when multiple objects are selected. DarkRadiant will place the rotation widget
+ when multiple objects are selected. HellForge will place the rotation widget
  at the approximate "center of gravity" of the set of selected objects. If this
  option is enabled, any selected lights will be treated as point entities, with
  no volume in 3D space regardless of their actual light volumes. If this option
@@ -2176,7 +2619,7 @@ behaviour of the grid.
 ==== Undo settings
 
 *Undo Queue Size*:: Use this spinbox to control the number of operations which
- are saved onto DarkRadiant's internal undo stack. Larger values provide a
+ are saved onto HellForge's internal undo stack. Larger values provide a
  longer history of undoable operations, at the expense of requiring more memory.
 
 ==== Primitives settings
@@ -2213,13 +2656,13 @@ These options control the behaviour of the <<TexturesTab,Textures tab>>.
 *Number of most recently used files*:: Choose the number of map files to list in
  the recent map section at the bottom of the *File* menu.
 
-*Open last map on startup*:: Enable this option to make DarkRadiant
+*Open last map on startup*:: Enable this option to make HellForge
  automatically load the most recently-used map every time it starts, rather than
  starting with an empty map.
 
 == Features for game distributors
 
-DarkRadiant is designed to work out of the box with a standard Doom 3 or Dark
+HellForge is designed to work out of the box with a standard Doom 3 or Dark
 Mod game installation, however it also offers a few features aimed at developers
 of the game itself.
 
@@ -2231,7 +2674,7 @@ of the quality standard that is expected of new assets. If these assets have
 already been distributed, removing them from the game installation may be
 problematic, as maps which depend on them will fail to load correctly.
 
-DarkRadiant offers a mechanism to deal with this by allowing certain assets to
+HellForge offers a mechanism to deal with this by allowing certain assets to
 be marked as "hidden". A hidden asset will no longer be presented for selection
 by the user (e.g. on the Media tab or in the Model selector), but will continue
 to function as normal when it appears in a loaded map.
@@ -2252,8 +2695,8 @@ visibility value to each named asset. For example:
 
 .assets.lst
 ----
-darkmod/chairs/some_broken_chair.lwo=hidden
-darkmod/tables/another_table.ase=hidden
+models/furniture/old_chair.lwo=hidden
+models/props/broken_table.ase=hidden
 ----
 
 Asset paths listed on the left-hand side are interpreted relative to the
@@ -2263,7 +2706,7 @@ listing the file at all, and results in no change to its visibility.
 
 NOTE: Only *files* may be listed in an `assets.lst`, not items in a virtual hierarchy such
 as the material shader tree. When a `.mtr` or `.sndshd` file is listed as hidden, all
-shaders contained within it will be hidden in DarkRadiant. This means that in order to
+shaders contained within it will be hidden in HellForge. This means that in order to
 hide specific shaders, you must move these into one or more source files which are listed
 as hidden.
 
@@ -2277,3 +2720,255 @@ class chooser.
 The visibility spawnarg is not inherited, which makes it possible to hide a base
 class (perhaps because it should not be created directly), without affecting the
 visibility of entity classes which inherit from it.
+
+== Keyboard shortcut reference
+
+The following table lists the default keyboard shortcuts in HellForge. These
+can be customized via *Edit -> Keyboard Shortcuts...*.
+
+=== General
+
+[cols="1h,3"]
+|===
+|Ctrl+O|Open map
+|Ctrl+S|Save map
+|Ctrl+Z|Undo
+|Ctrl+Y|Redo
+|Ctrl+C|Copy
+|Ctrl+X|Cut
+|Ctrl+V|Paste
+|Alt+V|Paste to camera
+|Space|Clone (duplicate) selection
+|Backspace|Delete selection
+|Escape|Deselect all
+|P|Preferences
+|O|Toggle console
+|Ctrl+Shift+P|Command Palette
+|Ctrl+P|Insert Palette
+|===
+
+=== Camera movement
+
+These keys are active when the 3D camera view has focus. Note that *W*, *A*,
+*S*, *D* and *X* also have non-camera bindings (Surface Inspector, etc.) that
+apply when focus is elsewhere.
+
+[cols="1h,3"]
+|===
+|W|Move forward
+|S|Move backward
+|A|Strafe left
+|D|Strafe right
+|Q|Move up
+|X|Move down
+|KP -|Decrease camera speed
+|KP +|Increase camera speed
+|End|Center view on selection
+|===
+
+=== Selection and manipulation
+
+[cols="1h,3"]
+|===
+|I|Invert selection
+|Shift+A|Select all of type
+|Ctrl+Alt+E|Expand selection to siblings
+|Ctrl+Alt+Shift+E|Select parent entities
+|Tab|Cycle forward in group
+|Shift+Tab|Cycle backward in group
+|Shift+G|Revert to worldspawn
+|Ctrl+Shift+G|Group selected
+|Ctrl+Shift+U|Ungroup selected
+|Ctrl+K|Connect selected entities
+|===
+
+=== Manipulators
+
+[cols="1h,3"]
+|===
+|T|Translate mode
+|R|Rotate mode
+|G|Resize/drag mode
+|V|Vertex editing mode
+|E|Edge editing mode
+|F|Face editing mode
+|Ctrl+F|Toggle selection focus
+|Ctrl+R|Toggle rotation pivot
+|Ctrl+G|Snap to grid
+|===
+
+=== Texturing
+
+[cols="1h,3"]
+|===
+|S|Surface Inspector
+|Shift+T|Toggle texture lock
+|Ctrl+T|Toggle Texture Browser
+|Ctrl+Alt+T|Toggle Texture Tool
+|Ctrl+Alt+Shift+T|Toggle Texture Tool (main control)
+|Ctrl+N|Natural texture alignment
+|Shift+N|Normalize texture
+|Shift+Arrow keys|Shift texture
+|Ctrl+Arrow keys|Scale texture
+|Shift+PageDown|Rotate texture clockwise
+|Alt+PageUp|Rotate texture counter-clockwise
+|Shift++|Texture tool grid up
+|Shift+-|Texture tool grid down
+|Alt+M|Texture tool merge items
+|===
+
+=== Brushes and CSG
+
+[cols="1h,3"]
+|===
+|C|Toggle clipper
+|Enter|Clip selection
+|Shift+Enter|Split selection
+|Ctrl+Enter|Flip clip orientation
+|Shift+U|CSG Subtract
+|Ctrl+U|CSG Merge
+|Ctrl+3..9|Create 3..9 sided brush
+|Ctrl+M|Make detail
+|Ctrl+Shift+S|Make structural
+|Ctrl+Shift+R|Set region from selection
+|===
+
+=== Patches
+
+[cols="1h,3"]
+|===
+|Shift+P|Create simple patch
+|Shift+S|Toggle Patch Inspector
+|Ctrl+I|Invert curve
+|Ctrl+E|Redisperse rows
+|Ctrl+Shift+E|Redisperse columns
+|Ctrl+Shift+M|Transpose matrix
+|Shift+C|Cap selection
+|Ctrl+KP +|Insert row at end
+|Ctrl+Shift+KP +|Insert column at end
+|Ctrl+KP -|Delete row at end
+|Ctrl+Shift+KP -|Delete column at end
+|===
+
+=== View
+
+[cols="1h,3"]
+|===
+|Ctrl+Tab|Next ortho view (XY, XZ, YZ)
+|Ctrl+Shift+Tab|Center all XY views on camera
+|Ctrl+Alt+Tab|Center XY view on camera
+|Shift+Ctrl+V|Toggle view layout
+|Ctrl+Shift+C|Toggle camera panel
+|Ctrl+Alt+N|New ortho view
+|Shift+X|Toggle crosshairs
+|0|Toggle grid display
+|1|Set grid 1
+|2|Set grid 2
+|3|Set grid 4
+|4|Set grid 8
+|5|Set grid 16
+|6|Set grid 32
+|7|Set grid 64
+|8|Set grid 128
+|9|Set grid 256
+|-|Grid size up (larger spacing)
+|+|Grid size down (smaller spacing)
+|F3|Toggle preview mode
+|===
+
+=== Visibility
+
+[cols="1h,3"]
+|===
+|H|Hide selected
+|Shift+H|Show hidden
+|Ctrl+Shift+H|Hide deselected
+|Ctrl+L|Layers panel
+|===
+
+=== Navigation
+
+[cols="1h,3"]
+|===
+|PageUp|Up floor
+|PageDown|Down floor
+|KP /|Far clip plane in
+|KP *|Far clip plane out
+|Shift+F|Toggle far clip plane
+|Ctrl+Shift+K|Next leak spot
+|Ctrl+Shift+L|Previous leak spot
+|Delete|Zoom in (2D view)
+|Insert|Zoom out (2D view)
+|===
+
+=== Nudge
+
+[cols="1h,3"]
+|===
+|Alt+Arrow keys|Nudge selection in the pressed direction
+|Shift+KP +|Move selection up
+|Shift+KP -|Move selection down
+|===
+
+=== Panels
+
+[cols="1h,3"]
+|===
+|N|Entity Inspector
+|J|Entity List
+|L|Light Inspector
+|M|Media Browser
+|Ctrl+Shift+A|AAS Visualization panel
+|Ctrl+Shift+Alt+F|Show all light radii
+|Alt+O|Background image panel
+|===
+
+=== Saved positions
+
+[cols="1h,3"]
+|===
+|Ctrl+Alt+1..0|Save camera position 1-10
+|Alt+1..0|Load camera position 1-10
+|===
+
+=== Mouse bindings (3D camera view)
+
+[cols="1h,3"]
+|===
+|RMB|Free camera mode
+|Alt+RMB|Jump to object under cursor
+|MMB|Pan view
+|Alt+MMB|Pick shader from surface
+|Ctrl+MMB|Paste shader (projected)
+|Shift+MMB|Paste shader (Natural)
+|Alt+Ctrl+MMB|Paste shader to entire brush
+|Alt+Shift+MMB|Paste shader name only
+|Ctrl+Shift+MMB|Decal shooter
+|LMB|Manipulate / create brush (context dependent)
+|Shift+LMB|Select/deselect
+|Ctrl+Shift+LMB|Select face only
+|Alt+Shift+LMB|Cycle selection
+|Ctrl+Shift+Alt+LMB|Cycle selection (faces only)
+|===
+
+=== Mouse bindings (2D ortho view)
+
+[cols="1h,3"]
+|===
+|LMB|Manipulate / create brush / clip / polygon (context dependent)
+|Shift+LMB|Select/deselect
+|Alt+Shift+LMB|Cycle selection
+|MMB|Scroll view
+|Shift+RMB|Zoom view
+|Ctrl+MMB|Measurement tool
+|===
+
+=== Mouse bindings (Texture Tool)
+
+[cols="1h,3"]
+|===
+|LMB|Manipulate texture
+|Shift+LMB|Select/deselect
+|Alt+Shift+LMB|Cycle selection
+|RMB|Scroll view
+|===
