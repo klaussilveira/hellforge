@@ -91,6 +91,9 @@
     <ClInclude Include="..\..\plugins\script\PythonModule.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\plugins\script\interfaces\AasFileInterface.h">
+      <Filter>src\interfaces</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\plugins\script\interfaces\CameraInterface.h">
       <Filter>src\interfaces</Filter>
     </ClInclude>
@@ -182,6 +185,9 @@
     </ClCompile>
     <ClCompile Include="..\..\plugins\script\PythonModule.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\plugins\script\interfaces\AasFileInterface.cpp">
+      <Filter>src\interfaces</Filter>
     </ClCompile>
     <ClCompile Include="..\..\plugins\script\interfaces\CameraInterface.cpp">
       <Filter>src\interfaces</Filter>
