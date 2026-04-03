@@ -37,17 +37,17 @@ jobs:
         run: |
           cd artifacts
 
-          tar czf darkradiant-nightly-linux-x86_64.tar.gz -C darkradiant-linux-x86_64 .
+          tar czf hellforge-nightly-linux-x86_64.tar.gz -C hellforge-linux-x86_64 .
 
-          cd darkradiant-windows-x64
-          zip -r ../darkradiant-nightly-windows-x64.zip .
+          cd hellforge-windows-x64
+          zip -r ../hellforge-nightly-windows-x64.zip .
           cd ..
 
-          if [ -d darkradiant-appimage-x86_64 ]; then
-            cp darkradiant-appimage-x86_64/*.AppImage darkradiant-nightly-x86_64.AppImage
+          if [ -d hellforge-appimage-x86_64 ]; then
+            cp hellforge-appimage-x86_64/*.AppImage hellforge-nightly-x86_64.AppImage
           fi
 
-          cp darkradiant-flatpak-x86_64/darkradiant.flatpak darkradiant-nightly-x86_64.flatpak
+          cp hellforge-flatpak-x86_64/hellforge.flatpak hellforge-nightly-x86_64.flatpak
 
       - name: Delete existing nightly release
         run: gh release delete nightly --cleanup-tag --yes || true
@@ -58,12 +58,12 @@ jobs:
       - name: Create nightly release
         run: |
           files=(
-            artifacts/darkradiant-nightly-linux-x86_64.tar.gz
-            artifacts/darkradiant-nightly-windows-x64.zip
-            artifacts/darkradiant-nightly-x86_64.flatpak
+            artifacts/hellforge-nightly-linux-x86_64.tar.gz
+            artifacts/hellforge-nightly-windows-x64.zip
+            artifacts/hellforge-nightly-x86_64.flatpak
           )
-          if [ -f artifacts/darkradiant-nightly-x86_64.AppImage ]; then
-            files+=(artifacts/darkradiant-nightly-x86_64.AppImage)
+          if [ -f artifacts/hellforge-nightly-x86_64.AppImage ]; then
+            files+=(artifacts/hellforge-nightly-x86_64.AppImage)
           fi
           gh release create nightly \
             --prerelease \
