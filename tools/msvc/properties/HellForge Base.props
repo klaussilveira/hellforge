@@ -28,7 +28,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(HellForgeRoot)\build\libs\$(Platform);$(HellForgeRoot)\build\libs\$(Platform)\$(Configuration);$(PlatformDepsDir)\libsigc++\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libsigc++$(LibSuffix)-vc$(PlatformToolsetVersion).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libsigc++$(LibSuffix)-vc$(PlatformToolsetVersion).lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>

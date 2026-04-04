@@ -49,36 +49,36 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\msvc\properties\DarkRadiant Base.props" />
+    <Import Project="..\msvc\properties\HellForge Base.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\msvc\properties\DarkRadiant Base.props" />
+    <Import Project="..\msvc\properties\HellForge Base.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\msvc\properties\DarkRadiant Base.props" />
+    <Import Project="..\msvc\properties\HellForge Base.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\msvc\properties\DarkRadiant Base.props" />
+    <Import Project="..\msvc\properties\HellForge Base.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -92,7 +92,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(DarkRadiantRoot)\tools\scripts\download_windeps.ps1"</Command>
+      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(HellForgeRoot)\tools\scripts\download_windeps.ps1"</Command>
       <Message>Ensure Windows Dependencies are downloaded and extracted</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -112,7 +112,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(DarkRadiantRoot)\tools\scripts\download_windeps.ps1"</Command>
+      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(HellForgeRoot)\tools\scripts\download_windeps.ps1"</Command>
       <Message>Ensure Windows Dependencies are downloaded and extracted</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -128,7 +128,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(DarkRadiantRoot)\tools\scripts\download_windeps.ps1"</Command>
+      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(HellForgeRoot)\tools\scripts\download_windeps.ps1"</Command>
       <Message>Ensure Windows Dependencies are downloaded and extracted</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -148,7 +148,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(DarkRadiantRoot)\tools\scripts\download_windeps.ps1"</Command>
+      <Command>powershell -ExecutionPolicy Bypass -NoProfile -NonInteractive -File "$(HellForgeRoot)\tools\scripts\download_windeps.ps1"</Command>
       <Message>Ensure Windows Dependencies are downloaded and extracted</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
