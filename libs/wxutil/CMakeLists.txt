@@ -52,5 +52,5 @@ target_link_libraries(wxutil PUBLIC
                       ${GLEW_LIBRARIES}
                       ${GL_LIBRARIES})
 if(WIN32)
-    target_link_libraries(wxutil PUBLIC dwmapi)
+    target_link_libraries(wxutil PUBLIC dwmapi uxtheme)
 endif()

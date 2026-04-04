@@ -1,12 +1,69 @@
 #include "UIThemeManager.h"
 
+#include <wx/app.h>
+
 #ifdef WIN32
 #include <wx/msw/private.h>
 #include <dwmapi.h>
+#include <uxtheme.h>
+
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 #endif
-#endif
+
+#include <wx/textctrl.h>
+#include <wx/listctrl.h>
+#include <wx/treectrl.h>
+#include <wx/dataview.h>
+#include <wx/aui/auibook.h>
+#include <wx/toolbar.h>
+
+namespace
+{
+
+enum AppMode
+{
+    AppMode_Default = 0,
+    AppMode_AllowDark = 1,
+    AppMode_ForceDark = 2,
+    AppMode_ForceLight = 3
+};
+
+using fnSetPreferredAppMode = DWORD(WINAPI*)(DWORD mode);
+using fnAllowDarkModeForWindow = bool(WINAPI*)(HWND hwnd, bool allow);
+using fnShouldAppsUseDarkMode = bool(WINAPI*)();
+using fnRefreshImmersiveColorPolicyState = void(WINAPI*)();
+using fnFlushMenuThemes = void(WINAPI*)();
+
+fnSetPreferredAppMode pSetPreferredAppMode = nullptr;
+fnAllowDarkModeForWindow pAllowDarkModeForWindow = nullptr;
+fnShouldAppsUseDarkMode pShouldAppsUseDarkMode = nullptr;
+fnRefreshImmersiveColorPolicyState pRefreshImmersiveColorPolicyState = nullptr;
+fnFlushMenuThemes pFlushMenuThemes = nullptr;
+
+bool isNativeControl(wxWindow* window)
+{
+    return dynamic_cast<wxTreeCtrl*>(window) ||
+           dynamic_cast<wxListCtrl*>(window) ||
+           dynamic_cast<wxDataViewCtrl*>(window);
+}
+
+void applyAuiNotebookTheme(wxAuiNotebook* notebook, const wxutil::UIThemeManager::ThemeColours& colours)
+{
+    auto* art = notebook->GetArtProvider();
+    if (!art)
+        return;
+
+    art->SetColour(colours.panelBackground);
+    art->SetActiveColour(colours.tabActive);
+
+    notebook->SetBackgroundColour(colours.windowBackground);
+    notebook->SetForegroundColour(colours.textPrimary);
+}
+
+}
+
+#endif // WIN32
 
 namespace wxutil
 {
@@ -18,17 +75,18 @@ UIThemeManager& UIThemeManager::Instance()
 }
 
 UIThemeManager::UIThemeManager()
-    : _darkThemeEnabled(true)
+    : _darkThemeEnabled(true),
+      _darkModeApiAvailable(false),
+      _eventsBound(false)
 {
     initializeTheme();
+    initDarkModeApi();
 }
 
 void UIThemeManager::initializeTheme()
 {
     // Blender 4 Dark Theme colour values
     // Based on userdef_default_theme.c from Blender source
-    // These are used for programmatic theming of specific widgets
-    // that don't respond to GTK theme changes
 
     // Main backgrounds
     _colours.windowBackground = wxColour(48, 48, 48);       // #303030 - main window
@@ -63,6 +121,42 @@ void UIThemeManager::initializeTheme()
     _colours.error = wxColour(255, 100, 100);               // Bright red for error
 }
 
+void UIThemeManager::initDarkModeApi()
+{
+#ifdef WIN32
+    HMODULE hUxTheme = LoadLibraryW(L"uxtheme.dll");
+    if (!hUxTheme)
+        return;
+
+    pSetPreferredAppMode = reinterpret_cast<fnSetPreferredAppMode>(
+        GetProcAddress(hUxTheme, MAKEINTRESOURCEA(135)));
+    pAllowDarkModeForWindow = reinterpret_cast<fnAllowDarkModeForWindow>(
+        GetProcAddress(hUxTheme, MAKEINTRESOURCEA(133)));
+    pShouldAppsUseDarkMode = reinterpret_cast<fnShouldAppsUseDarkMode>(
+        GetProcAddress(hUxTheme, MAKEINTRESOURCEA(132)));
+
+    pRefreshImmersiveColorPolicyState = reinterpret_cast<fnRefreshImmersiveColorPolicyState>(
+        GetProcAddress(hUxTheme, MAKEINTRESOURCEA(104)));
+    pFlushMenuThemes = reinterpret_cast<fnFlushMenuThemes>(
+        GetProcAddress(hUxTheme, MAKEINTRESOURCEA(136)));
+
+    if (pSetPreferredAppMode && pAllowDarkModeForWindow)
+    {
+        _darkModeApiAvailable = true;
+
+        if (_darkThemeEnabled)
+        {
+            pSetPreferredAppMode(AppMode_ForceDark);
+
+            if (pRefreshImmersiveColorPolicyState)
+                pRefreshImmersiveColorPolicyState();
+            if (pFlushMenuThemes)
+                pFlushMenuThemes();
+        }
+    }
+#endif
+}
+
 const UIThemeManager::ThemeColours& UIThemeManager::getColours() const
 {
     return _colours;
@@ -76,56 +170,138 @@ bool UIThemeManager::isDarkThemeEnabled() const
 void UIThemeManager::setDarkThemeEnabled(bool enabled)
 {
     _darkThemeEnabled = enabled;
+
+#ifdef WIN32
+    if (_darkModeApiAvailable && pSetPreferredAppMode)
+    {
+        pSetPreferredAppMode(enabled ? AppMode_ForceDark : AppMode_Default);
+
+        if (pRefreshImmersiveColorPolicyState)
+            pRefreshImmersiveColorPolicyState();
+        if (pFlushMenuThemes)
+            pFlushMenuThemes();
+    }
+
+    if (_darkModeApiAvailable && !_eventsBound && wxTheApp)
+    {
+        _eventsBound = true;
+
+        wxTheApp->Bind(wxEVT_CREATE, [this](wxWindowCreateEvent& ev) {
+            ev.Skip();
+
+            if (!_darkThemeEnabled)
+                return;
+
+            auto* window = ev.GetWindow();
+            if (!window)
+                return;
+
+            if (window->IsTopLevel())
+                applyDarkModeToTopLevel(window);
+
+            applyThemeToWindow(window);
+        });
+    }
+#endif
 }
 
 void UIThemeManager::applyTheme(wxWindow* window)
 {
     if (!window || !_darkThemeEnabled)
-    {
         return;
-    }
 
-#ifdef WIN32
-    if (window->IsTopLevel())
-    {
-        HWND hwnd = static_cast<HWND>(window->GetHandle());
-        if (hwnd)
-        {
-            BOOL darkMode = TRUE;
-            DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE,
-                                  &darkMode, sizeof(darkMode));
-        }
-    }
-#endif
-
+    applyDarkModeToTopLevel(window);
     applyThemeRecursive(window);
+}
+
+void UIThemeManager::applyDarkModeToTopLevel(wxWindow* window)
+{
+#ifdef WIN32
+    if (!window->IsTopLevel())
+        return;
+
+    HWND hwnd = static_cast<HWND>(window->GetHandle());
+    if (!hwnd)
+        return;
+
+    BOOL darkMode = TRUE;
+    DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE,
+                          &darkMode, sizeof(darkMode));
+
+    if (_darkModeApiAvailable && pAllowDarkModeForWindow)
+        pAllowDarkModeForWindow(hwnd, true);
+
+    if (pFlushMenuThemes)
+        pFlushMenuThemes();
+
+    DrawMenuBar(hwnd);
+#endif
+}
+
+void UIThemeManager::applyDarkModeToControl(wxWindow* window)
+{
+#ifdef WIN32
+    HWND hwnd = static_cast<HWND>(window->GetHandle());
+    if (!hwnd)
+        return;
+
+    if (_darkModeApiAvailable && pAllowDarkModeForWindow)
+        pAllowDarkModeForWindow(hwnd, true);
+
+    if (isNativeControl(window))
+        SetWindowTheme(hwnd, L"Explorer", nullptr);
+    else
+        SetWindowTheme(hwnd, L"DarkMode_Explorer", nullptr);
+
+    SendMessageW(hwnd, WM_THEMECHANGED, 0, 0);
+#endif
 }
 
 void UIThemeManager::applyThemeToWindow(wxWindow* window)
 {
     if (!window || !_darkThemeEnabled)
+        return;
+
+#ifdef WIN32
+    applyDarkModeToControl(window);
+
+    if (auto* notebook = dynamic_cast<wxAuiNotebook*>(window))
     {
+        applyAuiNotebookTheme(notebook, _colours);
         return;
     }
 
-#ifdef WIN32
-    window->SetBackgroundColour(_colours.panelBackground);
-    window->SetForegroundColour(_colours.textPrimary);
+    if (auto* textCtrl = dynamic_cast<wxTextCtrl*>(window))
+    {
+        textCtrl->SetBackgroundColour(_colours.inputBackground);
+        textCtrl->SetForegroundColour(_colours.textPrimary);
+        return;
+    }
+
+    if (auto* toolbar = dynamic_cast<wxToolBar*>(window))
+    {
+        toolbar->SetBackgroundColour(_colours.windowBackground);
+        toolbar->SetForegroundColour(_colours.textPrimary);
+        return;
+    }
+
+    if (!isNativeControl(window))
+    {
+        window->SetBackgroundColour(_colours.panelBackground);
+        window->SetForegroundColour(_colours.textPrimary);
+    }
 #endif
 }
 
 void UIThemeManager::applyThemeRecursive(wxWindow* window)
 {
     if (!window)
-    {
         return;
-    }
 
     applyThemeToWindow(window);
 
-    // Recurse into children
     wxWindowList& children = window->GetChildren();
-    for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
+    for (auto it = children.begin(); it != children.end(); ++it)
     {
         applyThemeRecursive(*it);
     }
