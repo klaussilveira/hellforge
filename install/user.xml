@@ -78,6 +78,15 @@
       <scaleYStep value="1.1" />
       <scaleZStep value="1.1" />
     </transformPanel>
+    <renderingQuality>
+      <lineAntialiasing>1</lineAntialiasing>
+      <lineSmoothHint>Nicest</lineSmoothHint>
+      <multisampleEnabled>1</multisampleEnabled>
+      <pointAntialiasing>1</pointAntialiasing>
+      <vertexPointSize>6</vertexPointSize>
+      <vertexPointSmooth>1</vertexPointSmooth>
+      <utilityTextureAlpha>0.200000</utilityTextureAlpha>
+    </renderingQuality>
     <textures>
       <materialChooser>
         <window xPosition="200" yPosition="100" width="550" height="500" />
