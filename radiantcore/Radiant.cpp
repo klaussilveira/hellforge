@@ -98,7 +98,7 @@ void Radiant::startup()
 
 void Radiant::createLogFile()
 {
-	_logFile.reset(new applog::LogFile(_context.getCacheDataPath() + "darkradiant.log"));
+	_logFile.reset(new applog::LogFile(_context.getCacheDataPath() + "hellforge.log"));
 
 	if (_logFile->isOpen())
 	{

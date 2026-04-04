@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DarkRadiant", "tools\msvc\DarkRadiant.vcxproj", "{8E70385C-223A-4DD1-9B99-28FF2331A2B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HellForge", "tools\msvc\HellForge.vcxproj", "{8E70385C-223A-4DD1-9B99-28FF2331A2B5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0D4BE190-97F4-4DB9-BEAB-B0196868EC0A} = {0D4BE190-97F4-4DB9-BEAB-B0196868EC0A}
 	EndProjectSection
@@ -90,7 +90,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{3C3C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Main Binary and Headers", "Main Binary and Headers", "{F0E8C46B-4F20-43B1-9A8D-13A9D0A3BA3D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DarkRadiantCore", "tools\msvc\DarkRadiantCore.vcxproj", "{83D79C71-4E8F-4F78-9D46-EF02D5D5CD89}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HellForgeCore", "tools\msvc\HellForgeCore.vcxproj", "{83D79C71-4E8F-4F78-9D46-EF02D5D5CD89}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0D4BE190-97F4-4DB9-BEAB-B0196868EC0A} = {0D4BE190-97F4-4DB9-BEAB-B0196868EC0A}
 		{3C9FB5AA-7118-476E-B33D-D3AC1C8412BB} = {3C9FB5AA-7118-476E-B33D-D3AC1C8412BB}

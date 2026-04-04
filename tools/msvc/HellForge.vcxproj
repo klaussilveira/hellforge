@@ -50,8 +50,8 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release Win32.props" />
-    <Import Project="properties\DarkRadiant Main Executable.props" />
+    <Import Project="properties\HellForge Base Release Win32.props" />
+    <Import Project="properties\HellForge Main Executable.props" />
     <Import Project="properties\wxWidgets.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
@@ -59,8 +59,8 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug Win32.props" />
-    <Import Project="properties\DarkRadiant Main Executable.props" />
+    <Import Project="properties\HellForge Base Debug Win32.props" />
+    <Import Project="properties\HellForge Main Executable.props" />
     <Import Project="properties\wxWidgets.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
@@ -68,8 +68,8 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release x64.props" />
-    <Import Project="properties\DarkRadiant Main Executable.props" />
+    <Import Project="properties\HellForge Base Release x64.props" />
+    <Import Project="properties\HellForge Main Executable.props" />
     <Import Project="properties\wxWidgets.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
@@ -77,8 +77,8 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug x64.props" />
-    <Import Project="properties\DarkRadiant Main Executable.props" />
+    <Import Project="properties\HellForge Base Debug x64.props" />
+    <Import Project="properties\HellForge Main Executable.props" />
     <Import Project="properties\wxWidgets.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
@@ -119,7 +119,7 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>$(DarkRadiantRoot)\tools\msvc\post_build_event.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
+      <Command>$(HellForgeRoot)\tools\msvc\post_build_event.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -142,7 +142,7 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>$(DarkRadiantRoot)tools\msvc\post_build_event_x64.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
+      <Command>$(HellForgeRoot)tools\msvc\post_build_event_x64.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -160,7 +160,7 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>$(DarkRadiantRoot)\tools\msvc\post_build_event.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
+      <Command>$(HellForgeRoot)\tools\msvc\post_build_event.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -182,7 +182,7 @@
       </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
-      <Command>$(DarkRadiantRoot)tools\msvc\post_build_event_x64.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
+      <Command>$(HellForgeRoot)tools\msvc\post_build_event_x64.cmd $(Configuration) vc$(PlatformToolsetVersion)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

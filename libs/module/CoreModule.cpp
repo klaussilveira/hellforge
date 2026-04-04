@@ -7,7 +7,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #else
-#define CORE_MODULE_LIBRARY "DarkRadiantCore"
+#define CORE_MODULE_LIBRARY "HellForgeCore"
 #endif
 
 namespace module

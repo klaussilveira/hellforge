@@ -35,8 +35,12 @@
 #include "crtdbg.h"
 #endif
 
+#if defined(WIN32)
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+
 #if defined(__linux__)
-// Function to intercept unwanted Gtk log messages on Linux
 #include <glib.h>
 GLogWriterOutput
 log_black_hole(GLogLevelFlags, const GLogField*, gsize, gpointer)
@@ -160,6 +164,24 @@ RadiantApp::RadiantApp()
         // Light theme: ensure no dark variant is forced
         setenv("GTK_THEME", "Adwaita", 1);
     }
+#elif defined(WIN32)
+    bool useDark = true;
+
+    const char* appData = getenv("APPDATA");
+    if (appData && *appData)
+    {
+        std::string themePath = std::string(appData) + "\\HellForge\\theme";
+        std::ifstream themeFile(themePath);
+        if (themeFile.is_open())
+        {
+            std::string value;
+            std::getline(themeFile, value);
+            if (value == "light")
+                useDark = false;
+        }
+    }
+
+    wxutil::GlobalUIThemeManager().setDarkThemeEnabled(useDark);
 #endif
 }
 

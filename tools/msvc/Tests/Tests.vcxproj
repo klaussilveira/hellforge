@@ -31,22 +31,22 @@
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="..\properties\DarkRadiant Base Debug x64.props" />
+    <Import Project="..\properties\HellForge Base Debug x64.props" />
     <Import Project="..\properties\Tests.props" />
     <Import Project="..\properties\GLEW.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="..\properties\DarkRadiant Base Debug Win32.props" />
+    <Import Project="..\properties\HellForge Base Debug Win32.props" />
     <Import Project="..\properties\Tests.props" />
     <Import Project="..\properties\GLEW.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="..\properties\DarkRadiant Base Release Win32.props" />
+    <Import Project="..\properties\HellForge Base Release Win32.props" />
     <Import Project="..\properties\Tests.props" />
     <Import Project="..\properties\GLEW.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="..\properties\DarkRadiant Base Release x64.props" />
+    <Import Project="..\properties\HellForge Base Release x64.props" />
     <Import Project="..\properties\Tests.props" />
     <Import Project="..\properties\GLEW.props" />
   </ImportGroup>

@@ -54,29 +54,29 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release Win32.props" />
-    <Import Project="properties\DarkRadiant Plugin DLL.props" />
+    <Import Project="properties\HellForge Base Release Win32.props" />
+    <Import Project="properties\HellForge Plugin DLL.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug Win32.props" />
-    <Import Project="properties\DarkRadiant Plugin DLL.props" />
+    <Import Project="properties\HellForge Base Debug Win32.props" />
+    <Import Project="properties\HellForge Plugin DLL.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release x64.props" />
-    <Import Project="properties\DarkRadiant Plugin DLL.props" />
+    <Import Project="properties\HellForge Base Release x64.props" />
+    <Import Project="properties\HellForge Plugin DLL.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug x64.props" />
-    <Import Project="properties\DarkRadiant Plugin DLL.props" />
+    <Import Project="properties\HellForge Base Debug x64.props" />
+    <Import Project="properties\HellForge Plugin DLL.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
@@ -97,7 +97,7 @@
     </ClCompile>
     <PostBuildEvent>
       <Command>@echo Copying bitmaps to Output Folder...
-copy $(DarkRadiantRoot)plugins\dm.gameconnection\*.png $(DarkRadiantRoot)install\bitmaps /Y</Command>
+copy $(HellForgeRoot)plugins\dm.gameconnection\*.png $(HellForgeRoot)install\bitmaps /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -112,7 +112,7 @@ copy $(DarkRadiantRoot)plugins\dm.gameconnection\*.png $(DarkRadiantRoot)install
     </ClCompile>
     <PostBuildEvent>
       <Command>@echo Copying bitmaps to Output Folder...
-copy $(DarkRadiantRoot)plugins\dm.gameconnection\*.png $(DarkRadiantRoot)install\bitmaps /Y</Command>
+copy $(HellForgeRoot)plugins\dm.gameconnection\*.png $(HellForgeRoot)install\bitmaps /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,7 +128,7 @@ copy $(DarkRadiantRoot)plugins\dm.gameconnection\*.png $(DarkRadiantRoot)install
     </ClCompile>
     <PostBuildEvent>
       <Command>@echo Copying bitmaps to Output Folder...
-copy $(DarkRadiantRoot)plugins\dm.gameconnection\*.png $(DarkRadiantRoot)install\bitmaps /Y</Command>
+copy $(HellForgeRoot)plugins\dm.gameconnection\*.png $(HellForgeRoot)install\bitmaps /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,7 +144,7 @@ copy $(DarkRadiantRoot)plugins\dm.gameconnection\*.png $(DarkRadiantRoot)install
     </ClCompile>
     <PostBuildEvent>
       <Command>@echo Copying bitmaps to Output Folder...
-copy $(DarkRadiantRoot)plugins\dm.gameconnection\*.png $(DarkRadiantRoot)install\bitmaps /Y</Command>
+copy $(HellForgeRoot)plugins\dm.gameconnection\*.png $(HellForgeRoot)install\bitmaps /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

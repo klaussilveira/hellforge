@@ -110,21 +110,21 @@ if ($null -eq $vcRedistFolder)
 if ($target -eq "x86")
 {
     $platform = "Win32"
-    $issFile = "..\innosetup\darkradiant.iss"
-    $portablePath = "DarkRadiant_install"
+    $issFile = "..\innosetup\hellforge.iss"
+    $portablePath = "HellForge_install"
 	$redistSource = Join-Path $vcRedistFolder "x86\Microsoft.VC143.CRT"
 } 
 else
 {
     $platform = "x64"
-    $issFile = "..\innosetup\darkradiant.x64.iss"
-    $portablePath = "DarkRadiant_install.x64"
+    $issFile = "..\innosetup\hellforge.x64.iss"
+    $portablePath = "HellForge_install.x64"
 	$redistSource = Join-Path $vcRedistFolder "x64\Microsoft.VC143.CRT"
 }
 
 if (-not $SkipBuild)
 {
-	Start-Process "msbuild" -ArgumentList ("..\..\DarkRadiant.sln", "/p:configuration=release", "/t:rebuild", "/p:platform=$platform", "/maxcpucount:4", "/nodeReuse:false", "/p:UseSharedConfiguration=false") -NoNewWindow -Wait
+	Start-Process "msbuild" -ArgumentList ("..\..\HellForge.sln", "/p:configuration=release", "/t:rebuild", "/p:platform=$platform", "/maxcpucount:4", "/nodeReuse:false", "/p:UseSharedConfiguration=false") -NoNewWindow -Wait
 }
 
 # Copy files to portable files folder
@@ -170,7 +170,7 @@ if ($GenerateSetupPackage)
     # Write the version to the innosetup source file
     Write-Host ("Writing version {0} to InnoSetup file" -f $foundVersionString)
     $issContent = Get-Content $issFile
-    $issContent = $issContent -replace '#define DarkRadiantVersion "(.+)"', ('#define DarkRadiantVersion "{0}"' -f $foundVersionString)
+    $issContent = $issContent -replace '#define HellForgeVersion "(.+)"', ('#define HellForgeVersion "{0}"' -f $foundVersionString)
     Write-Host ("Writing redist folder {0} to InnoSetup file" -f $vcRedistFolder)
     $issContent = $issContent -replace '#define VCRedistDir "(.+)"', ('#define VCRedistDir "{0}"' -f $vcRedistFolder)
     Set-Content -Path $issFile -Value $issContent

@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(WinDepsDir)python\include;$(DarkRadiantRoot)\libs\pybind;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(WinDepsDir)python\include;$(HellForgeRoot)\libs\pybind;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>HAVE_ACOSH;HAVE_ASINH;HAVE_ATANH;HAVE_LOG1P;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4250;4100;4189</DisableSpecificWarnings>
     </ClCompile>

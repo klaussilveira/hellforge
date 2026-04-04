@@ -3,9 +3,10 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(DarkRadiantRoot)install\modules\</OutDir>
+    <OutDir>$(HellForgeRoot)install\plugins\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <Link />
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup />

@@ -6,7 +6,7 @@
 #include "os/file.h"
 #include "string/replace.h"
 
-#define PID_FILENAME "darkradiant.pid"
+#define PID_FILENAME "hellforge.pid"
 
 namespace applog {
 
@@ -36,7 +36,7 @@ public:
 
 #ifndef _DEBUG
 			fs::path path = registry.getApplicationContext().getSettingsPath();
-			path /= "darkradiant.log";
+			path /= "hellforge.log";
 			std::string logPath = path.string();
 			string::replace_all(logPath, "\\\\", "\\");
 			string::replace_all(logPath, "//", "/");
@@ -45,7 +45,7 @@ public:
 			msg += "If this is happening again, you might want to check the log file in\n";
 			msg += logPath;
 
-			wxutil::Messagebox box("DarkRadiant - Startup Failure", msg, ui::IDialog::MESSAGE_CONFIRM);
+			wxutil::Messagebox box("HellForge - Startup Failure", msg, ui::IDialog::MESSAGE_CONFIRM);
 			box.run();
 #endif
 		}

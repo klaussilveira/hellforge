@@ -44,25 +44,25 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release Win32.props" />
+    <Import Project="properties\HellForge Base Release Win32.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug Win32.props" />
+    <Import Project="properties\HellForge Base Debug Win32.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release x64.props" />
+    <Import Project="properties\HellForge Base Release x64.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug x64.props" />
+    <Import Project="properties\HellForge Base Debug x64.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\wxWidgets.props" />
   </ImportGroup>
@@ -71,20 +71,20 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(DarkRadiantRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(HellForgeRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(DarkRadiantRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(HellForgeRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(DarkRadiantRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(HellForgeRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(DarkRadiantRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
-    <OutDir>$(DarkRadiantRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(HellForgeRoot)\libs;$(W32DepsDir)\libsigc++\include;$(IncludePath)</IncludePath>
+    <OutDir>$(HellForgeRoot)build\output\$(ProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>

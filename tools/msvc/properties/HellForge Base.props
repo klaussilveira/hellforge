@@ -2,18 +2,18 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <DarkRadiantRoot>$(SolutionDir)</DarkRadiantRoot>
-    <W32DepsDir>$(DarkRadiantRoot)w32deps\</W32DepsDir>
-    <W64DepsDir>$(DarkRadiantRoot)w64deps\</W64DepsDir>
-    <WinDepsDir>$(DarkRadiantRoot)windeps\</WinDepsDir>
+    <HellForgeRoot>$(SolutionDir)</HellForgeRoot>
+    <W32DepsDir>$(HellForgeRoot)w32deps\</W32DepsDir>
+    <W64DepsDir>$(HellForgeRoot)w64deps\</W64DepsDir>
+    <WinDepsDir>$(HellForgeRoot)windeps\</WinDepsDir>
   </PropertyGroup>
   <PropertyGroup>
-    <IntDir>$(DarkRadiantRoot)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(HellForgeRoot)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(DarkRadiantRoot)\include;$(DarkRadiantRoot)\libs;$(WinDepsDir)libsigc++\include;$(DarkRadiantRoot)\libs\libfmt;$(DarkRadiantRoot)\libs\pugixml;$(WinDepsDir)libeigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HellForgeRoot)\include;$(HellForgeRoot)\libs;$(WinDepsDir)libsigc++\include;$(HellForgeRoot)\libs\libfmt;$(HellForgeRoot)\libs\pugixml;$(WinDepsDir)libeigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_DEPRECATE;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;FMT_HEADER_ONLY;FMT_USE_WINDOWS_H=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>precompiled.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -27,19 +27,19 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(DarkRadiantRoot)\build\libs\$(Platform);$(DarkRadiantRoot)\build\libs\$(Platform)\$(Configuration);$(PlatformDepsDir)\libsigc++\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(HellForgeRoot)\build\libs\$(Platform);$(HellForgeRoot)\build\libs\$(Platform)\$(Configuration);$(PlatformDepsDir)\libsigc++\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libsigc++$(LibSuffix)-vc$(PlatformToolsetVersion).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(DarkRadiantRoot)build\libs\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(HellForgeRoot)build\libs\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <BuildMacro Include="DarkRadiantRoot">
-      <Value>$(DarkRadiantRoot)</Value>
+    <BuildMacro Include="HellForgeRoot">
+      <Value>$(HellForgeRoot)</Value>
     </BuildMacro>
     <BuildMacro Include="W32DepsDir">
       <Value>$(W32DepsDir)</Value>

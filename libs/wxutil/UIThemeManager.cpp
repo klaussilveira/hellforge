@@ -1,5 +1,13 @@
 #include "UIThemeManager.h"
 
+#ifdef WIN32
+#include <wx/msw/private.h>
+#include <dwmapi.h>
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+#endif
+
 namespace wxutil
 {
 
@@ -72,26 +80,38 @@ void UIThemeManager::setDarkThemeEnabled(bool enabled)
 
 void UIThemeManager::applyTheme(wxWindow* window)
 {
-    // With GTK dark theme enabled via GTK_THEME environment variable,
-    // most widgets are themed automatically. This method can be used
-    // for specific widgets that need manual theming.
     if (!window || !_darkThemeEnabled)
     {
         return;
     }
 
-    // Apply to this window and children recursively
+#ifdef WIN32
+    if (window->IsTopLevel())
+    {
+        HWND hwnd = static_cast<HWND>(window->GetHandle());
+        if (hwnd)
+        {
+            BOOL darkMode = TRUE;
+            DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE,
+                                  &darkMode, sizeof(darkMode));
+        }
+    }
+#endif
+
     applyThemeRecursive(window);
 }
 
 void UIThemeManager::applyThemeToWindow(wxWindow* window)
 {
-    // Minimal implementation - GTK handles most theming
-    // This can be extended for specific widget types that need it
     if (!window || !_darkThemeEnabled)
     {
         return;
     }
+
+#ifdef WIN32
+    window->SetBackgroundColour(_colours.panelBackground);
+    window->SetForegroundColour(_colours.textPrimary);
+#endif
 }
 
 void UIThemeManager::applyThemeRecursive(wxWindow* window)

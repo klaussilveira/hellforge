@@ -1113,7 +1113,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{83D79C71-4E8F-4F78-9D46-EF02D5D5CD89}</ProjectGuid>
-    <RootNamespace>DarkRadiantCore</RootNamespace>
+    <RootNamespace>HellForgeCore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -1144,9 +1144,9 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug Win32.props" />
-    <Import Project="properties\DarkRadiant Module DLL.props" />
-    <Import Project="properties\DarkRadiant Core Library.props" />
+    <Import Project="properties\HellForge Base Debug Win32.props" />
+    <Import Project="properties\HellForge Module DLL.props" />
+    <Import Project="properties\HellForge Core Library.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
     <Import Project="properties\zlib.props" />
@@ -1155,9 +1155,9 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release Win32.props" />
-    <Import Project="properties\DarkRadiant Module DLL.props" />
-    <Import Project="properties\DarkRadiant Core Library.props" />
+    <Import Project="properties\HellForge Base Release Win32.props" />
+    <Import Project="properties\HellForge Module DLL.props" />
+    <Import Project="properties\HellForge Core Library.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
     <Import Project="properties\zlib.props" />
@@ -1166,9 +1166,9 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Debug x64.props" />
-    <Import Project="properties\DarkRadiant Module DLL.props" />
-    <Import Project="properties\DarkRadiant Core Library.props" />
+    <Import Project="properties\HellForge Base Debug x64.props" />
+    <Import Project="properties\HellForge Module DLL.props" />
+    <Import Project="properties\HellForge Core Library.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
     <Import Project="properties\zlib.props" />
@@ -1177,9 +1177,9 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="properties\DarkRadiant Base Release x64.props" />
-    <Import Project="properties\DarkRadiant Module DLL.props" />
-    <Import Project="properties\DarkRadiant Core Library.props" />
+    <Import Project="properties\HellForge Base Release x64.props" />
+    <Import Project="properties\HellForge Module DLL.props" />
+    <Import Project="properties\HellForge Core Library.props" />
     <Import Project="properties\GLEW.props" />
     <Import Project="properties\ftgl.props" />
     <Import Project="properties\zlib.props" />

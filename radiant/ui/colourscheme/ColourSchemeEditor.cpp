@@ -101,12 +101,17 @@ void ColourSchemeEditor::addOptionsPanel(wxBoxSizer& vbox)
 
 std::string ColourSchemeEditor::getThemeFilePath()
 {
+#ifdef WIN32
+    const char* appData = std::getenv("APPDATA");
+    return std::string(appData ? appData : "") + "\\HellForge\\theme";
+#else
     const char* xdg = std::getenv("XDG_CONFIG_HOME");
     if (xdg && *xdg)
         return std::string(xdg) + "/hellforge/theme";
 
     const char* home = std::getenv("HOME");
     return std::string(home ? home : "") + "/.config/hellforge/theme";
+#endif
 }
 
 std::string ColourSchemeEditor::readThemeFile()

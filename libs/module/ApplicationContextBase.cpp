@@ -293,8 +293,7 @@ void ApplicationContextBase::initialise(int argc, char* argv[])
         );
     }
 
-    // Construct DarkRadiant home directory
-    _homePath = appData + "\\DarkRadiant";
+    _homePath = appData + "\\HellForge";
     if (!os::makeDirectory(_homePath))
     {
         rConsoleError() << "ApplicationContextBase: could not create home directory "
