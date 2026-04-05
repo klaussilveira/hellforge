@@ -1501,10 +1501,7 @@ bool CamWnd::createTrimBrushFromFace(const wxMouseEvent& ev, int scrollDirection
     scene::INodePtr parent = result.node->getParent();
     if (!parent) return false;
 
-    double texScale = 0.0078125;
-    Matrix3 proj = Matrix3::getIdentity();
-    proj.xx() = texScale;
-    proj.yy() = texScale;
+    Matrix3 proj = hitFace->getProjectionMatrix();
 
     auto brushNode = GlobalBrushCreator().createBrush();
     parent->addChildNode(brushNode);
