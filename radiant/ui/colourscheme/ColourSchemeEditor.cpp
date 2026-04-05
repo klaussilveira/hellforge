@@ -146,7 +146,8 @@ void ColourSchemeEditor::constructWindow()
     wxBoxSizer* leftVBox = new wxBoxSizer(wxVERTICAL);
     mainHBox->Add(leftVBox, 0, wxEXPAND | wxRIGHT, 6);
 
-    // System theme selector
+#ifndef WIN32
+    // System theme selector (Linux only; Windows always uses light theme)
     wxBoxSizer* themeRow = new wxBoxSizer(wxHORIZONTAL);
     themeRow->Add(new wxStaticText(this, wxID_ANY, _("System Theme:")),
                   0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
@@ -162,6 +163,7 @@ void ColourSchemeEditor::constructWindow()
 
     themeRow->Add(_themeChoice, 1, wxEXPAND);
     leftVBox->Add(themeRow, 0, wxEXPAND | wxBOTTOM, 6);
+#endif
 
     _schemeList = new wxDataViewListCtrl(this, wxID_ANY, wxDefaultPosition,
                                      wxDefaultSize, wxDV_NO_HEADER);
@@ -407,7 +409,7 @@ int ColourSchemeEditor::ShowModal()
 		GlobalColourSchemeManager().setActive(getSelectedScheme());
 		GlobalColourSchemeManager().saveColourSchemes();
 
-		// Save system theme preference
+#ifndef WIN32
 		std::string newTheme = (_themeChoice->GetSelection() == THEME_LIGHT)
 		    ? "light" : "dark";
 		writeThemeFile(newTheme);
@@ -419,6 +421,7 @@ int ColourSchemeEditor::ShowModal()
 			    _("The system theme change will take effect after restarting the application."),
 			    ui::IDialog::MESSAGE_CONFIRM);
 		}
+#endif
 	}
 	else
 	{

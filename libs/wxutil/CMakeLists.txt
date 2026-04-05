@@ -51,6 +51,3 @@ target_link_libraries(wxutil PUBLIC
                       ${FTGL_LIBRARIES}
                       ${GLEW_LIBRARIES}
                       ${GL_LIBRARIES})
-if(WIN32)
-    target_link_libraries(wxutil PUBLIC dwmapi uxtheme)
-endif()

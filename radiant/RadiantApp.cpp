@@ -35,11 +35,6 @@
 #include "crtdbg.h"
 #endif
 
-#if defined(WIN32)
-#include <dwmapi.h>
-#pragma comment(lib, "dwmapi.lib")
-#endif
-
 #if defined(__linux__)
 #include <glib.h>
 GLogWriterOutput
@@ -165,23 +160,7 @@ RadiantApp::RadiantApp()
         setenv("GTK_THEME", "Adwaita", 1);
     }
 #elif defined(WIN32)
-    bool useDark = true;
-
-    const char* appData = getenv("APPDATA");
-    if (appData && *appData)
-    {
-        std::string themePath = std::string(appData) + "\\HellForge\\theme";
-        std::ifstream themeFile(themePath);
-        if (themeFile.is_open())
-        {
-            std::string value;
-            std::getline(themeFile, value);
-            if (value == "light")
-                useDark = false;
-        }
-    }
-
-    wxutil::GlobalUIThemeManager().setDarkThemeEnabled(useDark);
+    wxutil::GlobalUIThemeManager().setDarkThemeEnabled(false);
 #endif
 }
 

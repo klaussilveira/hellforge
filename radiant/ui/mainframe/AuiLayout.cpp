@@ -12,7 +12,6 @@
 #include "camera/CameraWndManager.h"
 #include "command/ExecutionFailure.h"
 #include "wxutil/Bitmap.h"
-#include "wxutil/UIThemeManager.h"
 #include "xyview/GlobalXYWnd.h"
 #include "AuiFloatingFrame.h"
 
@@ -60,26 +59,7 @@ AuiLayout::AuiLayout() :
     _auiMgr(this),
     _propertyNotebook(nullptr)
 {
-    auto& theme = wxutil::GlobalUIThemeManager();
-    auto* art = _auiMgr.GetArtProvider();
-
-    art->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
-
-    if (theme.isDarkThemeEnabled())
-    {
-        const auto& c = theme.getColours();
-        art->SetColour(wxAUI_DOCKART_BACKGROUND_COLOUR, c.windowBackground);
-        art->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_COLOUR, c.panelBackground);
-        art->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR, c.panelBackground);
-        art->SetColour(wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR, c.textPrimary);
-        art->SetColour(wxAUI_DOCKART_ACTIVE_CAPTION_COLOUR, c.selection);
-        art->SetColour(wxAUI_DOCKART_ACTIVE_CAPTION_GRADIENT_COLOUR, c.selection);
-        art->SetColour(wxAUI_DOCKART_ACTIVE_CAPTION_TEXT_COLOUR, c.textPrimary);
-        art->SetColour(wxAUI_DOCKART_BORDER_COLOUR, c.borderLight);
-        art->SetColour(wxAUI_DOCKART_SASH_COLOUR, c.borderLight);
-        art->SetColour(wxAUI_DOCKART_GRIPPER_COLOUR, c.panelBackground);
-    }
-
+    _auiMgr.GetArtProvider()->SetMetric(wxAUI_DOCKART_GRADIENT_TYPE, wxAUI_GRADIENT_NONE);
     _auiMgr.Bind(wxEVT_AUI_PANE_CLOSE, &AuiLayout::onPaneClose, this);
 }
 
