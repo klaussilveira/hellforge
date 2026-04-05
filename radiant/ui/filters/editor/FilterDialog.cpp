@@ -8,6 +8,7 @@
 #include "ui/filters/FiltersMainMenu.h"
 
 #include <wx/panel.h>
+#include <wx/settings.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
 
@@ -114,10 +115,9 @@ void FilterDialog::update()
     _filterStore->Clear();
 
     wxDataViewItemAttr black;
-    black.SetColour(wxColor(0,0,0));
 
     wxDataViewItemAttr grey;
-    grey.SetColour(wxColor(112,112,112));
+    grey.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     for (FilterMap::const_iterator i = _filters.begin(); i != _filters.end(); ++i)
     {

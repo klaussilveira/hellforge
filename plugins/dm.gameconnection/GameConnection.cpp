@@ -918,13 +918,13 @@ void GameConnection::addToolbarItems()
 
         // Add toggles for the camera sync functions
         auto camSyncT = camTB->AddTool(
-            wxID_ANY, "L", wxutil::GetLocalBitmap("CameraSync.png"),
+            wxID_ANY, "L", wxutil::GetLocalBitmap("camera_sync.png"),
             _("Enable game camera sync with HellForge camera"),
             wxITEM_CHECK
         );
         _event_toggleCameraSync->connectToolItem(camSyncT);
         auto camSyncBackT = camTB->AddTool(
-            wxID_ANY, "B", wxutil::GetLocalBitmap("CameraSyncBack.png"),
+            wxID_ANY, "B", wxutil::GetLocalBitmap("camera_sync_back.png"),
             _("Move camera to current game position")
         );
         _event_backSyncCamera->connectToolItem(camSyncBackT);

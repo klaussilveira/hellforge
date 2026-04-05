@@ -3,6 +3,7 @@
 #include "i18n.h"
 #include "string/convert.h"
 #include "eclass.h"
+#include <wx/settings.h>
 
 namespace difficulty
 {
@@ -163,7 +164,8 @@ void DifficultySettings::updateTreeModel()
 		bool overridden = isOverridden(i->second);
 
 		wxDataViewItemAttr colour;
-		colour.SetColour(setting.isDefault ? wxColor(112,112,112) : wxColor(0,0,0));
+		if (setting.isDefault)
+			colour.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
 		row[_columns.description] = setting.getDescString() + (overridden ? _(" (overridden)") : "");
         row[_columns.description].setAttr(colour);
@@ -281,11 +283,7 @@ wxDataViewItem DifficultySettings::insertClassName(const std::string& className,
 {
     wxutil::TreeModel::Row row = parent.IsOk() ? _store->AddItemUnderParent(parent) : _store->AddItem();
 
-    wxDataViewItemAttr black;
-	black.SetColour(wxColor(0,0,0));
-
 	row[_columns.description] = className;
-    row[_columns.description].setAttr(black);
 
     row[_columns.classname] = className;
     row[_columns.settingId] = -1;

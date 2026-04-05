@@ -116,10 +116,15 @@ void AasVisualisationPanel::createButtons()
     _statusLabel->SetForegroundColour(wxColour(180, 180, 180));
     _statusLabel->Wrap(250);
 
-	_dialogPanel->GetSizer()->Add(showNumbersButton, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+	_dialogPanel->GetSizer()->AddSpacer(6);
+	_dialogPanel->GetSizer()->Add(showNumbersButton, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
+	_dialogPanel->GetSizer()->AddSpacer(6);
 	_dialogPanel->GetSizer()->Add(hideDistantAreasButton, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
+	_dialogPanel->GetSizer()->AddSpacer(6);
 	_dialogPanel->GetSizer()->Add(_rescanButton, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
+	_dialogPanel->GetSizer()->AddSpacer(6);
     _dialogPanel->GetSizer()->Add(_loadFileButton, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
+	_dialogPanel->GetSizer()->AddSpacer(6);
     _dialogPanel->GetSizer()->Add(_statusLabel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
 }
 

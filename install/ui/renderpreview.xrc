@@ -44,7 +44,7 @@
 								<label>prevButton</label>
 								<tooltip>Previous Frame</tooltip>
 								<longhelp></longhelp>
-								<bitmap stock_id="wxART_GO_BACK" stock_client="wxART_TOOLBAR">undefined.png</bitmap>
+								<bitmap stock_id="darkradiant:arrow_left.png" stock_client="wxART_TOOLBAR">undefined.png</bitmap>
 							</object>
 							<object class="wxSpinCtrl" name="FrameSelector">
 								<style>wxALIGN_RIGHT|wxSP_ARROW_KEYS</style>
@@ -58,7 +58,7 @@
 								<label>nextButton</label>
 								<tooltip>Next Frame</tooltip>
 								<longhelp></longhelp>
-								<bitmap stock_id="wxART_GO_FORWARD" stock_client="wxART_TOOLBAR">undefined.png</bitmap>
+								<bitmap stock_id="darkradiant:arrow_right.png" stock_client="wxART_TOOLBAR">undefined.png</bitmap>
 							</object>
 						</object>
 					</object>
@@ -80,7 +80,7 @@
 						<border>3</border>
 						<object class="wxToolBar" name="RenderPreviewRenderModeToolbar">
 							<style>wxTB_HORIZONTAL|wxTB_NODIVIDER</style>
-							<bitmapsize>20,20</bitmapsize>
+							<bitmapsize></bitmapsize>
 							<margins></margins>
 							<packing>1</packing>
 							<separation>5</separation>
@@ -106,7 +106,7 @@
 						<border>3</border>
 						<object class="wxToolBar" name="RenderPreviewUtilToolbar">
 							<style>wxTB_HORIZONTAL|wxTB_NODIVIDER</style>
-							<bitmapsize>20,20</bitmapsize>
+							<bitmapsize></bitmapsize>
 							<margins></margins>
 							<packing>1</packing>
 							<separation>5</separation>

@@ -8,6 +8,10 @@
 #include <wx/sizer.h>
 #include <wx/button.h>
 
+#ifdef __WXGTK__
+#include <gtk/gtk.h>
+#endif
+
 #include "string/case_conv.h"
 
 namespace ui
@@ -28,6 +32,17 @@ CommandEntry::CommandEntry(wxWindow* parent) :
 
 	//Gtk::Button* goButton = Gtk::manage(new Gtk::Button(_("Go")));
 	//goButton->signal_clicked().connect(sigc::mem_fun(*this, &CommandEntry::onCmdEntryActivate));
+
+#ifdef __WXGTK__
+    // Add custom compact classes so the borders look nice
+    auto addGtkClass = [](wxWindow* w, const char* cls) {
+        GtkWidget* gtkWidget = static_cast<GtkWidget*>(w->GetHandle());
+        if (gtkWidget)
+            gtk_style_context_add_class(gtk_widget_get_style_context(gtkWidget), cls);
+    };
+    addGtkClass(_entry, "hf-borderless");
+    addGtkClass(goButton, "hf-borderless");
+#endif
 
 	// Pack the widgets into the hbox
 	GetSizer()->Add(_entry, 1, wxEXPAND);

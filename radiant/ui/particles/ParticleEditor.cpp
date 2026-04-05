@@ -13,6 +13,7 @@
 #include "wxutil/EntryAbortedException.h"
 
 #include <wx/button.h>
+#include <wx/settings.h>
 #include <wx/spinctrl.h>
 #include <wx/sizer.h>
 #include <wx/splitter.h>
@@ -1038,7 +1039,8 @@ void ParticleEditor::reloadStageList()
         wxutil::TreeModel::Row row = _stageList->AddItem();
 
 		wxDataViewItemAttr colour;
-		colour.SetColour(stage->isVisible() ? wxColour(0, 0, 0) : wxColour(127, 127, 127));
+		if (!stage->isVisible())
+			colour.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
         row[STAGE_COLS().name] = fmt::format("Stage {0}", static_cast<int>(i));
 		row[STAGE_COLS().name].setAttr(colour);

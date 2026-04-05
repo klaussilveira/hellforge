@@ -41,6 +41,10 @@
 #include <wx/bmpbuttn.h>
 #include "wxutil/Bitmap.h"
 
+#ifdef __WXGTK__
+#include <gtk/gtk.h>
+#endif
+
 #include <functional>
 #include "string/replace.h"
 #include "string/convert.h"
@@ -551,6 +555,7 @@ wxWindow* EntityInspector::createPropertyEditorPane(wxWindow* parent)
     _editorFrame = new wxPanel(parent, wxID_ANY);
     _editorFrame->SetSizer(new wxBoxSizer(wxVERTICAL));
     _editorFrame->SetMinClientSize(wxSize(-1, 50));
+
     return _editorFrame;
 }
 
@@ -610,6 +615,18 @@ wxWindow* EntityInspector::createTreeViewPane(wxWindow* parent)
     _valEntry = new wxTextCtrl(treeViewPanel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 
     _setButton = new wxBitmapButton(treeViewPanel, wxID_APPLY, wxutil::GetLocalBitmap("check.png"));
+
+#ifdef __WXGTK__
+    // Add custom compact classes so the borders look nice
+    auto addGtkClass = [](wxWindow* w, const char* cls) {
+        GtkWidget* gtkWidget = static_cast<GtkWidget*>(w->GetHandle());
+        if (gtkWidget)
+            gtk_style_context_add_class(gtk_widget_get_style_context(gtkWidget), cls);
+    };
+    addGtkClass(_keyEntry, "hf-compact-top");
+    addGtkClass(_valEntry, "hf-compact-mid");
+    addGtkClass(_setButton, "hf-compact-end");
+#endif
 
     buttonHbox->Add(_valEntry, 1, wxEXPAND);
     buttonHbox->Add(_setButton, 0, wxEXPAND);

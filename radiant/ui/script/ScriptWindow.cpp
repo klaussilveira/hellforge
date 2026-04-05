@@ -8,7 +8,6 @@
 #include <wx/button.h>
 #include <wx/splitter.h>
 #include <wx/sizer.h>
-#include <wx/stattext.h>
 #include "registry/registry.h"
 
 #include "string/replace.h"
@@ -33,11 +32,9 @@ ScriptWindow::ScriptWindow(wxWindow* parent) :
 
 	GetSizer()->Add(_paned, 1, wxEXPAND);
 
-	// Edit panel has a label and a "run" button
+	// Edit panel with code input and buttons
 	auto editPanel = new wxPanel(_paned, wxID_ANY);
 	editPanel->SetSizer(new wxBoxSizer(wxVERTICAL));
-
-	auto editLabel = new wxStaticText(editPanel, wxID_ANY, _("Python Script Input"));
 
     auto buttonPanel = new wxFlexGridSizer(1, 2, 6, 6);
     buttonPanel->AddGrowableCol(1);
@@ -56,10 +53,10 @@ ScriptWindow::ScriptWindow(wxWindow* parent) :
     }
 
     _view = new wxutil::PythonSourceViewCtrl(editPanel);
+    _view->SetWrapMode(wxSTC_WRAP_WORD);
 
-	editPanel->GetSizer()->Add(editLabel, 0);
 	editPanel->GetSizer()->Add(_view, 1, wxEXPAND);
-	editPanel->GetSizer()->Add(buttonPanel, 0, wxEXPAND);
+	editPanel->GetSizer()->Add(buttonPanel, 0, wxEXPAND | wxALL, 6);
 
 	// Pack the scrolled textview and the entry box to the vbox
 	_outView->Reparent(_paned);

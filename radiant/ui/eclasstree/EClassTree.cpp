@@ -9,6 +9,7 @@
 
 #include "wxutil/dataview/ResourceTreeViewToolbar.h"
 
+#include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/splitter.h>
 
@@ -139,7 +140,8 @@ void EClassTree::addToListStore(const EntityClassAttribute& attr, bool inherited
     wxutil::TreeModel::Row row = _propertyStore->AddItem();
 
 	wxDataViewItemAttr colour;
-	colour.SetColour(inherited ? wxColor(127, 127, 127) : wxColor(0, 0, 0));
+	if (inherited)
+		colour.SetColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
 
     row[_propertyColumns.name] = attr.getName();
 	row[_propertyColumns.name].setAttr(colour);

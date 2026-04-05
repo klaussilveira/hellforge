@@ -1,4 +1,5 @@
 #include "SourceView.h"
+#include "../UIThemeManager.h"
 #include "registry/registry.h"
 
 namespace wxutil
@@ -7,41 +8,91 @@ namespace wxutil
 SourceViewCtrl::SourceViewCtrl(wxWindow* parent) :
 	wxStyledTextCtrl(parent, wxID_ANY)
 {
-	// Predefine a few styles for use in subclasses
-	_predefinedStyles[Default]			= Style("BLACK");
-	_predefinedStyles[Keyword1]			= Style("BLUE", Bold);
-	_predefinedStyles[Keyword2]			= Style("MIDNIGHT BLUE", static_cast<FontStyle>(Bold | Italic));
-	_predefinedStyles[Keyword3]			= Style("CORNFLOWER BLUE");
-	_predefinedStyles[Keyword4]			= Style("CYAN");
-	_predefinedStyles[Keyword5]			= Style("DARK GREY");
-	_predefinedStyles[Keyword6]			= Style("GREY");
-	_predefinedStyles[Comment]			= Style("FOREST GREEN");
-	_predefinedStyles[CommentDoc]		= Style("FOREST GREEN");
-	_predefinedStyles[CommentLine]		= Style("FOREST GREEN");
-	_predefinedStyles[SpecialComment]	= Style("FOREST GREEN", Italic);
-	_predefinedStyles[Character]		= Style("KHAKI");
-	_predefinedStyles[CharacterEOL]		= Style("KHAKI");
-	_predefinedStyles[String]			= Style("BROWN");
-	_predefinedStyles[StringEOL]		= Style("BROWN");
-	_predefinedStyles[Delimiter]		= Style("ORANGE");
-	_predefinedStyles[Punctuation]		= Style("ORANGE");
-	_predefinedStyles[Operator]			= Style("BLACK");
-	_predefinedStyles[Brace]			= Style("VIOLET");
-	_predefinedStyles[Command]			= Style("BLUE");
-	_predefinedStyles[Identifier]		= Style("VIOLET");
-	_predefinedStyles[Label]			= Style("VIOLET");
-	_predefinedStyles[Number]			= Style("SIENNA");
-	_predefinedStyles[Parameter]		= Style("VIOLET", Italic);
-	_predefinedStyles[RegEx]			= Style("ORCHID");
-	_predefinedStyles[UUID]				= Style("ORCHID");
-	_predefinedStyles[Value]			= Style("ORCHID", Italic);
-	_predefinedStyles[Preprocessor]		= Style("GREY");
-	_predefinedStyles[Script]			= Style("DARK GREY");
-	_predefinedStyles[Error]			= Style("RED");
-	_predefinedStyles[Undefined]		= Style("ORANGE");
+	bool dark = GlobalUIThemeManager().isDarkThemeEnabled();
+
+	if (dark)
+	{
+		_predefinedStyles[Default]			= Style("#e6e6e6");
+		_predefinedStyles[Keyword1]			= Style("#6c9ef8", Bold);
+		_predefinedStyles[Keyword2]			= Style("#b48ead", static_cast<FontStyle>(Bold | Italic));
+		_predefinedStyles[Keyword3]			= Style("#81a1c1");
+		_predefinedStyles[Keyword4]			= Style("#88c0d0");
+		_predefinedStyles[Keyword5]			= Style("#a0a0a0");
+		_predefinedStyles[Keyword6]			= Style("#808080");
+		_predefinedStyles[Comment]			= Style("#6a9955");
+		_predefinedStyles[CommentDoc]		= Style("#6a9955");
+		_predefinedStyles[CommentLine]		= Style("#6a9955");
+		_predefinedStyles[SpecialComment]	= Style("#6a9955", Italic);
+		_predefinedStyles[Character]		= Style("#ce9178");
+		_predefinedStyles[CharacterEOL]		= Style("#ce9178");
+		_predefinedStyles[String]			= Style("#ce9178");
+		_predefinedStyles[StringEOL]		= Style("#ce9178");
+		_predefinedStyles[Delimiter]		= Style("#d4976c");
+		_predefinedStyles[Punctuation]		= Style("#d4976c");
+		_predefinedStyles[Operator]			= Style("#c8c8c8");
+		_predefinedStyles[Brace]			= Style("#dcdcaa");
+		_predefinedStyles[Command]			= Style("#6c9ef8");
+		_predefinedStyles[Identifier]		= Style("#9cdcfe");
+		_predefinedStyles[Label]			= Style("#9cdcfe");
+		_predefinedStyles[Number]			= Style("#b5cea8");
+		_predefinedStyles[Parameter]		= Style("#9cdcfe", Italic);
+		_predefinedStyles[RegEx]			= Style("#d16969");
+		_predefinedStyles[UUID]				= Style("#d16969");
+		_predefinedStyles[Value]			= Style("#d16969", Italic);
+		_predefinedStyles[Preprocessor]		= Style("#c586c0");
+		_predefinedStyles[Script]			= Style("#a0a0a0");
+		_predefinedStyles[Error]			= Style("#f44747");
+		_predefinedStyles[Undefined]		= Style("#d4976c");
+	}
+	else
+	{
+		_predefinedStyles[Default]			= Style("BLACK");
+		_predefinedStyles[Keyword1]			= Style("BLUE", Bold);
+		_predefinedStyles[Keyword2]			= Style("MIDNIGHT BLUE", static_cast<FontStyle>(Bold | Italic));
+		_predefinedStyles[Keyword3]			= Style("CORNFLOWER BLUE");
+		_predefinedStyles[Keyword4]			= Style("CYAN");
+		_predefinedStyles[Keyword5]			= Style("DARK GREY");
+		_predefinedStyles[Keyword6]			= Style("GREY");
+		_predefinedStyles[Comment]			= Style("FOREST GREEN");
+		_predefinedStyles[CommentDoc]		= Style("FOREST GREEN");
+		_predefinedStyles[CommentLine]		= Style("FOREST GREEN");
+		_predefinedStyles[SpecialComment]	= Style("FOREST GREEN", Italic);
+		_predefinedStyles[Character]		= Style("KHAKI");
+		_predefinedStyles[CharacterEOL]		= Style("KHAKI");
+		_predefinedStyles[String]			= Style("BROWN");
+		_predefinedStyles[StringEOL]		= Style("BROWN");
+		_predefinedStyles[Delimiter]		= Style("ORANGE");
+		_predefinedStyles[Punctuation]		= Style("ORANGE");
+		_predefinedStyles[Operator]			= Style("BLACK");
+		_predefinedStyles[Brace]			= Style("VIOLET");
+		_predefinedStyles[Command]			= Style("BLUE");
+		_predefinedStyles[Identifier]		= Style("VIOLET");
+		_predefinedStyles[Label]			= Style("VIOLET");
+		_predefinedStyles[Number]			= Style("SIENNA");
+		_predefinedStyles[Parameter]		= Style("VIOLET", Italic);
+		_predefinedStyles[RegEx]			= Style("ORCHID");
+		_predefinedStyles[UUID]				= Style("ORCHID");
+		_predefinedStyles[Value]			= Style("ORCHID", Italic);
+		_predefinedStyles[Preprocessor]		= Style("GREY");
+		_predefinedStyles[Script]			= Style("DARK GREY");
+		_predefinedStyles[Error]			= Style("RED");
+		_predefinedStyles[Undefined]		= Style("ORANGE");
+	}
 
 	// Ensure we have all styles defined
 	assert(_predefinedStyles.size() == NumElements);
+
+	if (dark)
+	{
+		for (int i = 0; i < wxSTC_STYLE_LASTPREDEFINED; ++i)
+			StyleSetBackground(i, wxColour(29, 29, 29));
+
+		StyleSetBackground(wxSTC_STYLE_DEFAULT, wxColour(29, 29, 29));
+		StyleSetForeground(wxSTC_STYLE_DEFAULT, wxColour(230, 230, 230));
+		SetCaretForeground(wxColour(230, 230, 230));
+		StyleSetBackground(wxSTC_STYLE_LINENUMBER, wxColour(42, 42, 42));
+		StyleSetForeground(wxSTC_STYLE_LINENUMBER, wxColour(130, 130, 130));
+	}
 }
 
 void SourceViewCtrl::SetStyleMapping(int elementIndex, Element elementType)
@@ -68,6 +119,8 @@ PythonSourceViewCtrl::PythonSourceViewCtrl(wxWindow* parent) :
 {
 	// Set up styling for Python
 	SetLexer(wxSTC_LEX_PYTHON);
+    SetMarginType(0, wxSTC_MARGIN_NUMBER);
+    SetMarginWidth(0, TextWidth(wxSTC_STYLE_LINENUMBER, "999"));
 
 	// The Python Lexer can recognise 14 different types of source elements
 	// We map these types to different styles/appearances
@@ -98,6 +151,8 @@ D3DeclarationViewCtrl::D3DeclarationViewCtrl(wxWindow* parent) :
 {
 	// Set up styling for C++
 	SetLexer(wxSTC_LEX_CPP);
+    SetMarginType(0, wxSTC_MARGIN_NUMBER);
+    SetMarginWidth(0, TextWidth(wxSTC_STYLE_LINENUMBER, "999"));
 
 	// The C++ Lexer can recognise 19 different types of source elements
 	// We map these types to different styles/appearances

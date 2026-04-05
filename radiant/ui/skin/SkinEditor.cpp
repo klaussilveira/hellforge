@@ -186,6 +186,7 @@ void SkinEditor::setupPreview()
 
     panel = getControl<wxPanel>("SkinEditorDeclarationPanel");
     _sourceView = new wxutil::D3DeclarationViewCtrl(panel);
+    _sourceView->SetWrapMode(wxSTC_WRAP_WORD);
     panel->GetSizer()->Add(_sourceView, 1, wxEXPAND);
 }
 

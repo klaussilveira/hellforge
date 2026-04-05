@@ -8,6 +8,7 @@
 #include "module/CoreModule.h"
 #include "messages/GameConfigNeededMessage.h"
 #include "ui/prefdialog/GameSetupDialog.h"
+#include "ui/splash/Splash.h"
 #include "module/StaticModule.h"
 #include "settings/LocalisationProvider.h"
 #include "log/PopupErrorHandler.h"
@@ -18,10 +19,6 @@
 #include <wx/cmdline.h>
 #include <wx/xrc/xmlres.h>
 #include <sigc++/functors/mem_fun.h>
-
-#ifndef __linux__
-#include "ui/splash/Splash.h"
-#endif
 
 #ifdef POSIX
 #include <libintl.h>
@@ -37,6 +34,7 @@
 
 #if defined(__linux__)
 #include <glib.h>
+#include <gtk/gtk.h>
 GLogWriterOutput
 log_black_hole(GLogLevelFlags, const GLogField*, gsize, gpointer)
 {
@@ -186,6 +184,48 @@ bool RadiantApp::OnInit()
     // Avoid assertions from wxWidgets itself (particularly stuff to do with art provider
     // destruction, which we have no control over).
     wxSetAssertHandler(assertToConsole);
+
+    GtkCssProvider* cssProvider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(cssProvider,
+        "entry.hf-compact-top {"
+        "  border-radius: 0;"
+        "  border: 0 1px solid @borders;"
+        "  border-left: 1px solid @borders;"
+        "  border-right: 1px solid @borders;"
+        "  border-bottom: 1px solid @borders;"
+        "  padding: 1px 4px;"
+        "  min-height: 0;"
+        "}"
+        "entry.hf-compact-mid {"
+        "  border-radius: 0;"
+        "  border: 0;"
+        "  border-left: 1px solid @borders;"
+        "  border-right: 1px solid @borders;"
+        "  padding: 1px 4px;"
+        "  min-height: 0;"
+        "}"
+        "button.hf-compact-end {"
+        "  border-radius: 0;"
+        "  border: 0;"
+        "  border-left: 0 1px solid @borders;"
+        "  border-right: 1px solid @borders;"
+        "  padding: 1px 4px;"
+        "  min-height: 0;"
+        "}"
+        "button.hf-borderless {"
+        "  border-radius: 0;"
+        "  border: 0;"
+        "}"
+        "entry.hf-borderless {"
+        "  border-radius: 0;"
+        "  border: 0;"
+        "}"
+        , -1, nullptr);
+    gtk_style_context_add_provider_for_screen(
+        gdk_screen_get_default(),
+        GTK_STYLE_PROVIDER(cssProvider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(cssProvider);
 #endif
 
 	// Initialise the context (application path / settings path, is
@@ -341,11 +381,8 @@ void RadiantApp::onStartupEvent(wxCommandEvent& ev)
 	// (emits a warning if the file already exists (due to a previous startup failure))
 	applog::PIDFile pidFile(PID_FILENAME);
 
-#ifndef __linux__
-	// We skip the splash screen in Linux, but the other platforms will show a progress bar
 	// Connect the progress callback to the Splash instance.
 	ui::Splash::OnAppStartup();
-#endif
 
 	// In first-startup scenarios the game configuration is not present
 	// in which case the GameManager will dispatch a message asking
