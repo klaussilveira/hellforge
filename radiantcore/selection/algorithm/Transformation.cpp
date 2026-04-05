@@ -3,6 +3,7 @@
 #include <functional>
 #include <cmath>
 #include <random>
+#include <set>
 #include <unordered_map>
 
 #include "i18n.h"
@@ -23,6 +24,8 @@
 #include "iarray.h"
 #include "ibrush.h"
 #include "icameraview.h"
+#include "itraceable.h"
+#include "math/Ray.h"
 #include "ipatch.h"
 
 #include "noise/Noise.h"
@@ -1305,19 +1308,230 @@ Quaternion alignToNormal(const Vector3 &normal) {
   return Quaternion::createForAxisAngle(axis, angle);
 }
 
+void collectPatchFaces(const scene::INodePtr &node,
+                       std::vector<FaceGeometry> &faces,
+                       const Vector3 &filterDirection, bool useCameraFacing,
+                       const Vector3 &cameraPosition) {
+  IPatch *patch = Node_getIPatch(node);
+  if (!patch)
+    return;
+
+  PatchMesh mesh = patch->getTesselatedPatchMesh();
+  if (mesh.width < 2 || mesh.height < 2)
+    return;
+
+  Matrix4 transform = node->localToWorld();
+
+  for (std::size_t row = 0; row < mesh.height - 1; ++row) {
+    for (std::size_t col = 0; col < mesh.width - 1; ++col) {
+      std::size_t i00 = row * mesh.width + col;
+      std::size_t i10 = row * mesh.width + col + 1;
+      std::size_t i01 = (row + 1) * mesh.width + col;
+      std::size_t i11 = (row + 1) * mesh.width + col + 1;
+
+      Vector3 v00 = transform.transformPoint(mesh.vertices[i00].vertex);
+      Vector3 v10 = transform.transformPoint(mesh.vertices[i10].vertex);
+      Vector3 v01 = transform.transformPoint(mesh.vertices[i01].vertex);
+      Vector3 v11 = transform.transformPoint(mesh.vertices[i11].vertex);
+
+      Vector3 n00 =
+          transform.transformDirection(mesh.vertices[i00].normal).getNormalised();
+      Vector3 n11 =
+          transform.transformDirection(mesh.vertices[i11].normal).getNormalised();
+
+      struct TriData {
+        Vector3 a, b, c;
+        Vector3 normal;
+      };
+      TriData tris[2] = {{v00, v10, v01, n00}, {v10, v11, v01, n11}};
+
+      for (const auto &tri : tris) {
+        Vector3 faceCenter = (tri.a + tri.b + tri.c) / 3.0;
+
+        bool passesFilter = false;
+        if (useCameraFacing) {
+          Vector3 toCamera = (cameraPosition - faceCenter).getNormalised();
+          passesFilter = tri.normal.dot(toCamera) > 0.0;
+        } else {
+          passesFilter = tri.normal.dot(filterDirection) > 0.0;
+        }
+
+        if (!passesFilter)
+          continue;
+
+        FaceGeometry fg;
+        fg.normal = tri.normal;
+        fg.vertices = {tri.a, tri.b, tri.c};
+        fg.area = triangleArea(tri.a, tri.b, tri.c);
+        if (fg.area > 0.0)
+          faces.push_back(fg);
+      }
+    }
+  }
+}
+
+bool rayIntersectPatch(const Ray &ray, const scene::INodePtr &node,
+                       Vector3 &bestHitPos, Vector3 &bestHitNormal,
+                       double &bestZ) {
+  IPatch *patch = Node_getIPatch(node);
+  if (!patch)
+    return false;
+
+  PatchMesh mesh = patch->getTesselatedPatchMesh();
+  if (mesh.width < 2 || mesh.height < 2)
+    return false;
+
+  Matrix4 transform = node->localToWorld();
+  bool hit = false;
+
+  for (std::size_t row = 0; row < mesh.height - 1; ++row) {
+    for (std::size_t col = 0; col < mesh.width - 1; ++col) {
+      std::size_t i00 = row * mesh.width + col;
+      std::size_t i10 = row * mesh.width + col + 1;
+      std::size_t i01 = (row + 1) * mesh.width + col;
+      std::size_t i11 = (row + 1) * mesh.width + col + 1;
+
+      Vector3 v00 = transform.transformPoint(mesh.vertices[i00].vertex);
+      Vector3 v10 = transform.transformPoint(mesh.vertices[i10].vertex);
+      Vector3 v01 = transform.transformPoint(mesh.vertices[i01].vertex);
+      Vector3 v11 = transform.transformPoint(mesh.vertices[i11].vertex);
+
+      Vector3 intersection;
+      if (ray.intersectTriangle(v00, v10, v01, intersection) ==
+          Ray::POINT) {
+        if (intersection.z() > bestZ) {
+          bestZ = intersection.z();
+          bestHitPos = intersection;
+          bestHitNormal =
+              transform.transformDirection(mesh.vertices[i00].normal)
+                  .getNormalised();
+          hit = true;
+        }
+      }
+      if (ray.intersectTriangle(v10, v11, v01, intersection) ==
+          Ray::POINT) {
+        if (intersection.z() > bestZ) {
+          bestZ = intersection.z();
+          bestHitPos = intersection;
+          bestHitNormal =
+              transform.transformDirection(mesh.vertices[i11].normal)
+                  .getNormalised();
+          hit = true;
+        }
+      }
+    }
+  }
+  return hit;
+}
+
+Vector3 getFloorNormalAtPoint(const scene::INodePtr &node,
+                             const Vector3 &point) {
+  IBrush *brush = Node_getIBrush(node);
+  if (!brush)
+    return Vector3(0, 0, 1);
+
+  Matrix4 transform = node->localToWorld();
+  double closestDist = std::numeric_limits<double>::max();
+  Vector3 bestNormal(0, 0, 1);
+
+  for (std::size_t i = 0; i < brush->getNumFaces(); ++i) {
+    const IFace &face = brush->getFace(i);
+    Vector3 localNormal = face.getPlane3().normal();
+    Vector3 worldNormal =
+        transform.transformDirection(localNormal).getNormalised();
+
+    if (worldNormal.z() <= 0)
+      continue;
+
+    const IWinding &winding = face.getWinding();
+    if (winding.empty())
+      continue;
+
+    Vector3 worldVert = transform.transformPoint(winding[0].vertex);
+    double dist = std::abs((point - worldVert).dot(worldNormal));
+
+    if (dist < closestDist) {
+      closestDist = dist;
+      bestNormal = worldNormal;
+    }
+  }
+
+  return bestNormal;
+}
+
+struct FloorHit {
+  Vector3 position;
+  Vector3 normal;
+  bool found;
+};
+
+FloorHit findFloorBelow(double x, double y, double rayTopZ,
+                        const std::set<scene::INodePtr> &excludeNodes) {
+  FloorHit result;
+  result.found = false;
+  double bestZ = -std::numeric_limits<double>::max();
+  scene::INodePtr bestBrushNode;
+
+  Ray downRay(Vector3(x, y, rayTopZ), Vector3(0, 0, -1));
+
+  GlobalSceneGraph().foreachNode([&](const scene::INodePtr &node) {
+    if (excludeNodes.count(node))
+      return true;
+    if (!node->visible())
+      return true;
+
+    Vector3 intersection;
+    if (!downRay.intersectAABB(node->worldAABB(), intersection))
+      return true;
+
+    if (Node_isBrush(node)) {
+      ITraceablePtr traceable = std::dynamic_pointer_cast<ITraceable>(node);
+      if (traceable && traceable->getIntersection(downRay, intersection)) {
+        if (intersection.z() > bestZ) {
+          bestZ = intersection.z();
+          result.position = intersection;
+          result.found = true;
+          bestBrushNode = node;
+        }
+      }
+    } else if (Node_isPatch(node)) {
+      Vector3 hitPos, hitNormal;
+      if (rayIntersectPatch(downRay, node, hitPos, hitNormal, bestZ)) {
+        result.position = hitPos;
+        result.normal = hitNormal;
+        result.found = true;
+        bestBrushNode = nullptr;
+      }
+    }
+
+    return true;
+  });
+
+  if (result.found && bestBrushNode) {
+    result.normal = getFloorNormalAtPoint(bestBrushNode, result.position);
+  }
+
+  return result;
+}
+
 void scatterObjects(ScatterDensityMethod densityMethod,
                     ScatterDistribution distribution, float density, int amount,
                     float minDistance, int seed,
                     ScatterFaceDirection faceDirection, float rotationRange,
-                    bool alignToSurfaceNormal) {
+                    bool alignToSurfaceNormal, ScatterBrushMode brushMode,
+                    bool avoidOverlap, float overlapMargin) {
   // Check for the correct editing mode
-  if (GlobalMapModule().getEditMode() != IMap::EditMode::Normal) {
+  if (GlobalMapModule().getEditMode() != IMap::EditMode::Normal)
     return;
-  }
 
   auto mapRoot = GlobalMapModule().getRoot();
   if (!mapRoot)
     return;
+
+  std::vector<scene::INodePtr> modelsToScatter;
+  std::vector<scene::INodePtr> areaBrushes;
+  std::vector<scene::INodePtr> surfacePatches;
+  std::vector<FaceGeometry> surfaceFaces;
 
   Vector3 filterDirection;
   bool useCameraFacing = false;
@@ -1348,122 +1562,240 @@ void scatterObjects(ScatterDensityMethod densityMethod,
     break;
   }
 
-  // Collect faces from selected brushes and models to scatter
-  std::vector<FaceGeometry> faces;
-  std::vector<scene::INodePtr> modelsToScatter;
+  std::vector<scene::INodePtr> surfaceBrushes;
 
-  // Calculate the minimum Z component of normal for upward-facing filter
   GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr &node) {
-    // Check if it's a brush - use it as a surface
     if (Node_isBrush(node)) {
-      IBrush *brush = Node_getIBrush(node);
-      if (brush) {
-        // Get the brush's world transform
-        Matrix4 brushTransform = node->localToWorld();
+      if (brushMode == ScatterBrushMode::AreaBoundary) {
+        areaBrushes.push_back(node);
+      } else {
+        surfaceBrushes.push_back(node);
+      }
+      return;
+    }
+    if (Node_isPatch(node)) {
+      surfacePatches.push_back(node);
+      return;
+    }
+    auto entity = node->tryGetEntity();
+    if (entity && entity->getKeyValue("classname") != "worldspawn") {
+      modelsToScatter.push_back(node);
+    }
+  });
 
-        // Iterate over all faces of the brush
-        for (std::size_t i = 0; i < brush->getNumFaces(); ++i) {
-          IFace &face = brush->getFace(i);
-          const IWinding &winding = face.getWinding();
+  if (modelsToScatter.empty()) {
+    throw cmd::ExecutionFailure(
+        _("Cannot scatter: No models selected.\nSelect entity models to "
+          "scatter."));
+  }
 
-          if (winding.size() >= 3) {
-            // Get the face normal in world space
-            Vector3 localNormal = face.getPlane3().normal();
-            Vector3 worldNormal =
-                brushTransform.transformDirection(localNormal).getNormalised();
+  // Collect surface faces from brushes in Surface mode
+  for (const auto &brushNode : surfaceBrushes) {
+    IBrush *brush = Node_getIBrush(brushNode);
+    if (!brush)
+      continue;
 
-            // Calculate face center for camera-facing check
-            Vector3 faceCenter(0, 0, 0);
-            for (std::size_t j = 0; j < winding.size(); ++j) {
-              faceCenter += brushTransform.transformPoint(winding[j].vertex);
-            }
-            faceCenter /= static_cast<double>(winding.size());
+    Matrix4 brushTransform = brushNode->localToWorld();
 
-            // Filter faces based on direction setting
-            bool passesFilter = false;
-            if (useCameraFacing) {
-              // Face must point toward camera (dot product of normal and
-              // direction to camera > 0)
-              Vector3 toCamera = (cameraPosition - faceCenter).getNormalised();
-              passesFilter = worldNormal.dot(toCamera) > 0.0;
-            } else {
-              // Face must point in the specified direction (within 90 degrees)
-              passesFilter = worldNormal.dot(filterDirection) > 0.0;
-            }
+    for (std::size_t i = 0; i < brush->getNumFaces(); ++i) {
+      IFace &face = brush->getFace(i);
+      const IWinding &winding = face.getWinding();
 
-            if (!passesFilter) {
-              continue;
-            }
+      if (winding.size() < 3)
+        continue;
 
-            FaceGeometry fg;
-            fg.normal = worldNormal;
+      // Get the face normal in world space
+      Vector3 localNormal = face.getPlane3().normal();
+      Vector3 worldNormal =
+          brushTransform.transformDirection(localNormal).getNormalised();
 
-            // Transform vertices to world space
-            for (std::size_t j = 0; j < winding.size(); ++j) {
-              Vector3 worldVertex =
-                  brushTransform.transformPoint(winding[j].vertex);
-              fg.vertices.push_back(worldVertex);
-            }
+      // Calculate face center for camera-facing check
+      Vector3 faceCenter(0, 0, 0);
+      for (std::size_t j = 0; j < winding.size(); ++j) {
+        faceCenter += brushTransform.transformPoint(winding[j].vertex);
+      }
+      faceCenter /= static_cast<double>(winding.size());
 
-            fg.area = polygonArea(fg.vertices);
-            if (fg.area > 0.0) {
-              faces.push_back(fg);
+      // Filter faces based on direction setting
+      bool passesFilter = false;
+      if (useCameraFacing) {
+        Vector3 toCamera = (cameraPosition - faceCenter).getNormalised();
+        passesFilter = worldNormal.dot(toCamera) > 0.0;
+      } else {
+        passesFilter = worldNormal.dot(filterDirection) > 0.0;
+      }
+
+      if (!passesFilter)
+        continue;
+
+      FaceGeometry fg;
+      fg.normal = worldNormal;
+
+      // Transform vertices to world space
+      for (std::size_t j = 0; j < winding.size(); ++j) {
+        Vector3 worldVertex = brushTransform.transformPoint(winding[j].vertex);
+        fg.vertices.push_back(worldVertex);
+      }
+
+      fg.area = polygonArea(fg.vertices);
+      if (fg.area > 0.0)
+        surfaceFaces.push_back(fg);
+    }
+  }
+
+  // Collect surface faces from patches
+  for (const auto &patchNode : surfacePatches) {
+    collectPatchFaces(patchNode, surfaceFaces, filterDirection, useCameraFacing,
+                      cameraPosition);
+  }
+
+  bool useAreaMode = !areaBrushes.empty();
+  bool hasSurfaces = !surfaceFaces.empty();
+
+  if (!useAreaMode && !hasSurfaces) {
+    throw cmd::ExecutionFailure(
+        _("Cannot scatter: No surfaces or area brushes found.\nSelect patches "
+          "or brushes to scatter on, or set Brush Mode to Area Boundary."));
+  }
+
+  std::mt19937 gen(seed);
+  std::vector<ScatterPoint> scatterPoints;
+
+  if (useAreaMode) {
+    AABB areaBounds;
+    for (const auto &node : areaBrushes)
+      areaBounds.includeAABB(node->worldAABB());
+
+    double areaMinX =
+        areaBounds.getOrigin().x() - areaBounds.getExtents().x();
+    double areaMaxX =
+        areaBounds.getOrigin().x() + areaBounds.getExtents().x();
+    double areaMinY =
+        areaBounds.getOrigin().y() - areaBounds.getExtents().y();
+    double areaMaxY =
+        areaBounds.getOrigin().y() + areaBounds.getExtents().y();
+    double topZ =
+        areaBounds.getOrigin().z() + areaBounds.getExtents().z();
+
+    double xyArea = (areaMaxX - areaMinX) * (areaMaxY - areaMinY);
+    int numPoints;
+    if (densityMethod == ScatterDensityMethod::Amount) {
+      numPoints = amount;
+    } else {
+      numPoints = static_cast<int>(xyArea * density);
+      if (numPoints < 1)
+        numPoints = 1;
+    }
+    if (numPoints > 10000)
+      numPoints = 10000;
+
+    std::set<scene::INodePtr> excludeNodes(areaBrushes.begin(),
+                                           areaBrushes.end());
+    for (const auto &m : modelsToScatter)
+      excludeNodes.insert(m);
+
+    std::uniform_real_distribution<double> xDist(areaMinX, areaMaxX);
+    std::uniform_real_distribution<double> yDist(areaMinY, areaMaxY);
+
+    double cellSize =
+        distribution == ScatterDistribution::PoissonDisk && minDistance > 0
+            ? minDistance / std::sqrt(2.0)
+            : 0;
+    std::unordered_map<int64_t, std::vector<size_t>> grid;
+
+    auto getCellKey = [cellSize](double px, double py) -> int64_t {
+      int cx = static_cast<int>(std::floor(px / cellSize));
+      int cy = static_cast<int>(std::floor(py / cellSize));
+      return (static_cast<int64_t>(cx) * 73856093) ^
+             (static_cast<int64_t>(cy) * 19349663);
+    };
+
+    auto isTooClose = [&](double px, double py) -> bool {
+      if (cellSize <= 0)
+        return false;
+      int cx = static_cast<int>(std::floor(px / cellSize));
+      int cy = static_cast<int>(std::floor(py / cellSize));
+      for (int dx = -2; dx <= 2; ++dx) {
+        for (int dy = -2; dy <= 2; ++dy) {
+          int64_t key = (static_cast<int64_t>(cx + dx) * 73856093) ^
+                        (static_cast<int64_t>(cy + dy) * 19349663);
+          auto it = grid.find(key);
+          if (it != grid.end()) {
+            for (size_t idx : it->second) {
+              double ddx = scatterPoints[idx].position.x() - px;
+              double ddy = scatterPoints[idx].position.y() - py;
+              if (ddx * ddx + ddy * ddy < minDistance * minDistance)
+                return true;
             }
           }
         }
       }
-      return;
-    }
+      return false;
+    };
 
-    auto entity = node->tryGetEntity();
-    if (entity) {
-      if (entity->getKeyValue("classname") != "worldspawn") {
-        modelsToScatter.push_back(node);
+    int maxAttempts = numPoints * 30;
+    int attempts = 0;
+
+    while (static_cast<int>(scatterPoints.size()) < numPoints &&
+           attempts < maxAttempts) {
+      ++attempts;
+      double x = xDist(gen);
+      double y = yDist(gen);
+
+      if (distribution == ScatterDistribution::PoissonDisk &&
+          isTooClose(x, y))
+        continue;
+
+      Ray downRay(Vector3(x, y, topZ + 64), Vector3(0, 0, -1));
+      bool insideArea = false;
+      for (const auto &areaBrush : areaBrushes) {
+        Vector3 intersection;
+        ITraceablePtr traceable =
+            std::dynamic_pointer_cast<ITraceable>(areaBrush);
+        if (traceable && traceable->getIntersection(downRay, intersection)) {
+          insideArea = true;
+          break;
+        }
+      }
+      if (!insideArea)
+        continue;
+
+      FloorHit hit = findFloorBelow(x, y, topZ + 64, excludeNodes);
+      if (!hit.found)
+        continue;
+
+      ScatterPoint sp;
+      sp.position = hit.position;
+      sp.normal = hit.normal;
+      scatterPoints.push_back(sp);
+
+      if (distribution == ScatterDistribution::PoissonDisk && cellSize > 0) {
+        int64_t key = getCellKey(x, y);
+        grid[key].push_back(scatterPoints.size() - 1);
       }
     }
-  });
-
-  if (faces.empty()) {
-    throw cmd::ExecutionFailure(
-        _("Cannot scatter: No brush surfaces found.\nSelect brushes to scatter "
-          "on, along with entity models."));
-  }
-
-  if (modelsToScatter.empty()) {
-    throw cmd::ExecutionFailure(
-        _("Cannot scatter: No models selected to scatter.\nSelect entity "
-          "models along with the target brushes."));
-  }
-
-  double totalArea = 0.0;
-  for (const auto &face : faces) {
-    totalArea += face.area;
-  }
-
-  // Determine how much to scatter
-  int numPoints;
-  if (densityMethod == ScatterDensityMethod::Amount) {
-    numPoints = amount;
   } else {
-    numPoints = static_cast<int>(totalArea * density);
-    if (numPoints < 1)
-      numPoints = 1;
-  }
+    double totalArea = 0.0;
+    for (const auto &face : surfaceFaces)
+      totalArea += face.area;
 
-  // Add a top boundary just in case
-  if (numPoints > 10000) {
-    numPoints = 10000;
-  }
+    int numPoints;
+    if (densityMethod == ScatterDensityMethod::Amount) {
+      numPoints = amount;
+    } else {
+      numPoints = static_cast<int>(totalArea * density);
+      if (numPoints < 1)
+        numPoints = 1;
+    }
+    if (numPoints > 10000)
+      numPoints = 10000;
 
-  // Initialize random generator with seed
-  std::mt19937 gen(seed);
-
-  // Generate scatter points
-  std::vector<ScatterPoint> scatterPoints;
-  if (distribution == ScatterDistribution::PoissonDisk) {
-    scatterPoints = poissonDiskSample(faces, minDistance, numPoints, gen);
-  } else {
-    scatterPoints = randomSample(faces, numPoints, gen);
+    if (distribution == ScatterDistribution::PoissonDisk) {
+      scatterPoints =
+          poissonDiskSample(surfaceFaces, minDistance, numPoints, gen);
+    } else {
+      scatterPoints = randomSample(surfaceFaces, numPoints, gen);
+    }
   }
 
   if (scatterPoints.empty()) {
@@ -1479,16 +1811,19 @@ void scatterObjects(ScatterDensityMethod densityMethod,
   std::uniform_int_distribution<size_t> modelDist(0,
                                                   modelsToScatter.size() - 1);
 
-  // Cache source positions and height offsets before we start cloning
+  // Cache source positions, extents, and height offsets before we start cloning
   std::map<scene::INodePtr, Vector3> sourcePositions;
+  std::map<scene::INodePtr, Vector3> sourceExtents;
   std::map<scene::INodePtr, double> sourceHeightOffsets;
   for (const auto &sourceNode : modelsToScatter) {
     AABB bounds = sourceNode->worldAABB();
     sourcePositions[sourceNode] = bounds.getOrigin();
+    sourceExtents[sourceNode] = bounds.getExtents();
     sourceHeightOffsets[sourceNode] = bounds.getExtents().z();
   }
 
   std::vector<scene::INodePtr> scatteredNodes;
+  std::vector<AABB> placedAABBs;
 
   for (const auto &sp : scatterPoints) {
     GlobalSelectionSystem().setSelectedAll(false);
@@ -1499,7 +1834,25 @@ void scatterObjects(ScatterDensityMethod densityMethod,
 
     // Get the source position and height offset
     Vector3 sourcePosition = sourcePositions[sourceNode];
+    Vector3 extents = sourceExtents[sourceNode];
     double heightOffset = sourceHeightOffsets[sourceNode];
+
+    // Check for overlap with previously placed items
+    if (avoidOverlap) {
+      Vector3 newCenter = sp.position + (sp.normal * heightOffset);
+      Vector3 expandedExtents = extents + Vector3(overlapMargin, overlapMargin, overlapMargin);
+      AABB newBounds(newCenter, expandedExtents);
+
+      bool overlaps = false;
+      for (const auto &placed : placedAABBs) {
+        if (newBounds.intersects(placed)) {
+          overlaps = true;
+          break;
+        }
+      }
+      if (overlaps)
+        continue;
+    }
 
     // Clone it
     SelectionCloner cloner;
@@ -1549,8 +1902,15 @@ void scatterObjects(ScatterDensityMethod densityMethod,
         }
       }
 
-      // Collect for selection at the end
       scatteredNodes.push_back(clonedNode);
+
+      // Track placed AABB for overlap checking
+      if (avoidOverlap) {
+        Vector3 newCenter = sp.position + (sp.normal * heightOffset);
+        Vector3 expandedExtents =
+            extents + Vector3(overlapMargin, overlapMargin, overlapMargin);
+        placedAABBs.push_back(AABB(newCenter, expandedExtents));
+      }
     }
   }
 
@@ -1562,12 +1922,13 @@ void scatterObjects(ScatterDensityMethod densityMethod,
 }
 
 void scatterObjectsCmd(const cmd::ArgumentList &args) {
-  if (args.size() != 9) {
+  if (args.size() != 12) {
     rWarning()
         << "Usage: ScatterObjects <densityMethod:int> <distribution:int> "
            "<density:float> "
         << "<amount:int> <minDistance:float> <seed:int> <faceDirection:int> "
-        << "<rotationRange:float> <alignToNormal:int>" << std::endl;
+        << "<rotationRange:float> <alignToNormal:int> <brushMode:int> "
+        << "<avoidOverlap:int> <margin:float>" << std::endl;
     return;
   }
 
@@ -1583,9 +1944,14 @@ void scatterObjectsCmd(const cmd::ArgumentList &args) {
       static_cast<ScatterFaceDirection>(args[6].getInt());
   float rotationRange = static_cast<float>(args[7].getDouble());
   bool alignToNormal = args[8].getInt() != 0;
+  ScatterBrushMode brushMode =
+      static_cast<ScatterBrushMode>(args[9].getInt());
+  bool avoidOverlap = args[10].getInt() != 0;
+  float margin = static_cast<float>(args[11].getDouble());
 
   scatterObjects(densityMethod, distribution, density, amount, minDistance,
-                 seed, faceDirection, rotationRange, alignToNormal);
+                 seed, faceDirection, rotationRange, alignToNormal, brushMode,
+                 avoidOverlap, margin);
 }
 
 void generateTerrainCmd(const cmd::ArgumentList& args)

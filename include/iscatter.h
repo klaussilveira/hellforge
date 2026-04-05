@@ -15,6 +15,12 @@ enum class ScatterDistribution
     PoissonDisk = 1
 };
 
+enum class ScatterBrushMode
+{
+    AreaBoundary = 0,
+    Surface = 1
+};
+
 enum class ScatterFaceDirection
 {
     FacingCamera = 0,

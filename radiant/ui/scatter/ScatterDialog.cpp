@@ -2,6 +2,9 @@
 
 #include "command/ExecutionNotPossible.h"
 #include "i18n.h"
+#include "ibrush.h"
+#include "ipatch.h"
+#include "iselection.h"
 #include "selectionlib.h"
 #include "string/convert.h"
 #include "ui/imainframe.h"
@@ -23,7 +26,7 @@ namespace ui {
 ScatterDialog::ScatterDialog()
     : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
       _densityLabel(nullptr), _amountLabel(nullptr),
-      _minDistanceLabel(nullptr) {
+      _minDistanceLabel(nullptr), _marginLabel(nullptr) {
   _dialog->GetSizer()->Add(loadNamedPanel(_dialog, "ScatterDialogMainPanel"), 1,
                            wxEXPAND | wxALL, 12);
 
@@ -48,6 +51,34 @@ ScatterDialog::ScatterDialog()
   distributionChoice->Bind(wxEVT_CHOICE, &ScatterDialog::onDistributionChanged,
                            this);
 
+  wxCheckBox *avoidOverlap =
+      findNamedObject<wxCheckBox>(_dialog, "ScatterDialogAvoidOverlap");
+  avoidOverlap->Bind(wxEVT_CHECKBOX, &ScatterDialog::onAvoidOverlapChanged,
+                     this);
+
+  _marginLabel =
+      findNamedObject<wxStaticText>(_dialog, "ScatterDialogMarginLabel");
+
+  // Preselect brush mode based on selection content
+  bool hasPatches = false;
+  bool hasBrushes = false;
+  GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr &node) {
+    if (Node_isPatch(node))
+      hasPatches = true;
+    if (Node_isBrush(node))
+      hasBrushes = true;
+  });
+
+  wxChoice *brushModeChoice =
+      findNamedObject<wxChoice>(_dialog, "ScatterDialogBrushMode");
+  if (hasPatches && !hasBrushes) {
+    brushModeChoice->SetSelection(
+        static_cast<int>(ScatterBrushMode::Surface));
+  } else {
+    brushModeChoice->SetSelection(
+        static_cast<int>(ScatterBrushMode::AreaBoundary));
+  }
+
   // Always start with a random seed
   std::random_device rd;
   findNamedObject<wxSpinCtrl>(_dialog, "ScatterDialogSeed")
@@ -63,6 +94,12 @@ void ScatterDialog::onDensityMethodChanged(wxCommandEvent &ev) {
 }
 
 void ScatterDialog::onDistributionChanged(wxCommandEvent &ev) {
+  updateControlVisibility();
+  _dialog->Layout();
+  _dialog->Fit();
+}
+
+void ScatterDialog::onAvoidOverlapChanged(wxCommandEvent &ev) {
   updateControlVisibility();
   _dialog->Layout();
   _dialog->Fit();
@@ -94,6 +131,14 @@ void ScatterDialog::updateControlVisibility() {
     findNamedObject<wxTextCtrl>(_dialog, "ScatterDialogMinDistance")
         ->Show(usePoisson);
   }
+
+  // Show margin only when avoid overlap is enabled
+  bool showMargin = getAvoidOverlap();
+  if (_marginLabel) {
+    _marginLabel->Show(showMargin);
+    findNamedObject<wxTextCtrl>(_dialog, "ScatterDialogMargin")
+        ->Show(showMargin);
+  }
 }
 
 ScatterDensityMethod ScatterDialog::getDensityMethod() {
@@ -106,6 +151,12 @@ ScatterDistribution ScatterDialog::getDistribution() {
   wxChoice *choice =
       findNamedObject<wxChoice>(_dialog, "ScatterDialogDistribution");
   return static_cast<ScatterDistribution>(choice->GetSelection());
+}
+
+ScatterBrushMode ScatterDialog::getBrushMode() {
+  wxChoice *choice =
+      findNamedObject<wxChoice>(_dialog, "ScatterDialogBrushMode");
+  return static_cast<ScatterBrushMode>(choice->GetSelection());
 }
 
 float ScatterDialog::getDensity() {
@@ -152,6 +203,19 @@ bool ScatterDialog::getAlignToNormal() {
       ->GetValue();
 }
 
+bool ScatterDialog::getAvoidOverlap() {
+  return findNamedObject<wxCheckBox>(_dialog, "ScatterDialogAvoidOverlap")
+      ->GetValue();
+}
+
+float ScatterDialog::getMargin() {
+  return string::convert<float>(
+      findNamedObject<wxTextCtrl>(_dialog, "ScatterDialogMargin")
+          ->GetValue()
+          .ToStdString(),
+      0.0f);
+}
+
 void ScatterDialog::Show(const cmd::ArgumentList &args) {
   if (GlobalSelectionSystem().countSelected() == 0) {
     throw cmd::ExecutionNotPossible(
@@ -170,7 +234,10 @@ void ScatterDialog::Show(const cmd::ArgumentList &args) {
          cmd::Argument(dialog.getSeed()),
          cmd::Argument(static_cast<int>(dialog.getFaceDirection())),
          cmd::Argument(dialog.getRotationRange()),
-         cmd::Argument(dialog.getAlignToNormal() ? 1 : 0)});
+         cmd::Argument(dialog.getAlignToNormal() ? 1 : 0),
+         cmd::Argument(static_cast<int>(dialog.getBrushMode())),
+         cmd::Argument(dialog.getAvoidOverlap() ? 1 : 0),
+         cmd::Argument(dialog.getMargin())});
   }
 }
 
