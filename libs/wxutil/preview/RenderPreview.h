@@ -41,11 +41,8 @@ class RenderPreview :
     void connectToolbarSignals();
     bool drawPreview();
     void onGLScroll(wxMouseEvent& ev);
-    void onGLMouseClick(wxMouseEvent& ev);
     void onGLMouseRelease(wxMouseEvent& ev);
-    void onGLMotion(wxMouseEvent& ev);
     void onGLMotionDelta(int x, int y, unsigned int mouseState);
-    void onGLKeyPress(wxKeyEvent& ev);
 
     void onStartPlaybackClick(wxCommandEvent& ev);
     void onStopPlaybackClick(wxCommandEvent& ev);
@@ -68,7 +65,6 @@ class RenderPreview :
     // Called each frame by wxTimer
     void _onFrame(wxTimerEvent& ev);
 
-    void updateModelViewMatrix();
     void updateActiveRenderModeButton();
 
     void setupToolbars(bool enableAnimation);
@@ -131,6 +127,8 @@ protected:
     IGLFont::Ptr _glFont;
 
 protected:
+    GLWidget* getGLWidget();
+
     const scene::GraphPtr& getScene();
 
     /// Add another one to the toolbar hbox
@@ -143,6 +141,8 @@ protected:
     virtual const Matrix4& getModelViewMatrix();
 
     virtual Matrix4 calculateModelViewMatrix();
+
+    void updateModelViewMatrix();
 
     void resetModelRotation();
 
@@ -170,6 +170,11 @@ protected:
     // Override these to define the flags to render a fill/wireframe scene
     virtual RenderStateFlags getRenderFlagsFill();
     virtual RenderStateFlags getRenderFlagsWireframe();
+
+    virtual void onGLMouseClick(wxMouseEvent& ev);
+    virtual void onGLMotion(wxMouseEvent& ev);
+    virtual void onGLKeyPress(wxKeyEvent& ev);
+    virtual void onGLKeyRelease(wxKeyEvent& ev);
 
     void associateRenderSystem();
 

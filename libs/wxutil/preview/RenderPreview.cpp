@@ -57,7 +57,7 @@ RenderPreview::RenderPreview(wxWindow* parent, bool enableAnimation):
     _renderSystem(GlobalRenderSystemFactory().createRenderSystem()),
     _timer(this)
 {
-    Bind(wxEVT_TIMER, &RenderPreview::_onFrame, this);
+    Bind(wxEVT_TIMER, &RenderPreview::_onFrame, this, _timer.GetId());
 
     // Insert GL widget
     _mainPanel->GetSizer()->Prepend(_glWidget, 1, wxEXPAND);
@@ -70,6 +70,7 @@ RenderPreview::RenderPreview(wxWindow* parent, bool enableAnimation):
     _glWidget->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(RenderPreview::onGLMouseClick), NULL, this);
     _glWidget->Connect(wxEVT_RIGHT_DCLICK, wxMouseEventHandler(RenderPreview::onGLMouseClick), NULL, this);
     _glWidget->Connect(wxEVT_KEY_DOWN, wxKeyEventHandler(RenderPreview::onGLKeyPress), NULL, this);
+    _glWidget->Connect(wxEVT_KEY_UP, wxKeyEventHandler(RenderPreview::onGLKeyRelease), NULL, this);
 
     setupToolbars(enableAnimation);
 
@@ -304,6 +305,11 @@ const scene::GraphPtr& RenderPreview::getScene()
     }
 
     return _scene;
+}
+
+GLWidget* RenderPreview::getGLWidget()
+{
+    return _glWidget;
 }
 
 void RenderPreview::associateRenderSystem()
@@ -941,6 +947,11 @@ void RenderPreview::onGLKeyPress(wxKeyEvent& ev)
 
     updateModelViewMatrix();
     queueDraw();
+}
+
+void RenderPreview::onGLKeyRelease(wxKeyEvent& ev)
+{
+    ev.Skip();
 }
 
 void RenderPreview::_onFrame(wxTimerEvent& ev)

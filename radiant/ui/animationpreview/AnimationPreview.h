@@ -3,6 +3,8 @@
 #include "wxutil/preview/RenderPreview.h"
 
 #include <memory>
+#include <wx/timer.h>
+#include <wx/stopwatch.h>
 #include "imd5model.h"
 #include "inode.h"
 #include "ieclass.h"
@@ -30,6 +32,10 @@ private:
 
 	// The animation to play on this model
 	md5::IMD5AnimPtr _anim;
+
+	unsigned int _freeMoveFlags = 0;
+	wxTimer _freeMoveTimer;
+	wxStopWatch _keyControlTimer;
 
 public:
 	/** Construct a AnimationPreview widget.
@@ -63,6 +69,17 @@ protected:
     RenderStateFlags getRenderFlagsFill() override;
 
     void onModelRotationChanged() override;
+
+    void onGLMouseClick(wxMouseEvent& ev) override;
+    void onGLMotion(wxMouseEvent& ev) override;
+    void onGLKeyPress(wxKeyEvent& ev) override;
+    void onGLKeyRelease(wxKeyEvent& ev) override;
+
+private:
+	void setFreeMoveFlags(unsigned int mask);
+	void clearFreeMoveFlags(unsigned int mask);
+	void onFreeMoveTimer(wxTimerEvent& ev);
+	void handleFreeMovement(float timePassed);
 };
 typedef std::shared_ptr<AnimationPreview> AnimationPreviewPtr;
 

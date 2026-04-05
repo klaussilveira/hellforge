@@ -2,13 +2,17 @@
 
 #include "i18n.h"
 #include "imodel.h"
+#include "icameraview.h"
 #include "scene/EntityNode.h"
 #include "ieclass.h"
 #include "imd5anim.h"
 #include "itextstream.h"
 #include "math/AABB.h"
+#include "math/pi.h"
+#include "wxutil/GLWidget.h"
 #include "scene/BasicRootNode.h"
 #include <fmt/format.h>
+#include <cmath>
 
 namespace ui
 {
@@ -16,11 +20,19 @@ namespace ui
 namespace
 {
 	const char* const FUNC_STATIC_CLASS = "func_static";
+
+	constexpr unsigned int MOVE_FORWARD = 1 << 0;
+	constexpr unsigned int MOVE_BACK = 1 << 1;
+	constexpr unsigned int MOVE_STRAFERIGHT = 1 << 2;
+	constexpr unsigned int MOVE_STRAFELEFT = 1 << 3;
 }
 
 AnimationPreview::AnimationPreview(wxWindow* parent) :
-	wxutil::RenderPreview(parent, true)
-{}
+	wxutil::RenderPreview(parent, true),
+	_freeMoveTimer(this)
+{
+	Bind(wxEVT_TIMER, &AnimationPreview::onFreeMoveTimer, this, _freeMoveTimer.GetId());
+}
 
 void AnimationPreview::clearModel()
 {
@@ -207,6 +219,148 @@ void AnimationPreview::onModelRotationChanged()
 
         _entity->tryGetEntity()->setKeyValue("rotation", value.str());
     }
+}
+
+void AnimationPreview::onGLMouseClick(wxMouseEvent& ev)
+{
+    if (ev.LeftDown())
+    {
+        getGLWidget()->SetFocus();
+    }
+
+    RenderPreview::onGLMouseClick(ev);
+}
+
+void AnimationPreview::onGLMotion(wxMouseEvent& ev)
+{
+    if (ev.LeftIsDown())
+    {
+        Vector3 deltaPos(ev.GetX() - _lastX, _lastY - ev.GetY(), 0);
+
+        _lastX = ev.GetX();
+        _lastY = ev.GetY();
+
+        Vector3 orbitCenter = getSceneBounds().getOrigin();
+        double orbitDistance = (_viewOrigin - orbitCenter).getLength();
+
+        _viewAngles[camera::CAMERA_YAW] += deltaPos.x() * 0.3;
+        _viewAngles[camera::CAMERA_PITCH] -= deltaPos.y() * 0.3;
+
+        if (_viewAngles[camera::CAMERA_PITCH] > 90)
+            _viewAngles[camera::CAMERA_PITCH] = 90;
+        else if (_viewAngles[camera::CAMERA_PITCH] < -90)
+            _viewAngles[camera::CAMERA_PITCH] = -90;
+
+        if (_viewAngles[camera::CAMERA_YAW] >= 360)
+            _viewAngles[camera::CAMERA_YAW] -= 360;
+        else if (_viewAngles[camera::CAMERA_YAW] <= 0)
+            _viewAngles[camera::CAMERA_YAW] += 360;
+
+        updateModelViewMatrix();
+
+        Vector3 forward(_modelView[2], _modelView[6], _modelView[10]);
+        _viewOrigin = orbitCenter + forward * orbitDistance;
+
+        updateModelViewMatrix();
+        queueDraw();
+    }
+}
+
+void AnimationPreview::onGLKeyPress(wxKeyEvent& ev)
+{
+    switch (ev.GetKeyCode())
+    {
+    case 'W': case 'w':
+        setFreeMoveFlags(MOVE_FORWARD);
+        break;
+    case 'S': case 's':
+        setFreeMoveFlags(MOVE_BACK);
+        break;
+    case 'A': case 'a':
+        setFreeMoveFlags(MOVE_STRAFELEFT);
+        break;
+    case 'D': case 'd':
+        setFreeMoveFlags(MOVE_STRAFERIGHT);
+        break;
+    default:
+        ev.Skip();
+        return;
+    }
+}
+
+void AnimationPreview::onGLKeyRelease(wxKeyEvent& ev)
+{
+    switch (ev.GetKeyCode())
+    {
+    case 'W': case 'w':
+        clearFreeMoveFlags(MOVE_FORWARD);
+        break;
+    case 'S': case 's':
+        clearFreeMoveFlags(MOVE_BACK);
+        break;
+    case 'A': case 'a':
+        clearFreeMoveFlags(MOVE_STRAFELEFT);
+        break;
+    case 'D': case 'd':
+        clearFreeMoveFlags(MOVE_STRAFERIGHT);
+        break;
+    default:
+        ev.Skip();
+        return;
+    }
+}
+
+void AnimationPreview::setFreeMoveFlags(unsigned int mask)
+{
+    if (_freeMoveFlags == 0 && (~_freeMoveFlags & mask) != 0)
+    {
+        _keyControlTimer.Start();
+        _freeMoveTimer.Start(10);
+    }
+    _freeMoveFlags |= mask;
+}
+
+void AnimationPreview::clearFreeMoveFlags(unsigned int mask)
+{
+    _freeMoveFlags &= ~mask;
+    if (_freeMoveFlags == 0)
+    {
+        _freeMoveTimer.Stop();
+    }
+}
+
+void AnimationPreview::onFreeMoveTimer(wxTimerEvent& ev)
+{
+    float timePassed = _keyControlTimer.Time() / 1000.0f;
+    _keyControlTimer.Start();
+
+    if (timePassed > 0.05f)
+        timePassed = 0.05f;
+
+    handleFreeMovement(timePassed);
+    queueDraw();
+}
+
+void AnimationPreview::handleFreeMovement(float timePassed)
+{
+    float speed = static_cast<float>(getSceneBounds().getRadius()) * 2.0f;
+
+    Vector3 forward(_modelView[2], _modelView[6], _modelView[10]);
+    Vector3 right(_modelView[0], _modelView[4], _modelView[8]);
+
+    if (_freeMoveFlags & MOVE_FORWARD)
+        _viewOrigin -= forward * (timePassed * speed);
+
+    if (_freeMoveFlags & MOVE_BACK)
+        _viewOrigin += forward * (timePassed * speed);
+
+    if (_freeMoveFlags & MOVE_STRAFELEFT)
+        _viewOrigin -= right * (timePassed * speed);
+
+    if (_freeMoveFlags & MOVE_STRAFERIGHT)
+        _viewOrigin += right * (timePassed * speed);
+
+    updateModelViewMatrix();
 }
 
 } // namespace
