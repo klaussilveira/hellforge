@@ -285,4 +285,124 @@ TEST(SettingsManagerTest, SettingsFileVersionPrecedence)
     os::removeDirectory(context.getSettingsPath());
 }
 
+namespace
+{
+
+// Creates an isolated temp directory for findInHighestVersionFolder tests.
+class FindInVersionFolderFixture
+{
+public:
+    fs::path basePath;
+
+    FindInVersionFolderFixture()
+    {
+        basePath = os::getTemporaryPath() / "find_in_version_folder_tests";
+        os::removeDirectory(basePath.string());
+        os::makeDirectory(basePath.string());
+    }
+
+    ~FindInVersionFolderFixture()
+    {
+        os::removeDirectory(basePath.string());
+    }
+
+    // Creates a file at <basePath>/<subdir>/<filename>, returning its full path.
+    // <subdir> may be empty to put the file directly under basePath.
+    std::string createFile(const std::string& subdir, const std::string& filename)
+    {
+        fs::path folder = subdir.empty() ? basePath : (basePath / subdir);
+        os::makeDirectory(folder.string());
+        fs::path fullPath = folder / filename;
+        std::ofstream stream(fullPath);
+        stream << fullPath.string();
+        return os::standardPath(fullPath.string());
+    }
+};
+
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderPicksHighestVersion)
+{
+    FindInVersionFolderFixture f;
+
+    auto v213 = f.createFile("2.13", "input.xml");
+    auto v215 = f.createFile("2.15", "input.xml");
+    auto v30 = f.createFile("3.0", "input.xml");
+
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(f.basePath.string(), "input.xml"), v30);
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderIgnoresFoldersWithoutTheFile)
+{
+    FindInVersionFolderFixture f;
+
+    // 3.0 exists but contains a different file - 2.15 should win
+    f.createFile("3.0", "other.xml");
+    auto v215 = f.createFile("2.15", "input.xml");
+
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(f.basePath.string(), "input.xml"), v215);
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderIgnoresNonVersionFolders)
+{
+    FindInVersionFolderFixture f;
+
+    // A folder named "backup" - not a version - should be skipped
+    f.createFile("backup", "input.xml");
+    auto v215 = f.createFile("2.15", "input.xml");
+
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(f.basePath.string(), "input.xml"), v215);
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderFallsBackToBaseFolder)
+{
+    FindInVersionFolderFixture f;
+
+    // No versioned folder contains the file, but the base does
+    auto baseFile = f.createFile("", "input.xml");
+
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(f.basePath.string(), "input.xml"), baseFile);
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderPrefersVersionedOverBase)
+{
+    FindInVersionFolderFixture f;
+
+    // Both base and a versioned folder have the file - the versioned one wins
+    f.createFile("", "input.xml");
+    auto v215 = f.createFile("2.15", "input.xml");
+
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(f.basePath.string(), "input.xml"), v215);
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderHandlesMissingDirectory)
+{
+    auto missing = (os::getTemporaryPath() / "definitely_does_not_exist_xyz123").string();
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(missing, "input.xml"), "");
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderHandlesEmptyBasePath)
+{
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder("", "input.xml"), "");
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderReturnsEmptyWhenNothingFound)
+{
+    FindInVersionFolderFixture f;
+
+    // Empty base directory
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(f.basePath.string(), "input.xml"), "");
+}
+
+TEST(SettingsManagerTest, FindInHighestVersionFolderRespectsMultiDigitVersions)
+{
+    FindInVersionFolderFixture f;
+
+    // 11.0 is higher than 9.99 numerically, but lexicographic sort would say otherwise
+    auto v999 = f.createFile("9.99", "input.xml");
+    auto v110 = f.createFile("11.0", "input.xml");
+
+    EXPECT_EQ(settings::SettingsManager::findInHighestVersionFolder(f.basePath.string(), "input.xml"), v110);
+}
+
 }

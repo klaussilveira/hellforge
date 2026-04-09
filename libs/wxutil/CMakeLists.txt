@@ -22,6 +22,7 @@ add_library(wxutil
             FileChooser.cpp
             FreezePointer.cpp
             GLWidget.cpp
+            KeyCode.cpp
             menu/PopupMenu.cpp
             menu/FilterPopupMenu.cpp
             ModalProgressDialog.cpp

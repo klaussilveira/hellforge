@@ -303,6 +303,7 @@
     <ClCompile Include="..\..\radiant\textool\TexTool.cpp" />
     <ClCompile Include="..\..\radiant\ui\about\AboutDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\commandlist\CommandList.cpp" />
+    <ClCompile Include="..\..\radiant\ui\commandlist\ImportKeybindings.cpp" />
     <ClCompile Include="..\..\radiant\ui\commandlist\ShortcutChooser.cpp" />
     <ClCompile Include="..\..\radiant\ui\common\EntityChooser.cpp" />
     <ClCompile Include="..\..\radiant\ui\common\GuiChooser.cpp" />
@@ -554,6 +555,7 @@
     <ClInclude Include="..\..\radiant\ui\about\AboutDialog.h" />
     <ClInclude Include="..\..\radiant\ui\commandlist\CommandList.h" />
     <ClInclude Include="..\..\radiant\ui\commandlist\CommandListPopulator.h" />
+    <ClInclude Include="..\..\radiant\ui\commandlist\ImportKeybindings.h" />
     <ClInclude Include="..\..\radiant\ui\commandlist\ShortcutChooser.h" />
     <ClInclude Include="..\..\radiant\ui\common\EntityChooser.h" />
     <ClInclude Include="..\..\radiant\ui\common\GuiChooser.h" />

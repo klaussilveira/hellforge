@@ -93,11 +93,11 @@ void MenuItem::deconstruct()
 
 	if (_menuItem != nullptr)
 	{
-		// Try to lookup the event name
-		if (!_event.empty())
-		{
-			GlobalEventManager().unregisterMenuItem(_event, _menuItem);
-		}
+		// Always unregister - construct() always registers, regardless of whether
+		// the event name is empty. Skipping unregister here would leak a dangling
+		// wxMenuItem pointer into EventManager::_menuItems and crash any code that
+		// later iterates the map (e.g. resetAcceleratorBindings).
+		GlobalEventManager().unregisterMenuItem(_event, _menuItem);
 
 		if (_menuItem->GetMenu() != nullptr)
 		{

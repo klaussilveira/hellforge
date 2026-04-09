@@ -44,6 +44,7 @@
 #include "ui/findshader/FindShaderControl.h"
 #include "ui/mapinfo/MapInfoDialog.h"
 #include "ui/commandlist/CommandList.h"
+#include "ui/commandlist/ImportKeybindings.h"
 #include "ui/commandpalette/CommandPalette.h"
 #include "ui/commandpalette/InsertPalette.h"
 #include "ui/mousetool/ToolMappingDialog.h"
@@ -534,6 +535,7 @@ void UserInterfaceModule::registerUICommands()
     GlobalCommandSystem().addCommand("MouseToolMappingDialog", ToolMappingDialog::ShowDialog);
 
     GlobalCommandSystem().addCommand("ShowCommandList", CommandList::ShowDialog);
+    GlobalCommandSystem().addCommand("ImportShortcutsFromDarkRadiant", ImportKeybindingsFromDarkRadiant);
     GlobalCommandSystem().addCommand("CommandPalette", CommandPalette::ShowPalette);
     GlobalCommandSystem().addCommand("InsertPalette", InsertPalette::ShowPalette);
     GlobalCommandSystem().addCommand("About", AboutDialog::showDialog);

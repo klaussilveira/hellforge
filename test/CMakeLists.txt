@@ -29,6 +29,7 @@ add_executable(drtest
                Grid.cpp
                HeadlessOpenGLContext.cpp
                ImageLoading.cpp
+               KeyCode.cpp
                LayerManipulation.cpp
                MapExport.cpp
                MapMerging.cpp
@@ -81,7 +82,7 @@ target_include_directories(drtest PRIVATE ../plugins/dm.editing)
 target_include_directories(drtest PRIVATE ${CMAKE_SOURCE_DIR}/radiant)
 
 target_link_libraries(drtest PUBLIC
-                      math xmlutil scene module
+                      math xmlutil scene module wxutil
                       ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES}
                       ${SIGC_LIBRARIES} ${GLEW_LIBRARIES} ${X11_LIBRARIES}
                       PRIVATE Threads::Threads)

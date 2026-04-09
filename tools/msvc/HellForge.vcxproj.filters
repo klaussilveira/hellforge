@@ -256,6 +256,9 @@
     <ClCompile Include="..\..\radiant\ui\commandlist\CommandList.cpp">
       <Filter>src\ui\commandlist</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\commandlist\ImportKeybindings.cpp">
+      <Filter>src\ui\commandlist</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\ui\commandlist\ShortcutChooser.cpp">
       <Filter>src\ui\commandlist</Filter>
     </ClCompile>
@@ -859,6 +862,9 @@
       <Filter>src\ui\commandlist</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\commandlist\CommandListPopulator.h">
+      <Filter>src\ui\commandlist</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\commandlist\ImportKeybindings.h">
       <Filter>src\ui\commandlist</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\commandlist\ShortcutChooser.h">

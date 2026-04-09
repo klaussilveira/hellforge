@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include "version.h"
 #include "imodule.h"
@@ -82,6 +83,52 @@ public:
     const std::string& getCurrentVersionSettingsFolder() const
     {
         return _currentVersionSettingsFolder;
+    }
+
+    /**
+     * Searches the version-named subdirectories of <basePath> for the given file
+     * and returns the full path to the file in the highest-versioned folder.
+     *
+     * Subdirectory names that don't parse as MajorMinorVersion are ignored.
+     * If no versioned subdirectory contains the file, falls back to checking
+     * <basePath>/<filename> directly. Returns an empty string if neither exists.
+     *
+     * Useful for porting settings from DR to HF.
+     */
+    static std::string findInHighestVersionFolder(const std::string& basePath,
+                                                  const std::string& filename)
+    {
+        if (basePath.empty() || !fs::is_directory(basePath))
+        {
+            return std::string();
+        }
+
+        std::optional<MajorMinorVersion> bestVersion;
+        std::string bestPath;
+
+        os::forEachItemInDirectory(basePath, [&](const fs::path& item)
+        {
+            if (!fs::is_directory(item)) return;
+
+            try
+            {
+                MajorMinorVersion version(item.filename().string());
+                auto candidate = item / filename;
+
+                if (fs::is_regular_file(candidate) && (!bestVersion || *bestVersion < version))
+                {
+                    bestVersion = version;
+                    bestPath = os::standardPath(candidate.string());
+                }
+            }
+            catch (const std::invalid_argument&)
+            {} // ignore folders whose name isn't a version
+        }, std::nothrow);
+
+        if (!bestPath.empty()) return bestPath;
+
+        auto fallback = fs::path(basePath) / filename;
+        return fs::is_regular_file(fallback) ? os::standardPath(fallback.string()) : std::string();
     }
 
     /**

@@ -69,10 +69,10 @@
 		<menuItem name="selectionSiblings" caption="Expand selection to all Siblings" command="ExpandSelectionToSiblings" />
 		<menuItem name="selectalloftype" caption="Select all of type" command="SelectAllOfType" />
 		<menuSeparator />
-		<menuItem name="commandpalette" caption="Command Palette..." command="CommandPalette" />
-		<menuItem name="insertpalette" caption="Insert Palette..." command="InsertPalette" />
 		<menuItem name="shortcuts" caption="Keyboard Shortcuts..." command="ShowCommandList" />
-    <menuItem name="mousetoolbindings" caption="Mouse Bindings..." command="MouseToolMappingDialog" />
+		<menuItem name="mousetoolbindings" caption="Mouse Bindings..." command="MouseToolMappingDialog" />
+		<menuItem name="importShortcutsDR" caption="Import mappings from DarkRadiant..." command="ImportShortcutsFromDarkRadiant" />
+		<menuSeparator />
 		<menuItem name="themes" caption="Themes..." command="EditColourScheme" icon="editcolour16.png" />
 		<menuItem name="preferences" caption="Pre&amp;ferences..." command="Preferences" />
 	</subMenu>
@@ -134,6 +134,8 @@
 
 		<menuSeparator />
 		<menuItem name="backgroundimage" caption="Background Image..." command="ToggleOrthoBackgroundPanel" icon="bgimage16.png" />
+		<menuItem name="commandpalette" caption="Command Palette..." command="CommandPalette" />
+		<menuItem name="insertpalette" caption="Insert Palette..." command="InsertPalette" />
 	</subMenu>
 
 	<subMenu name="modify" caption="Mo&amp;dify">
