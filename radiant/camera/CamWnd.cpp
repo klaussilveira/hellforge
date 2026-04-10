@@ -774,6 +774,8 @@ void CamWnd::drawGrid()
 
 void CamWnd::Cam_Draw()
 {
+    ZoneScopedN("CamWnd::Cam_Draw");
+
     wxSize glSize = _wxGLWidget->GetSize();
 
     if (_camera->getDeviceWidth() != glSize.GetWidth() || _camera->getDeviceHeight() != glSize.GetHeight())
@@ -1038,6 +1040,8 @@ void CamWnd::Cam_Draw()
 
 bool CamWnd::onRender()
 {
+    ZoneScopedN("CamWnd::onRender");
+
     if (_drawing) return false;
 
     util::ScopedBoolLock lock(_drawing);
@@ -1056,6 +1060,7 @@ bool CamWnd::onRender()
 
         debug::assertNoGlErrors();
 
+        FrameMarkNamed("CamWnd");
         return true;
     }
 

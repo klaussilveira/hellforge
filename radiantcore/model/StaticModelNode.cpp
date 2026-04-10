@@ -19,6 +19,7 @@ StaticModelNode::StaticModelNode(const StaticModelPtr& picoModel) :
 
 void StaticModelNode::createRenderableSurfaces()
 {
+    ZoneScopedN("StaticModelNode::createRenderableSurfaces");
     _model->foreachSurface([&](const StaticModelSurface& surface)
     {
         if (surface.getVertexArray().empty() || surface.getIndexArray().empty())

@@ -93,6 +93,7 @@ void GraphTreeModel::clear()
 
 void GraphTreeModel::refresh()
 {
+    ZoneScopedN("GraphTreeModel::refresh");
 #if defined(__linux__)
     _model->Clear();
 #else

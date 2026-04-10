@@ -282,6 +282,7 @@ void PatchTesselation::sampleSinglePatch(const MeshVertex ctrl[3][3],
 
 void PatchTesselation::subdivideMeshFixed(std::size_t subdivX, std::size_t subdivY)
 {
+    ZoneScopedN("PatchTesselation::subdivideMeshFixed");
 	std::size_t outWidth = ((width - 1) / 2 * subdivX) + 1;
 	std::size_t outHeight = ((height - 1) / 2 * subdivY) + 1;
 
@@ -496,6 +497,7 @@ void PatchTesselation::removeLinearColumnsRows()
 
 void PatchTesselation::subdivideMesh()
 {
+    ZoneScopedN("PatchTesselation::subdivideMesh");
 	static const float DEFAULT_CURVE_MAX_ERROR = 4.0f;
 	static const float DEFAULT_CURVE_MAX_LENGTH = -1.0f;
 
@@ -735,6 +737,7 @@ void PatchTesselation::deriveFaceTangents(std::vector<FaceTangents>& faceTangent
 
 void PatchTesselation::deriveTangents()
 {
+    ZoneScopedN("PatchTesselation::deriveTangents");
 	if (lenStrips < 2) return;
 
 	std::vector<FaceTangents> faceTangents;
@@ -839,6 +842,7 @@ void PatchTesselation::generate(std::size_t patchWidth, std::size_t patchHeight,
 	const PatchControlArray& controlPoints, bool subdivionsFixed, const Subdivisions& subdivs,
     IRenderEntity* renderEntity)
 {
+    ZoneScopedN("PatchTesselation::generate");
 	width = patchWidth;
 	height = patchHeight;
 

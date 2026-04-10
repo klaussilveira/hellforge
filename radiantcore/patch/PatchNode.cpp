@@ -348,6 +348,7 @@ bool PatchNode::getIntersection(const Ray& ray, Vector3& intersection)
 
 void PatchNode::onPreRender(const VolumeTest& volume)
 {
+    ZoneScopedN("PatchNode::onPreRender");
     // Defer the tesselation calculation to the last minute
     m_patch.evaluateTransform();
     m_patch.updateTesselation();
@@ -384,6 +385,7 @@ void PatchNode::onPreRender(const VolumeTest& volume)
 
 void PatchNode::renderHighlights(IRenderableCollector& collector, const VolumeTest& volume)
 {
+    ZoneScopedN("PatchNode::renderHighlights");
     if (GlobalSelectionSystem().getSelectionMode() != selection::SelectionMode::Component)
     {
         // The coloured selection overlay should use the same triangulated surface to avoid z fighting

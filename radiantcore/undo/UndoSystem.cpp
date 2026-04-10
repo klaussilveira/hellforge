@@ -40,6 +40,7 @@ void UndoSystem::releaseStateSaver(IUndoable& undoable)
 
 void UndoSystem::start()
 {
+    ZoneScopedN("UndoSystem::start");
 	_redoStack.clear();
 	if (_undoStack.size() == _undoLevels.get())
 	{
@@ -64,6 +65,7 @@ void UndoSystem::cancel()
 
 void UndoSystem::finish(const std::string& command)
 {
+    ZoneScopedN("UndoSystem::finish");
 	if (finishUndo(command))
     {
 		rMessage() << command << std::endl;
@@ -73,6 +75,7 @@ void UndoSystem::finish(const std::string& command)
 
 void UndoSystem::undo()
 {
+    ZoneScopedN("UndoSystem::undo");
 	if (_undoStack.empty())
 	{
 		rMessage() << "Undo: no undo available" << std::endl;
@@ -98,6 +101,7 @@ void UndoSystem::undo()
 
 void UndoSystem::redo()
 {
+    ZoneScopedN("UndoSystem::redo");
 	if (_redoStack.empty())
 	{
 		rMessage() << "Redo: no redo available" << std::endl;

@@ -36,6 +36,7 @@ void GLTextureManager::checkBindings()
 TexturePtr GLTextureManager::getBinding(const NamedBindablePtr& bindable,
                                         BindableTexture::Role role)
 {
+    ZoneScopedN("GLTextureManager::getBinding(bindable)");
     // Check if we got an empty MapExpression, and return the NOT FOUND texture
     // if so
     if (!bindable)
@@ -66,6 +67,7 @@ TexturePtr GLTextureManager::getBinding(const NamedBindablePtr& bindable,
 
 TexturePtr GLTextureManager::getBinding(const std::string& fullPath)
 {
+    ZoneScopedN("GLTextureManager::getBinding(path)");
     // check if the texture has to be loaded
     TextureMap::iterator i = _textures.find(fullPath);
 

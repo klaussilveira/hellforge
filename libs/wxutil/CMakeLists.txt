@@ -52,3 +52,7 @@ target_link_libraries(wxutil PUBLIC
                       ${FTGL_LIBRARIES}
                       ${GLEW_LIBRARIES}
                       ${GL_LIBRARIES})
+
+if (HF_ENABLE_TRACY)
+    target_link_libraries(wxutil PRIVATE Tracy::TracyClient)
+endif()

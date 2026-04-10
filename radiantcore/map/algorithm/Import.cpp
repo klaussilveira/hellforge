@@ -337,6 +337,7 @@ public:
 
 void importFromStream(std::istream& stream)
 {
+    ZoneScopedN("map::algorithm::importFromStream");
 	GlobalSelectionSystem().setSelectedAll(false);
 
     // Instantiate the default import filter

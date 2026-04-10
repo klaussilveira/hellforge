@@ -232,6 +232,7 @@ BrushSplitType Brush::classifyPlane(const Plane3& plane) const
 
 void Brush::evaluateBRep() const {
     if(m_planeChanged) {
+        ZoneScopedN("Brush::evaluateBRep");
         m_planeChanged = false;
         const_cast<Brush*>(this)->buildBRep();
     }
@@ -1158,6 +1159,7 @@ std::size_t ProximalVertexArray_index(const ProximalVertexArray& array, const Pr
 
 /// \brief Constructs the face windings and updates anything that depends on them.
 void Brush::buildBRep() {
+  ZoneScopedN("Brush::buildBRep");
   bool degenerate = buildWindings();
 
   static const Vector3& colourVertexVec = GlobalBrush().getSettings().getVertexColour();

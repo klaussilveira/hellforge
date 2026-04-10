@@ -1,5 +1,7 @@
 #include "ThreadedResourceTreePopulator.h"
 
+#include <Profiling.h>
+
 namespace wxutil
 {
 
@@ -41,18 +43,25 @@ void ThreadedResourceTreePopulator::ThrowIfCancellationRequested()
 
 wxThread::ExitCode ThreadedResourceTreePopulator::Entry()
 {
+    ZoneScopedN("ThreadedResourceTreePopulator::Entry");
     try
     {
         // Create new treestore
         _treeStore = new TreeModel(_columns);
         _treeStore->SetHasDefaultCompare(false);
 
-        PopulateModel(_treeStore);
+        {
+            ZoneScopedN("PopulateModel");
+            PopulateModel(_treeStore);
+        }
 
         ThrowIfCancellationRequested();
 
         // Sort the model while we're still in the worker thread
-        SortModel(_treeStore);
+        {
+            ZoneScopedN("SortModel");
+            SortModel(_treeStore);
+        }
 
         ThrowIfCancellationRequested();
 

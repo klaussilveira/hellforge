@@ -83,6 +83,7 @@ void MapExporter::construct()
 
 void MapExporter::exportMap(const scene::INodePtr& root, const GraphTraversalFunc& traverse)
 {
+    ZoneScopedN("MapExporter::exportMap");
     if (_sendProgressMessages)
     {
         FileOperation startedMsg(FileOperation::Type::Export, FileOperation::Started, _totalNodeCount > 0);

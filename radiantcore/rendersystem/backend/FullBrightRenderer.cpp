@@ -30,8 +30,13 @@ public:
 
 IRenderResult::Ptr FullBrightRenderer::render(RenderStateFlags globalstate, const IRenderView& view, std::size_t time)
 {
+    ZoneScopedN("FullBrightRenderer::render");
+
     // Make sure all the data is uploaded
-    _geometryStore.syncToBufferObjects();
+    {
+        ZoneScopedN("syncToBufferObjects");
+        _geometryStore.syncToBufferObjects();
+    }
 
     // Construct default OpenGL state
     OpenGLState current;
@@ -52,29 +57,32 @@ IRenderResult::Ptr FullBrightRenderer::render(RenderStateFlags globalstate, cons
     // OpenGLShaderPasses (containing the renderable geometry), and render the
     // contents of each bucket. Each pass is passed a reference to the "current"
     // state, which it can change.
-    for (const auto& [_, pass] : _sortedStates)
     {
-        // Render the OpenGLShaderPass
-        if (pass->empty()) continue;
-
-        if (pass->getShader().isVisible() && pass->isApplicableTo(_renderViewType))
+        ZoneScopedN("FullBrightRenderer: shader pass loop");
+        for (const auto& [_, pass] : _sortedStates)
         {
-            // Apply our state to the current state object
-            pass->evaluateStagesAndApplyState(current, globalstate, time, nullptr);
-            
-            if (!pass->hasRenderables())
-            {
-                // All regular geometry like patches, brushes, meshes, single vertices
-                pass->submitSurfaces(view);
-            }
-            else
-            {
-                // Selection overlays are processed by OpenGLRenderable
-                pass->submitRenderables(current);
-            }
-        }
+            // Render the OpenGLShaderPass
+            if (pass->empty()) continue;
 
-        pass->clearRenderables();
+            if (pass->getShader().isVisible() && pass->isApplicableTo(_renderViewType))
+            {
+                // Apply our state to the current state object
+                pass->evaluateStagesAndApplyState(current, globalstate, time, nullptr);
+
+                if (!pass->hasRenderables())
+                {
+                    // All regular geometry like patches, brushes, meshes, single vertices
+                    pass->submitSurfaces(view);
+                }
+                else
+                {
+                    // Selection overlays are processed by OpenGLRenderable
+                    pass->submitRenderables(current);
+                }
+            }
+
+            pass->clearRenderables();
+        }
     }
 
     // Unbind the geometry buffer and draw the rest of the renderables

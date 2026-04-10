@@ -191,6 +191,7 @@ void assertProgramLinked(GLuint program)
 GLuint GLProgramFactory::createGLSLProgram(const std::string& vFile,
                                            const std::string& fFile)
 {
+    ZoneScopedN("GLProgramFactory::createGLSLProgram");
     // Create the parent program object
     GLuint program = glCreateProgram();
 

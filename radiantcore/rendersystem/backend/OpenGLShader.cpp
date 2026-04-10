@@ -98,6 +98,8 @@ void OpenGLShader::addRenderable(const OpenGLRenderable& renderable,
 
 void OpenGLShader::drawSurfaces(const VolumeTest& view)
 {
+    ZoneScopedN("OpenGLShader::drawSurfaces");
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -116,17 +118,26 @@ void OpenGLShader::drawSurfaces(const VolumeTest& view)
             glDisableClientState(GL_COLOR_ARRAY);
         }
 
-        _geometryRenderer.renderAllVisibleGeometry();
+        {
+            ZoneScopedN("renderAllVisibleGeometry");
+            _geometryRenderer.renderAllVisibleGeometry();
+        }
 
         // Surfaces are not allowed to render vertex colours (for now)
         // otherwise they don't show up in their parent entity's colour
         glDisableClientState(GL_COLOR_ARRAY);
-        _surfaceRenderer.render(view);
+        {
+            ZoneScopedN("surfaceRenderer.render");
+            _surfaceRenderer.render(view);
+        }
     }
 
     // Render all windings (without vertex colours)
     glDisableClientState(GL_COLOR_ARRAY);
-    _windingRenderer->renderAllWindings();
+    {
+        ZoneScopedN("windingRenderer.renderAllWindings");
+        _windingRenderer->renderAllWindings();
+    }
 
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
@@ -140,6 +151,7 @@ bool OpenGLShader::hasSurfaces() const
 
 void OpenGLShader::prepareForRendering()
 {
+    ZoneScopedN("OpenGLShader::prepareForRendering");
     _surfaceRenderer.prepareForRendering();
     _windingRenderer->prepareForRendering();
     // _geometryRenderer doesn't need to prepare at this point

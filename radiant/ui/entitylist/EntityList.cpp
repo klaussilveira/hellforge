@@ -157,6 +157,7 @@ void EntityList::updateSelectionStatus()
 
 void EntityList::refreshTreeModel()
 {
+    ZoneScopedN("EntityList::refreshTreeModel");
     // Refresh the whole tree
     _nodesToUpdate.clear();
     _itemToScrollToWhenIdle.Unset();

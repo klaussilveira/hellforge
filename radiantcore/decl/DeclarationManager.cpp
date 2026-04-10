@@ -177,6 +177,7 @@ void DeclarationManager::doWithDeclarationLock(Type type, const std::function<vo
 
 void DeclarationManager::reloadDeclarations()
 {
+    ZoneScopedN("DeclarationManager::reloadDeclarations");
     // Don't allow reloadDecls to be run before the startup phase is complete
     waitForTypedParsersToFinish();
 
@@ -354,6 +355,7 @@ void DeclarationManager::waitForSignalInvokersToFinish()
 
 void DeclarationManager::runParsersForAllFolders()
 {
+    ZoneScopedN("DeclarationManager::runParsersForAllFolders");
     std::vector<std::unique_ptr<DeclarationFolderParser>> parsers;
 
     {

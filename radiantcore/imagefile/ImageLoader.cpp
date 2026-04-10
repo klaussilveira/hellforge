@@ -54,6 +54,7 @@ ImageLoader::ImageLoader()
 // Load image from VFS
 ImagePtr ImageLoader::imageFromVFS(const std::string& rawName) const
 {
+    ZoneScopedN("ImageLoader::imageFromVFS");
     // Replace backslashes with forward slashes and strip of
     // the file extension of the provided token, and store
     // the result in the provided string.
@@ -95,6 +96,7 @@ ImagePtr ImageLoader::imageFromVFS(const std::string& rawName) const
 
 ImagePtr ImageLoader::imageFromFile(const std::string& filename) const
 {
+    ZoneScopedN("ImageLoader::imageFromFile");
     ImagePtr image;
 
     // Construct a DirectoryArchiveFile out of the filename

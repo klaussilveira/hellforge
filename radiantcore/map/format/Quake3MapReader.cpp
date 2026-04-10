@@ -24,6 +24,7 @@ Quake3MapReader::Quake3MapReader(IMapImportFilter& importFilter) :
 
 void Quake3MapReader::readFromStream(std::istream& stream)
 {
+    ZoneScopedN("Quake3MapReader::readFromStream");
 	// Call the virtual method to initialise the primitve parser map (if not done yet)
 	initPrimitiveParsers();
 

@@ -63,6 +63,7 @@ public:
 protected:
     void PopulateModel(const wxutil::TreeModel::Ptr& model) override
     {
+        ZoneScopedN("ModelPopulator::PopulateModel");
         wxutil::VFSTreePopulator populator(model);
         constexpr const char* MODELS_FOLDER = "models/";
 

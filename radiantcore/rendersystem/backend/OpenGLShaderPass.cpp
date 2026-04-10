@@ -82,11 +82,13 @@ void OpenGLShaderPass::addRenderable(const OpenGLRenderable& renderable,
 
 void OpenGLShaderPass::submitSurfaces(const VolumeTest& view)
 {
+    ZoneScopedN("OpenGLShaderPass::submitSurfaces");
     _owner.drawSurfaces(view);
 }
 
 void OpenGLShaderPass::submitRenderables(OpenGLState& current)
 {
+    ZoneScopedN("OpenGLShaderPass::submitRenderables");
     drawRenderables(current);
 }
 

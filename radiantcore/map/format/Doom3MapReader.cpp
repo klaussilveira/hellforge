@@ -26,6 +26,7 @@ Doom3MapReader::Doom3MapReader(IMapImportFilter& importFilter) :
 
 void Doom3MapReader::readFromStream(std::istream& stream)
 {
+    ZoneScopedN("Doom3MapReader::readFromStream");
 	// Call the virtual method to initialise the primitve parser map (if not done yet)
 	initPrimitiveParsers();
 

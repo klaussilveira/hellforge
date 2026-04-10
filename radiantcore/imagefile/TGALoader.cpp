@@ -422,6 +422,7 @@ RGBAImagePtr LoadTGABuff(const byte* buffer)
 
 ImagePtr TGALoader::load(ArchiveFile& file) const
 {
+    ZoneScopedN("TGALoader::load");
     archive::ScopedArchiveBuffer buffer(file);
     return LoadTGABuff(buffer.buffer);
 }

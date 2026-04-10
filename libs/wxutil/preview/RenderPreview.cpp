@@ -1,5 +1,7 @@
 #include "RenderPreview.h"
 
+#include <Profiling.h>
+
 #include "ifilter.h"
 #include "i18n.h"
 #include "igl.h"
@@ -448,6 +450,7 @@ RenderStateFlags RenderPreview::getRenderFlagsWireframe()
 
 bool RenderPreview::drawPreview()
 {
+    ZoneScopedN("RenderPreview::drawPreview");
     if (_renderingInProgress) return false; // avoid double-entering this method
 
     if (!_initialised)
@@ -552,6 +555,8 @@ bool RenderPreview::drawPreview()
 
 void RenderPreview::renderWireFrame()
 {
+    ZoneScopedN("RenderPreview::renderWireFrame");
+
     RenderStateFlags flags = getRenderFlagsWireframe();
 
     // Set up the camera

@@ -41,6 +41,7 @@ DeclarationFolderParser::DeclarationFolderParser(DeclarationManager& owner, Type
 
 void DeclarationFolderParser::parse(std::istream& stream, const vfs::FileInfo& fileInfo, const std::string& modDir)
 {
+    ZoneScopedN("DeclarationFolderParser::parse");
     std::shared_ptr<parser::DefSyntaxTree> syntaxTree;
 
     if (_preprocessor)

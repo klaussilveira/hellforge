@@ -17,6 +17,7 @@ MapResourceLoader::MapResourceLoader(std::istream& stream, const MapFormat& form
 
 RootNodePtr MapResourceLoader::load()
 {
+    ZoneScopedN("MapResourceLoader::load");
     // Create a new map root node
     auto root = std::make_shared<RootNode>("");
 
@@ -62,6 +63,7 @@ RootNodePtr MapResourceLoader::load()
 
 void MapResourceLoader::loadInfoFile(std::istream& stream, const RootNodePtr& root)
 {
+    ZoneScopedN("MapResourceLoader::loadInfoFile");
     if (!stream.good())
     {
         rError() << "[MapResource] No valid info file stream" << std::endl;

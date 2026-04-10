@@ -18,6 +18,7 @@ option(ENABLE_GIT_PLUGIN "Build the Git VCS integration plugin" ON)
 option(ENABLE_RELOCATION
        "Avoid hard-coded absolute paths to libraries or resources"
        ON)
+option(HF_ENABLE_TRACY "Build with Tracy profiler instrumentation" OFF)
 
 # Define GNU-style directory structure by default
 include(GNUInstallDirs)
@@ -106,6 +107,13 @@ set(DR_STAGING_PLUGINSDIR "${DR_STAGING_LIBDIR}/plugins")
 set(DR_STAGING_DATADIR "${DR_STAGING_ROOT}/share/hellforge")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DR_STAGING_ROOT}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DR_STAGING_LIBDIR}")
+
+# Tracy profiler (opt-in via HF_ENABLE_TRACY)
+if (HF_ENABLE_TRACY)
+    set(TRACY_ENABLE ON CACHE BOOL "" FORCE)
+    add_subdirectory(vendor/tracy)
+    add_compile_definitions(HF_TRACY_ENABLED)
+endif()
 
 # Supporting libraries
 add_subdirectory(libs/math)

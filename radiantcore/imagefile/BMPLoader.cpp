@@ -184,6 +184,7 @@ RGBAImagePtr LoadBMPBuff(stream::PointerInputStream& inputStream, std::size_t le
 
 ImagePtr BMPLoader::load(ArchiveFile& file) const
 {
+    ZoneScopedN("BMPLoader::load");
     archive::ScopedArchiveBuffer buffer(file);
 
     stream::PointerInputStream inputStream(buffer.buffer);

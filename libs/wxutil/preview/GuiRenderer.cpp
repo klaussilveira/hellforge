@@ -1,5 +1,6 @@
 #include "GuiRenderer.h"
 
+#include <Profiling.h>
 #include "igl.h"
 #include "ifonts.h"
 #include "ishaders.h"
@@ -36,6 +37,7 @@ void GuiRenderer::setWindowDefFilter(const std::string& windowDef)
 
 void GuiRenderer::render()
 {
+    ZoneScopedN("GuiRenderer::render");
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

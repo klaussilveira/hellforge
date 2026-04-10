@@ -84,6 +84,7 @@ bool MD5ModelNode::getIntersection(const Ray& ray, Vector3& intersection)
 
 void MD5ModelNode::onPreRender(const VolumeTest& volume)
 {
+    ZoneScopedN("MD5ModelNode::onPreRender");
     ModelNodeBase::onPreRender(volume);
 
     if (_showSkeleton.get())

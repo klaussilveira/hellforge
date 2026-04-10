@@ -59,9 +59,11 @@ void LightingModeRenderer::ensureShadowMapSetup()
     }
 }
 
-IRenderResult::Ptr LightingModeRenderer::render(RenderStateFlags globalFlagsMask, 
+IRenderResult::Ptr LightingModeRenderer::render(RenderStateFlags globalFlagsMask,
     const IRenderView& view, std::size_t time)
 {
+    ZoneScopedN("LightingModeRenderer::render");
+
     _result = std::make_shared<LightingModeRenderResult>();
 
     ensureShadowMapSetup();
@@ -74,7 +76,10 @@ IRenderResult::Ptr LightingModeRenderer::render(RenderStateFlags globalFlagsMask
     setupState(current);
 
     // Past this point, everything in the geometry store is up to date
-    _geometryStore.syncToBufferObjects();
+    {
+        ZoneScopedN("syncToBufferObjects");
+        _geometryStore.syncToBufferObjects();
+    }
 
     auto [vertexBuffer, indexBuffer] = _geometryStore.getBufferObjects();
 
@@ -117,6 +122,7 @@ IRenderResult::Ptr LightingModeRenderer::render(RenderStateFlags globalFlagsMask
 
 void LightingModeRenderer::collectLights(const IRenderView& view)
 {
+    ZoneScopedN("LightingModeRenderer::collectLights");
     _regularLights.reserve(_lights.size());
 
     // Categorise all visible lights
@@ -230,6 +236,8 @@ void LightingModeRenderer::addToShadowLights(RegularLight& light, const Vector3&
 void LightingModeRenderer::drawInteractingLights(OpenGLState& current, RenderStateFlags globalFlagsMask,
     const IRenderView& view, std::size_t renderTime)
 {
+    ZoneScopedN("LightingModeRenderer::drawInteractingLights");
+
     // Draw the surfaces per light and material
     auto interactionState = InteractionPass::GenerateInteractionState(_programFactory);
 
@@ -276,6 +284,7 @@ void LightingModeRenderer::drawInteractingLights(OpenGLState& current, RenderSta
 void LightingModeRenderer::drawBlendLights(OpenGLState& current, RenderStateFlags globalFlagsMask,
     const IRenderView& view, std::size_t renderTime)
 {
+    ZoneScopedN("LightingModeRenderer::drawBlendLights");
     if (_blendLights.empty()) return;
 
     // Set the openGL state
@@ -294,6 +303,7 @@ void LightingModeRenderer::drawBlendLights(OpenGLState& current, RenderStateFlag
 
 void LightingModeRenderer::drawShadowMaps(OpenGLState& current,std::size_t renderTime)
 {
+    ZoneScopedN("LightingModeRenderer::drawShadowMaps");
     if (!_shadowMappingEnabled.get()) return;
 
     // Draw the shadow maps of each light
@@ -356,6 +366,8 @@ void LightingModeRenderer::drawShadowMaps(OpenGLState& current,std::size_t rende
 void LightingModeRenderer::drawDepthFillPass(OpenGLState& current, RenderStateFlags globalFlagsMask,
     const IRenderView& view, std::size_t renderTime)
 {
+    ZoneScopedN("LightingModeRenderer::drawDepthFillPass");
+
     // Run the depth fill pass
     auto depthFillState = DepthFillPass::GenerateDepthFillState(_programFactory);
 
@@ -390,9 +402,11 @@ void LightingModeRenderer::drawDepthFillPass(OpenGLState& current, RenderStateFl
     }
 }
 
-void LightingModeRenderer::drawNonInteractionPasses(OpenGLState& current, RenderStateFlags globalFlagsMask, 
+void LightingModeRenderer::drawNonInteractionPasses(OpenGLState& current, RenderStateFlags globalFlagsMask,
     const IRenderView& view, std::size_t time)
 {
+    ZoneScopedN("LightingModeRenderer::drawNonInteractionPasses");
+
     glUseProgram(0);
     glActiveTexture(GL_TEXTURE0);
     glClientActiveTexture(GL_TEXTURE0);

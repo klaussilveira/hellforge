@@ -198,6 +198,8 @@ void SceneGraph::nodeBoundsChanged(const INodePtr& node)
 
 void SceneGraph::foreachNode(const INode::VisitorFunc& functor)
 {
+    ZoneScopedN("SceneGraph::foreachNode");
+
 	if (!_root) return;
 
 	// First hit the root node
@@ -237,6 +239,8 @@ void SceneGraph::foreachVisibleNodeInVolume(const VolumeTest& volume, const INod
 
 void SceneGraph::foreachNodeInVolume(const VolumeTest& volume, const INode::VisitorFunc& functor, bool visitHidden)
 {
+    ZoneScopedN("SceneGraph::foreachNodeInVolume");
+
     // Acquire the worldAABB() of the scenegraph root - if any node got changed in the graph
     // the scenegraph's root bounds are marked as "dirty" and the bounds will be re-calculated
     // which in turn might trigger a re-link in the Octree. We want to avoid that the Octree

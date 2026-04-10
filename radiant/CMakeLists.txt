@@ -206,6 +206,10 @@ target_link_libraries(hellforge PRIVATE
                       ${GLIB_LIBRARIES}
                       ${GTK3_LIBRARIES})
 
+if (HF_ENABLE_TRACY)
+    target_link_libraries(hellforge PRIVATE Tracy::TracyClient)
+endif()
+
 # Enable precompiled header for radiant
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16.0")
 target_precompile_headers(hellforge PRIVATE

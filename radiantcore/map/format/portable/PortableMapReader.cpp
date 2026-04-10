@@ -55,6 +55,7 @@ PortableMapReader::PortableMapReader(IMapImportFilter& importFilter) :
 
 void PortableMapReader::readFromStream(std::istream& stream)
 {
+    ZoneScopedN("PortableMapReader::readFromStream");
 	xml::Document doc(stream);
 
 	auto mapNode = doc.getTopLevelNode();

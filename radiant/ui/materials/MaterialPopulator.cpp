@@ -127,6 +127,7 @@ void MaterialPopulator::RemoveSingleMaterial(const wxutil::TreeModel::Ptr& model
 
 void MaterialPopulator::PopulateModel(const wxutil::TreeModel::Ptr& model)
 {
+    ZoneScopedN("MaterialPopulator::PopulateModel");
     model->SetHasDefaultCompare(false);
 
     wxutil::VFSTreePopulator populator(model);
@@ -183,6 +184,8 @@ void MaterialPopulator::InsertTexture(const wxutil::TreeModel::Ptr& model,
 
 void MaterialPopulator::SortModel(const wxutil::TreeModel::Ptr& model)
 {
+    ZoneScopedN("MaterialPopulator::SortModel");
+
     // Sort the model while we're still in the worker thread
     SortModel(model, wxDataViewItem());
 }

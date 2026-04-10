@@ -10,3 +10,6 @@
 
  // The actual inclusions are handled by the main precompiled header file
 #include "precompiled_main.h"
+
+// Tracy profiler macros (no-ops unless HF_TRACY_ENABLED is defined)
+#include <Profiling.h>

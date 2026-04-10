@@ -171,6 +171,7 @@ RGBAImagePtr LoadPNGBuff(unsigned char* fbuffer)
 
 ImagePtr PNGLoader::load(ArchiveFile& file) const
 {
+    ZoneScopedN("PNGLoader::load");
     archive::ScopedArchiveBuffer buffer(file);
 
     return LoadPNGBuff(buffer.buffer);

@@ -104,11 +104,13 @@ void SubmitGeometryInternal(const ContainerT& slots, GLenum primitiveMode, IGeom
 
 void ObjectRenderer::submitGeometry(const std::set<IGeometryStore::Slot>& slots, GLenum primitiveMode)
 {
+    ZoneScopedN("ObjectRenderer::submitGeometry(set)");
     SubmitGeometryInternal(slots, primitiveMode, _store);
 }
 
 void ObjectRenderer::submitGeometry(const std::vector<IGeometryStore::Slot>& slots, GLenum primitiveMode)
 {
+    ZoneScopedN("ObjectRenderer::submitGeometry(vector)");
     SubmitGeometryInternal(slots, primitiveMode, _store);
 }
 

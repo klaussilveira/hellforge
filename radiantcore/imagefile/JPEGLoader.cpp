@@ -365,6 +365,7 @@ namespace image
 
 ImagePtr JPEGLoader::load(ArchiveFile& file) const
 {
+    ZoneScopedN("JPEGLoader::load");
     archive::ScopedArchiveBuffer buffer(file);
     return LoadJPGBuff_(buffer.buffer, static_cast<int>(buffer.length));
 }

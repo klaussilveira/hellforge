@@ -382,6 +382,7 @@ void BrushNode::onFaceNeedsRenderableUpdate()
 
 void BrushNode::onPreRender(const VolumeTest& volume)
 {
+    ZoneScopedN("BrushNode::onPreRender");
     _brush.evaluateBRep();
 
     assert(_renderEntity);
@@ -422,6 +423,7 @@ void BrushNode::onPreRender(const VolumeTest& volume)
 
 void BrushNode::renderHighlights(IRenderableCollector& collector, const VolumeTest& volume)
 {
+    ZoneScopedN("BrushNode::renderHighlights");
     // Check for the override status of this brush
     bool isInMergeMode = collector.hasHighlightFlag(IRenderableCollector::Highlight::MergeAction);
     bool forceVisible = isForcedVisible() || isInMergeMode;

@@ -14,6 +14,7 @@ scene::INode::Type ModelNodeBase::getNodeType() const
 
 void ModelNodeBase::onPreRender(const VolumeTest& volume)
 {
+    ZoneScopedN("ModelNodeBase::onPreRender");
     assert(_renderEntity);
 
     // Attach renderables (or do nothing if everything is up to date)

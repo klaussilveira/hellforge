@@ -40,6 +40,7 @@ public:
     {
         if (!_needsUpdate) return;
 
+        ZoneScopedN("RenderableWinding::update");
         _needsUpdate = false;
 
         if (_shader != shader || &entity != _entity)

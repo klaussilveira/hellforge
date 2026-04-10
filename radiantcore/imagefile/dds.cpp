@@ -305,6 +305,7 @@ ImagePtr LoadDDS(ArchiveFile& file) {
 
 ImagePtr DDSLoader::load(ArchiveFile& file) const
 {
+    ZoneScopedN("DDSLoader::load");
     // Pass the call to the according load function
     return LoadDDS(file);
 }

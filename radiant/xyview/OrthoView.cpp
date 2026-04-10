@@ -1367,6 +1367,8 @@ void OrthoView::updateModelview()
 
 void OrthoView::draw()
 {
+    ZoneScopedN("OrthoView::draw");
+
     ensureFont();
 
     // clear
@@ -1672,12 +1674,15 @@ void OrthoView::onGLResize(wxSizeEvent& ev)
 
 bool OrthoView::onRender()
 {
+    ZoneScopedN("OrthoView::onRender");
+
 	if (GlobalMainFrame().screenUpdatesEnabled())
 	{
         util::ScopedBoolLock drawLock(_drawing);
 
 		draw();
 
+        FrameMarkNamed("OrthoView");
         return true;
 	}
 

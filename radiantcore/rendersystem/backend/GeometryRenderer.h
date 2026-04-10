@@ -150,6 +150,7 @@ public:
 
     void renderAllVisibleGeometry() override
     {
+        ZoneScopedN("GeometryRenderer::renderAllVisibleGeometry");
         for (auto& group : _groups)
         {
             if (group.visibleStorageHandles.empty()) continue;

@@ -154,6 +154,8 @@ IRenderResult::Ptr OpenGLRenderSystem::renderFullBrightScene(RenderViewType rend
                                 RenderStateFlags globalFlagsMask,
                                 const IRenderView& view)
 {
+    ZoneScopedN("OpenGLRenderSystem::renderFullBrightScene");
+
     // Pick the requested renderer
     auto& renderer = renderViewType == RenderViewType::Camera ? *_editorPreviewRenderer : *_orthoRenderer;
 
@@ -163,15 +165,21 @@ IRenderResult::Ptr OpenGLRenderSystem::renderFullBrightScene(RenderViewType rend
 IRenderResult::Ptr OpenGLRenderSystem::renderLitScene(RenderStateFlags globalFlagsMask,
     const IRenderView& view)
 {
+    ZoneScopedN("OpenGLRenderSystem::renderLitScene");
     return render(*_lightingModeRenderer, globalFlagsMask, view);
 }
 
 IRenderResult::Ptr OpenGLRenderSystem::render(SceneRenderer& renderer, RenderStateFlags globalFlagsMask, const IRenderView& view)
 {
+    ZoneScopedN("OpenGLRenderSystem::render");
+
     // Make sure all shaders are ready for rendering, submitting their data to the store
-    for (const auto& [_, shader] : _shaders)
     {
-        shader->prepareForRendering();
+        ZoneScopedN("prepareForRendering (all shaders)");
+        for (const auto& [_, shader] : _shaders)
+        {
+            shader->prepareForRendering();
+        }
     }
 
     auto result = renderer.render(globalFlagsMask, view, _time);
@@ -183,17 +191,21 @@ IRenderResult::Ptr OpenGLRenderSystem::render(SceneRenderer& renderer, RenderSta
 
 void OpenGLRenderSystem::startFrame()
 {
+    ZoneScopedN("OpenGLRenderSystem::startFrame");
     // Prepare the storage objects
     _geometryStore.onFrameStart();
 }
 
 void OpenGLRenderSystem::endFrame()
 {
+    ZoneScopedN("OpenGLRenderSystem::endFrame");
     _geometryStore.onFrameFinished();
 }
 
 void OpenGLRenderSystem::renderText()
 {
+    ZoneScopedN("OpenGLRenderSystem::renderText");
+
     // Render all text
     glDisable(GL_DEPTH_TEST);
 

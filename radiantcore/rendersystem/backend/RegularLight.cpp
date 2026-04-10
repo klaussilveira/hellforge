@@ -50,6 +50,7 @@ bool RegularLight::isShadowCasting() const
 
 void RegularLight::collectSurfaces(const IRenderView& view, const std::set<IRenderEntityPtr>& entities)
 {
+    ZoneScopedN("RegularLight::collectSurfaces");
     bool shadowCasting = isShadowCasting();
 
     // Now check all the entities intersecting with this light
@@ -102,6 +103,7 @@ void RegularLight::collectSurfaces(const IRenderView& view, const std::set<IRend
 void RegularLight::fillDepthBuffer(OpenGLState& state, DepthFillAlphaProgram& program,
     std::size_t renderTime, std::vector<IGeometryStore::Slot>& untransformedObjectsWithoutAlphaTest)
 {
+    ZoneScopedN("RegularLight::fillDepthBuffer");
     std::vector<IGeometryStore::Slot> untransformedObjects;
     untransformedObjects.reserve(1000);
 
@@ -156,6 +158,8 @@ void RegularLight::fillDepthBuffer(OpenGLState& state, DepthFillAlphaProgram& pr
 void RegularLight::drawShadowMap(OpenGLState& state, const Rectangle& rectangle,
     ShadowMapProgram& program, std::size_t renderTime)
 {
+    ZoneScopedN("RegularLight::drawShadowMap");
+
     // Set up the viewport to write to a specific area within the shadow map texture
     glViewport(rectangle.x, rectangle.y, 6 * rectangle.width, rectangle.width);
 
@@ -331,6 +335,8 @@ void RegularLight::InteractionDrawCall::setSpecular(const InteractionPass::Stage
 void RegularLight::drawInteractions(OpenGLState& state, InteractionProgram& program,
     const IRenderView& view, std::size_t renderTime)
 {
+    ZoneScopedN("RegularLight::drawInteractions");
+
     if (_objectsByEntity.empty())
     {
         return;

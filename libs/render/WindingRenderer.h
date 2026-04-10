@@ -3,6 +3,7 @@
 #include "igl.h"
 #include "irender.h"
 #include <limits>
+#include <Profiling.h>
 #include "iwindingrenderer.h"
 #include "iobjectrenderer.h"
 #include "render/CompactWindingVertexBuffer.h"
@@ -528,6 +529,7 @@ public:
 
     void renderAllWindings() override
     {
+        ZoneScopedN("WindingRenderer::renderAllWindings");
         assert(!_geometryUpdatePending); // prepareForRendering should have been called
 
         for (auto& bucket : _buckets)
@@ -562,6 +564,7 @@ public:
     // Ensure all data is written to the IGeometryStore
     void prepareForRendering() override
     {
+        ZoneScopedN("WindingRenderer::prepareForRendering");
         if (!_geometryUpdatePending) return;
 
         _geometryUpdatePending = false;

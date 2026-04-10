@@ -484,6 +484,8 @@ void Patch::updateTesselation(bool force)
     // Only do something if the tesselation has actually changed
     if (!_tesselationChanged && !force) return;
 
+    ZoneScopedN("Patch::updateTesselation");
+
     _tesselationChanged = false;
 
     if (!isValid())

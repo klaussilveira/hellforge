@@ -91,6 +91,7 @@ public:
 
     void render(const VolumeTest& view)
     {
+        ZoneScopedN("SurfaceRenderer::render");
         for (auto& surface : _surfaces)
         {
             renderSlot(surface.second, &view);
@@ -110,6 +111,7 @@ public:
     // Ensures the data in the IGeometryStore is up to date
     void prepareForRendering()
     {
+        ZoneScopedN("SurfaceRenderer::prepareForRendering");
         if (!_surfacesNeedUpdate) return;
 
         _surfacesNeedUpdate = false;

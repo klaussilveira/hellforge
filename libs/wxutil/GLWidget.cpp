@@ -4,6 +4,7 @@
 #include "itextstream.h"
 #include "ui/iwxgl.h"
 
+#include <Profiling.h>
 #include "GLContext.h"
 
 #include <vector>
@@ -68,6 +69,8 @@ GLWidget::~GLWidget()
 
 void GLWidget::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
+    ZoneScopedN("GLWidget::OnPaint");
+
 	// Got this check from the wxWidgets sources, they assert the widget to be shown
 	// "although on MSW it works even if the window is still hidden, it doesn't
     // work in other ports (notably X11-based ones) and documentation mentions
@@ -101,10 +104,17 @@ void GLWidget::OnPaint(wxPaintEvent& WXUNUSED(event))
 		SetCurrent(wxContext->get());
 	}
 
-	if (_renderCallback())
+	bool rendered;
+	{
+		ZoneScopedN("GLWidget: render callback");
+		rendered = _renderCallback();
+	}
+
+	if (rendered)
 	{
 		// Render callback returned true, so drawing took place
 		// and we can swap the buffers
+		ZoneScopedN("SwapBuffers");
 		SwapBuffers();
 	}
 }

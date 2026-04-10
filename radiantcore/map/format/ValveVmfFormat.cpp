@@ -137,6 +137,7 @@ ValveVmfReader::ValveVmfReader(IMapImportFilter& importFilter) :
 
 void ValveVmfReader::readFromStream(std::istream& stream)
 {
+    ZoneScopedN("ValveVmfReader::readFromStream");
 	parser::BasicDefTokeniser<std::istream> tok(stream);
 
 	while (tok.hasMoreTokens())

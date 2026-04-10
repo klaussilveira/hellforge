@@ -68,6 +68,7 @@ PrimitiveSelectionTester::PrimitiveSelectionTester(const NodePredicate& nodePred
 void PrimitiveSelectionTester::testSelectSceneWithFilter(const VolumeTest& view, SelectionTest& test,
     const std::function<bool(ISelectable*)>& predicate)
 {
+    ZoneScopedN("PrimitiveSelectionTester::testSelectSceneWithFilter");
     SelectionPool simplePool;
     EntitiesFirstSelector sortedPool;
 
@@ -97,6 +98,7 @@ EntitySelectionTester::EntitySelectionTester(const NodePredicate& nodePredicate)
 void EntitySelectionTester::testSelectSceneWithFilter(const VolumeTest& view, SelectionTest& test,
     const std::function<bool(ISelectable*)>& predicate)
 {
+    ZoneScopedN("EntitySelectionTester::testSelectSceneWithFilter");
     SelectionPool selector;
 
     EntitySelector tester(selector, test);
@@ -116,6 +118,7 @@ GroupChildPrimitiveSelectionTester::GroupChildPrimitiveSelectionTester(const Nod
 void GroupChildPrimitiveSelectionTester::testSelectSceneWithFilter(const VolumeTest& view, SelectionTest& test,
     const std::function<bool(ISelectable*)>& predicate)
 {
+    ZoneScopedN("GroupChildPrimitiveSelectionTester::testSelectSceneWithFilter");
     SelectionPool selector;
 
     GroupChildPrimitiveSelector tester(selector, test);
@@ -155,6 +158,7 @@ ComponentSelectionTester::ComponentSelectionTester(SelectionSystem& selectionSys
 void ComponentSelectionTester::testSelectSceneWithFilter(const VolumeTest& view, SelectionTest& test,
     const std::function<bool(ISelectable*)>& predicate)
 {
+    ZoneScopedN("ComponentSelectionTester::testSelectSceneWithFilter");
     SelectionPool selector;
 
     ComponentSelector tester(selector, test, _selectionSystem.ComponentMode());

@@ -184,6 +184,7 @@ ISceneSelectionTester::Ptr RadiantSelectionSystem::createSceneSelectionTester(Se
 void RadiantSelectionSystem::testSelectScene(SelectablesList& targetList, SelectionTest& test,
     const VolumeTest& view, SelectionMode mode)
 {
+    ZoneScopedN("RadiantSelectionSystem::testSelectScene");
     auto tester = createSceneSelectionTester(mode);
     tester->testSelectScene(view, test);
 
