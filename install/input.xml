@@ -34,6 +34,8 @@
       <tool name="CycleSelectionMouseTool" button="LMB" modifiers="ALT+SHIFT" />
       <tool name="CycleSelectionMouseToolFaceOnly" button="LMB" modifiers="SHIFT+CONTROL+ALT" />
       <tool name="DecalShooterTool" button="MMB" modifiers="CONTROL+SHIFT" />
+      <tool name="TerrainSculptTool" button="LMB" modifiers="CONTROL+ALT" />
+      <tool name="TerrainSculptTool" button="RMB" modifiers="CONTROL+ALT" />
     </mouseToolMapping>
       <!-- ID 2 = textool -->
     <mouseToolMapping name="TextureTool" id="2">
@@ -125,6 +127,10 @@
 		<shortcut command="UpFloor" key="Prior" />
 		<shortcut command="DownFloor" key="Next" />
 		<shortcut command="TogglePreview" key="F3" />
+		<shortcut command="TerrainSculptRadiusDown" key="[" />
+		<shortcut command="TerrainSculptRadiusUp" key="]" />
+		<shortcut command="TerrainSculptStrengthDown" key="[" modifiers="SHIFT" />
+		<shortcut command="TerrainSculptStrengthUp" key="]" modifiers="SHIFT" />
 		<shortcut command="Brush3Sided" key="3" modifiers="CONTROL" />
 		<shortcut command="Brush4Sided" key="4" modifiers="CONTROL" />
 		<shortcut command="Brush5Sided" key="5" modifiers="CONTROL" />

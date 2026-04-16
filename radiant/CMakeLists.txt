@@ -176,6 +176,10 @@ add_executable(hellforge
                ui/scatter/ScatterDialog.cpp
                ui/stairs/StairsGeneratorDialog.cpp
                ui/terrain/TerrainGeneratorDialog.cpp
+               ui/terrain/TerrainSculptPanel.cpp
+               ui/terrain/TerrainSculptPreview.cpp
+               selection/TerrainSculptTool.cpp
+               selection/TerrainSculptAlgorithm.cpp
                ui/tilemap/TileMapDialog.cpp
                ui/sweep/SweepDialog.cpp
                ui/osm/OsmImporterDialog.cpp

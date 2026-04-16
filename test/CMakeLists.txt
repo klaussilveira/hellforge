@@ -61,6 +61,8 @@ add_executable(drtest
                StairsGenerator.cpp
                SoundManager.cpp
                TerrainGenerator.cpp
+               TerrainSculpt.cpp
+               ${CMAKE_SOURCE_DIR}/radiant/selection/TerrainSculptAlgorithm.cpp
                TextureManipulation.cpp
                TestOrthoViewManager.cpp
                TextureTool.cpp

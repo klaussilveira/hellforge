@@ -212,6 +212,7 @@
 	</subMenu>
 
 	<subMenu name="brush" caption="Genera&amp;te">
+		<menuItem name="terrainGenerator" caption="Terrain..." command="TerrainGeneratorDialog" />
 		<menuItem name="sweep" caption="Sweep..." command="SweepDialog" />
 		<menuItem name="stairsGenerator" caption="Stairs..." command="StairsGeneratorDialog" />
 		<menuItem name="cableGenerator" caption="Cables..." command="CableGeneratorDialog" />
@@ -262,7 +263,6 @@
 
 	<subMenu name="patch" caption="&amp;Patch">
 		<menuItem name="simplePatch" caption="Create Simple Patch..." command="CreateSimplePatchDialog" />
-		<menuItem name="terrainGenerator" caption="Create Terrain..." command="TerrainGeneratorDialog" />
 		<menuSeparator />
 		<menuItem name="endcap" caption="Create End cap" command="PatchEndCap" />
 		<menuItem name="bevel" caption="Create Bevel" command="PatchBevel" />
