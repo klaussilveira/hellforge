@@ -216,6 +216,8 @@
     <ClCompile Include="..\..\radiant\selection\ManipulateMouseTool.cpp" />
     <ClCompile Include="..\..\radiant\selection\SceneManipulateMouseTool.cpp" />
     <ClCompile Include="..\..\radiant\selection\SelectionMouseTools.cpp" />
+    <ClCompile Include="..\..\radiant\selection\TerrainSculptAlgorithm.cpp" />
+    <ClCompile Include="..\..\radiant\selection\TerrainSculptTool.cpp" />
     <ClCompile Include="..\..\radiant\settings\LocalisationModule.cpp" />
     <ClCompile Include="..\..\radiant\settings\LocalisationProvider.cpp" />
     <ClCompile Include="..\..\radiant\settings\RenderingQualitySettings.cpp" />
@@ -375,6 +377,8 @@
     <ClCompile Include="..\..\radiant\ui\texturebrowser\TextureBrowserManager.cpp" />
     <ClCompile Include="..\..\radiant\ui\texturebrowser\TextureBrowserPanel.cpp" />
     <ClCompile Include="..\..\radiant\ui\terrain\TerrainGeneratorDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\terrain\TerrainSculptPanel.cpp" />
+    <ClCompile Include="..\..\radiant\ui\terrain\TerrainSculptPreview.cpp" />
     <ClCompile Include="..\..\radiant\ui\texturebrowser\TextureThumbnailBrowser.cpp" />
     <ClCompile Include="..\..\radiant\ui\toolbar\ToolbarManager.cpp" />
     <ClCompile Include="..\..\radiant\ui\splash\Splash.cpp" />
@@ -435,6 +439,7 @@
     <ClInclude Include="..\..\radiant\selection\ManipulateMouseTool.h" />
     <ClInclude Include="..\..\radiant\selection\SceneManipulateMouseTool.h" />
     <ClInclude Include="..\..\radiant\selection\SelectionMouseTools.h" />
+    <ClInclude Include="..\..\radiant\selection\TerrainSculptTool.h" />
     <ClInclude Include="..\..\radiant\settings\LocalisationModule.h" />
     <ClInclude Include="..\..\radiant\settings\LocalisationProvider.h" />
     <ClInclude Include="..\..\radiant\settings\RenderingQualitySettings.h" />
@@ -658,6 +663,9 @@
     <ClInclude Include="..\..\radiant\ui\transform\TransformPanel.h" />
     <ClInclude Include="..\..\radiant\ui\transform\TransformPanelControl.h" />
     <ClInclude Include="..\..\radiant\ui\terrain\TerrainGeneratorDialog.h" />
+    <ClInclude Include="..\..\radiant\ui\terrain\TerrainSculptControl.h" />
+    <ClInclude Include="..\..\radiant\ui\terrain\TerrainSculptPanel.h" />
+    <ClInclude Include="..\..\radiant\ui\terrain\TerrainSculptPreview.h" />
     <ClInclude Include="..\..\radiant\ui\UserInterfaceModule.h" />
     <ClInclude Include="..\..\radiant\xyview\GlobalXYWnd.h" />
     <ClInclude Include="..\..\radiant\xyview\OrthoView.h" />

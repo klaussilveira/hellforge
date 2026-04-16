@@ -556,6 +556,12 @@
     <ClCompile Include="..\..\radiant\selection\SelectionMouseTools.cpp">
       <Filter>src\selection</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\selection\TerrainSculptAlgorithm.cpp">
+      <Filter>src\selection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\selection\TerrainSculptTool.cpp">
+      <Filter>src\selection</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\ui\aas\RenderableAasFile.cpp">
       <Filter>src\ui\aas</Filter>
     </ClCompile>
@@ -761,6 +767,12 @@
       <Filter>src\ui\transform</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\terrain\TerrainGeneratorDialog.cpp">
+      <Filter>src\ui\terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\terrain\TerrainSculptPanel.cpp">
+      <Filter>src\ui\terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\terrain\TerrainSculptPreview.cpp">
       <Filter>src\ui\terrain</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\merge\MapMergePanel.cpp">
@@ -1260,6 +1272,9 @@
     <ClInclude Include="..\..\radiant\selection\ManipulateMouseTool.h">
       <Filter>src\selection</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\radiant\selection\TerrainSculptTool.h">
+      <Filter>src\selection</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\radiant\selection\SelectionMouseTools.h">
       <Filter>src\selection</Filter>
     </ClInclude>
@@ -1570,6 +1585,15 @@
       <Filter>src\ui\transform</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\terrain\TerrainGeneratorDialog.h">
+      <Filter>src\ui\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\terrain\TerrainSculptControl.h">
+      <Filter>src\ui\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\terrain\TerrainSculptPanel.h">
+      <Filter>src\ui\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\terrain\TerrainSculptPreview.h">
       <Filter>src\ui\terrain</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\merge\MapMergePanel.h">
