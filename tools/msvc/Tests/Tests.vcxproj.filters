@@ -43,6 +43,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\test\TerrainGenerator.cpp" />
     <ClCompile Include="..\..\..\test\TerrainSculpt.cpp" />
+    <ClCompile Include="..\..\..\radiant\selection\TerrainSculptAlgorithm.cpp" />
     <ClCompile Include="..\..\..\test\Transformation.cpp" />
     <ClCompile Include="..\..\..\test\MapMerging.cpp" />
     <ClCompile Include="..\..\..\test\PointTrace.cpp" />

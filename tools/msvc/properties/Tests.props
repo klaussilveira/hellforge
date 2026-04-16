@@ -10,6 +10,7 @@
       <AdditionalDependencies>scenelib.lib;mathlib.lib;xmlutillib.lib;modulelib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
+      <AdditionalIncludeDirectories>$(HellForgeRoot)\radiant;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>

@@ -206,7 +206,7 @@ void TerrainSculptPanel::populateWindow()
     auto* shortcuts = new wxFlexGridSizer(2, 4, 8);
     const struct { const wxString keys; const wxString desc; } bindings[] = {
         { "Ctrl+Alt+LMB",           _("Sculpt (drag)") },
-        { "Ctrl+Alt+RMB",           _("Inverted sculpt (Raise \u2194 Lower)") },
+        { "Ctrl+Alt+RMB",           _("Inverted sculpt (Raise <-> Lower)") },
         { "[ / ]",                  _("Decrease / increase brush size") },
         { "Shift+[ / Shift+]",      _("Decrease / increase strength") },
     };
