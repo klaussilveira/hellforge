@@ -50,6 +50,11 @@ public:
 		return _depth;
 	}
 
+	float distance() const
+	{
+		return _distance;
+	}
+
 	bool isValid() const
 	{
 		return depth() < 1;

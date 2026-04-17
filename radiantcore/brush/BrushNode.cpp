@@ -5,6 +5,7 @@
 #include "iclipper.h"
 #include "imap.h"
 #include "math/Hash.h"
+#include "selection/SelectionPool.h"
 #include <functional>
 
 BrushNode::BrushNode() :
@@ -215,9 +216,25 @@ void BrushNode::testSelectComponents(Selector& selector, SelectionTest& test, se
     case selection::ComponentSelectionMode::Face:
         if (test.getVolume().fill())
         {
+            selection::SelectionPool centroidPool;
             for (FaceInstances::iterator i = _faceInstances.begin(); i != _faceInstances.end(); ++i)
             {
-                i->testSelect(selector, test);
+                i->testSelect_centroid(centroidPool, test);
+            }
+
+            if (!centroidPool.empty())
+            {
+                const auto& bestEntry = *centroidPool.begin();
+                const SelectionIntersection& best = bestEntry.first;
+                SelectionIntersection biased(best.depth(), best.distance() - 1000.0f);
+                selector.addWithIntersection(*bestEntry.second, biased);
+            }
+            else
+            {
+                for (FaceInstances::iterator i = _faceInstances.begin(); i != _faceInstances.end(); ++i)
+                {
+                    i->testSelect(selector, test);
+                }
             }
         }
         else
