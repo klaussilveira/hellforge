@@ -292,8 +292,8 @@ void Face::transformTexDefLocked(const Matrix4& transform)
 void Face::translate(const Vector3& translation)
 {
     m_planeTransformed.translate(translation);
-    
-    if (GlobalBrush().textureLockEnabled() && m_winding.size() >= 3)
+
+    if (!GlobalBrush().textureLockEnabled() && m_winding.size() >= 3)
     {
         transformTexDefLocked(Matrix4::getTranslation(translation));
     }
@@ -307,7 +307,7 @@ void Face::transform(const Matrix4& transform)
     // Transform the FacePlane using the given matrix (before the tex def is recalculated)
     m_planeTransformed.transform(transform);
 
-    if (GlobalBrush().textureLockEnabled() && m_winding.size() >= 3)
+    if (!GlobalBrush().textureLockEnabled() && m_winding.size() >= 3)
     {
         transformTexDefLocked(transform);
     }

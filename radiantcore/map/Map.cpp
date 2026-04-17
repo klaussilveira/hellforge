@@ -1101,9 +1101,9 @@ void Map::loadPrefabAt(const cmd::ArgumentList& args)
         {
             auto prefabCenter = accumulator.getBounds().getOrigin().getSnapped(GlobalGrid().getGridSize());
 
-            // Switch texture lock on
+            // Switch texture lock off so the texture stays glued to the prefab during placement
             bool prevTexLockState = GlobalBrush().textureLockEnabled();
-            GlobalBrush().setTextureLock(true);
+            GlobalBrush().setTextureLock(false);
 
             // Translate the selection to the given point
             selection::algorithm::translateSelected(targetCoords - prefabCenter);
