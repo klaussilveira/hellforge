@@ -678,6 +678,8 @@ void CamWnd::drawGrid()
     const double skipVerticalAtX   = -origin.x();
     const double skipHorizontalAtY = -origin.y();
 
+    const Vector3 camPos = _camera->getCameraOrigin();
+
     auto isSameLine = [](double a, double b)
     {
         return std::abs(a - b) < 1e-9;
@@ -709,13 +711,30 @@ void CamWnd::drawGrid()
     const double fadeStart = GRID_MAX_DIM * 0.25;
     const double fadeEnd = GRID_MAX_DIM * 1.00;
 
-    auto alphaFor = [&](double d) -> float
+    const double depthFadeStart = GRID_MAX_DIM * 0.5;
+    const double depthFadeEnd = GRID_MAX_DIM * 2.0;
+
+    auto smoothFade = [](double d, double start, double end) -> float
     {
-        if (d <= fadeStart) return 1.0f;
-        if (d >= fadeEnd) return 0.0f;
-        double t = (d - fadeStart) / (fadeEnd - fadeStart);
+        if (d <= start) return 1.0f;
+        if (d >= end) return 0.0f;
+        double t = (d - start) / (end - start);
         t = t * t * (3.0 - 2.0 * t);
         return static_cast<float>(1.0 - t);
+    };
+
+    auto alphaFor = [&](double radial) -> float
+    {
+        return smoothFade(radial, fadeStart, fadeEnd);
+    };
+
+    auto depthAlphaForLine = [&](double wx, double wy) -> float
+    {
+        const double dx = wx - camPos.x();
+        const double dy = wy - camPos.y();
+        const double dz = camPos.z();
+        const double d = std::sqrt(dx * dx + dy * dy + dz * dz);
+        return smoothFade(d, depthFadeStart, depthFadeEnd);
     };
 
     // Pre-compute all grid line vertices and colors into arrays
@@ -740,15 +759,21 @@ void CamWnd::drawGrid()
         // Vertical line at this X position
         if (!isSameLine(x, skipVerticalAtX))
         {
+            const double worldX = x + origin.x();
+            const float aFar0 = lineAlpha * depthAlphaForLine(worldX, origin.y() - GRID_MAX_DIM);
+            const float aFar1 = lineAlpha * depthAlphaForLine(worldX, origin.y() + GRID_MAX_DIM);
             gridVertices.insert(gridVertices.end(), { xf, -GRID_MAX_F, 0.0f, xf, GRID_MAX_F, 0.0f });
-            gridColors.insert(gridColors.end(), { r, g, b, lineAlpha, r, g, b, lineAlpha });
+            gridColors.insert(gridColors.end(), { r, g, b, aFar0, r, g, b, aFar1 });
         }
 
         // Horizontal line at this Y position
         if (!isSameLine(x, skipHorizontalAtY))
         {
+            const double worldY = x + origin.y();
+            const float aFar0 = lineAlpha * depthAlphaForLine(origin.x() - GRID_MAX_DIM, worldY);
+            const float aFar1 = lineAlpha * depthAlphaForLine(origin.x() + GRID_MAX_DIM, worldY);
             gridVertices.insert(gridVertices.end(), { -GRID_MAX_F, xf, 0.0f, GRID_MAX_F, xf, 0.0f });
-            gridColors.insert(gridColors.end(), { r, g, b, lineAlpha, r, g, b, lineAlpha });
+            gridColors.insert(gridColors.end(), { r, g, b, aFar0, r, g, b, aFar1 });
         }
     }
 
