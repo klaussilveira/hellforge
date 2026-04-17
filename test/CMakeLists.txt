@@ -63,6 +63,8 @@ add_executable(drtest
                TerrainGenerator.cpp
                TerrainSculpt.cpp
                ${CMAKE_SOURCE_DIR}/radiant/selection/TerrainSculptAlgorithm.cpp
+               VertexPaint.cpp
+               ${CMAKE_SOURCE_DIR}/radiant/selection/VertexPaintAlgorithm.cpp
                TextureManipulation.cpp
                TestOrthoViewManager.cpp
                TextureTool.cpp

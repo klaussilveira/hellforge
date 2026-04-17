@@ -124,6 +124,11 @@ const std::vector<unsigned int>& StaticModelSurface::getIndexArray() const
 	return _indices;
 }
 
+std::vector<MeshVertex>* StaticModelSurface::getMutableVertexArray()
+{
+	return &_vertices;
+}
+
 const std::string& StaticModelSurface::getDefaultMaterial() const
 {
 	return _defaultMaterial;

@@ -68,6 +68,9 @@
     <Filter Include="src\ui\terrain">
       <UniqueIdentifier>{d3a7f2c1-9b4e-4c8d-a1f5-6e2b3c4d5e6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\vertexpaint">
+      <UniqueIdentifier>{e4b8a3d2-ac5f-4d9e-b210-8f3c4d5e6f71}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\texturebrowser">
       <UniqueIdentifier>{bba8ced9-8962-417f-8958-a77cf55bf2ad}</UniqueIdentifier>
     </Filter>
@@ -223,6 +226,9 @@
     </Filter>
     <Filter Include="src\ui\terrain">
       <UniqueIdentifier>{ba840bd8-ef36-4397-b595-0953f3c805f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\vertexpaint">
+      <UniqueIdentifier>{cb950ce9-f047-44a8-c6a6-1a64f4d916f2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -562,6 +568,12 @@
     <ClCompile Include="..\..\radiant\selection\TerrainSculptTool.cpp">
       <Filter>src\selection</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\selection\VertexPaintAlgorithm.cpp">
+      <Filter>src\selection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\selection\VertexPaintTool.cpp">
+      <Filter>src\selection</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\ui\aas\RenderableAasFile.cpp">
       <Filter>src\ui\aas</Filter>
     </ClCompile>
@@ -774,6 +786,12 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\terrain\TerrainSculptPreview.cpp">
       <Filter>src\ui\terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\vertexpaint\VertexPaintPanel.cpp">
+      <Filter>src\ui\vertexpaint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\vertexpaint\VertexPaintPreview.cpp">
+      <Filter>src\ui\vertexpaint</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\merge\MapMergePanel.cpp">
       <Filter>src\ui\merge</Filter>
@@ -1275,6 +1293,9 @@
     <ClInclude Include="..\..\radiant\selection\TerrainSculptTool.h">
       <Filter>src\selection</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\radiant\selection\VertexPaintTool.h">
+      <Filter>src\selection</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\radiant\selection\SelectionMouseTools.h">
       <Filter>src\selection</Filter>
     </ClInclude>
@@ -1595,6 +1616,15 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\terrain\TerrainSculptPreview.h">
       <Filter>src\ui\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\vertexpaint\VertexPaintControl.h">
+      <Filter>src\ui\vertexpaint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\vertexpaint\VertexPaintPanel.h">
+      <Filter>src\ui\vertexpaint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\vertexpaint\VertexPaintPreview.h">
+      <Filter>src\ui\vertexpaint</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\merge\MapMergePanel.h">
       <Filter>src\ui\merge</Filter>

@@ -4,6 +4,7 @@
 #include "selection/SelectionMouseTools.h"
 #include "selection/SceneManipulateMouseTool.h"
 #include "selection/TerrainSculptTool.h"
+#include "selection/VertexPaintTool.h"
 #include "xyview/tools/MoveViewTool.h"
 #include "xyview/tools/ZoomTool.h"
 #include "textool/tools/TextureToolSelectionTool.h"
@@ -35,6 +36,7 @@ public:
         camGroup.registerMouseTool(std::make_shared<CycleSelectionMouseTool>());
         camGroup.registerMouseTool(std::make_shared<CycleSelectionMouseToolFaceOnly>());
         camGroup.registerMouseTool(std::make_shared<TerrainSculptTool>());
+        camGroup.registerMouseTool(std::make_shared<VertexPaintTool>());
 
         auto& texToolGroup = GlobalMouseToolManager().getGroup(IMouseToolGroup::Type::TextureTool);
 

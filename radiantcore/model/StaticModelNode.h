@@ -2,6 +2,7 @@
 
 #include "iselectiontest.h"
 #include "itraceable.h"
+#include "ivertexpaintable.h"
 #include "modelskin.h"
 #include "irenderable.h"
 
@@ -25,7 +26,8 @@ class StaticModelNode final :
 	public ModelNode,
 	public SelectionTestable,
 	public SkinnedModel,
-	public ITraceable
+	public ITraceable,
+	public IVertexPaintable
 {
 private:
 	// The actual model
@@ -38,6 +40,8 @@ private:
 
     // The default skin used when no skin has otherwise been set from the outside
 	std::string _defaultSkin;
+
+	PaintablePreviewMode _previewMode = PaintablePreviewMode::Material;
 
 public:
     typedef std::shared_ptr<StaticModelNode> Ptr;
@@ -75,6 +79,14 @@ public:
 
 	// Traceable implementation
 	bool getIntersection(const Ray& ray, Vector3& intersection) override;
+
+	// IVertexPaintable implementation
+	std::size_t getPaintableSurfaceCount() override;
+	IIndexedModelSurface* getPaintableSurface(std::size_t index) override;
+	void queueRenderableUpdate() override { ModelNodeBase::queueRenderableUpdate(); }
+	std::string getPaintableModelPath() const override;
+	std::string getPaintableModelFilename() const override;
+	void setPreviewMode(PaintablePreviewMode mode) override;
 
 protected:
     void createRenderableSurfaces() override;

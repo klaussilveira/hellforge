@@ -85,6 +85,7 @@ struct UserControl
     constexpr static const char* DecalShooter = "DecalShooter";
     constexpr static const char* SelectionGroupPanel = "SelectionGroupPanel";
     constexpr static const char* TerrainSculpt = "TerrainSculpt";
+    constexpr static const char* VertexPaint = "VertexPaint";
 };
 
 }

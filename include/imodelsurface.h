@@ -67,6 +67,10 @@ public:
 
 	// Const access to the index array connecting the vertices.
 	virtual const std::vector<unsigned int>& getIndexArray() const = 0;
+
+	// Mutable access for tools that need to modify vertex attributes (colour, etc.).
+	// Returns nullptr if this surface type does not support in-place vertex editing.
+	virtual std::vector<MeshVertex>* getMutableVertexArray() { return nullptr; }
 };
 
 } // namespace

@@ -69,6 +69,7 @@ private:
     bool _strokeInverted = false;
     bool _strokeFlattenTargetSet = false;
     double _strokeFlattenTarget = 0.0;
+    scene::INodeWeakPtr _strokeTarget;
 
 public:
     const std::string& getName() override;

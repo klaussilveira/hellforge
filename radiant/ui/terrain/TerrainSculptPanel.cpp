@@ -1,9 +1,6 @@
 #include "TerrainSculptPanel.h"
 
 #include "i18n.h"
-#include "iscenegraph.h"
-#include "iselection.h"
-#include "ipatch.h"
 #include "irender.h"
 #include "ui/imainframe.h"
 #include "selection/TerrainSculptTool.h"
@@ -16,24 +13,8 @@
 namespace ui
 {
 
-namespace
-{
-    class PatchCollector : public scene::NodeVisitor
-    {
-    public:
-        std::vector<scene::INodePtr> patches;
-
-        bool pre(const scene::INodePtr& node) override
-        {
-            if (Node_isPatch(node)) patches.push_back(node);
-            return true;
-        }
-    };
-}
-
 TerrainSculptPanel::TerrainSculptPanel(wxWindow* parent) :
     DockablePanel(parent),
-    _targetChoice(nullptr),
     _modeChoice(nullptr),
     _brushChoice(nullptr),
     _falloffTypeChoice(nullptr),
@@ -54,15 +35,8 @@ TerrainSculptPanel::TerrainSculptPanel(wxWindow* parent) :
     _noiseSeedLabel(nullptr)
 {
     populateWindow();
-    refreshTargets();
     pullFromSettings();
     updateModeVisibility();
-
-    _mapEventConnection = GlobalMapModule().signal_mapEvent().connect(
-        sigc::mem_fun(*this, &TerrainSculptPanel::onMapEvent));
-
-    _selectionChangedConnection = GlobalSelectionSystem().signal_selectionChanged().connect(
-        sigc::mem_fun(*this, &TerrainSculptPanel::onSelectionChanged));
 
     _settingsChangedConnection = TerrainSculptSettings::Instance().signal_settingsChanged.connect(
         sigc::mem_fun(*this, &TerrainSculptPanel::pullFromSettings));
@@ -72,8 +46,6 @@ TerrainSculptPanel::TerrainSculptPanel(wxWindow* parent) :
 
 TerrainSculptPanel::~TerrainSculptPanel()
 {
-    _mapEventConnection.disconnect();
-    _selectionChangedConnection.disconnect();
     _settingsChangedConnection.disconnect();
 
     if (_preview && _previewAttached)
@@ -87,19 +59,13 @@ TerrainSculptPanel::~TerrainSculptPanel()
     auto& s = TerrainSculptSettings::Instance();
     s.panelActive = false;
     s.hoverValid = false;
+    s.target.reset();
     GlobalMainFrame().updateAllWindows();
 }
 
 void TerrainSculptPanel::populateWindow()
 {
     auto* main = new wxBoxSizer(wxVERTICAL);
-
-    auto* targetRow = new wxBoxSizer(wxHORIZONTAL);
-    targetRow->Add(new wxStaticText(this, wxID_ANY, _("Terrain:")),
-                   0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
-    _targetChoice = new wxChoice(this, wxID_ANY);
-    targetRow->Add(_targetChoice, 1, wxEXPAND);
-    main->Add(targetRow, 0, wxEXPAND | wxALL, 8);
 
     auto* grid = new wxFlexGridSizer(2, 4, 8);
     grid->AddGrowableCol(1, 1);
@@ -201,7 +167,7 @@ void TerrainSculptPanel::populateWindow()
     _noiseSeed->SetRange(0, 2147483647);
     grid->Add(_noiseSeed, 1, wxEXPAND);
 
-    main->Add(grid, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
+    main->Add(grid, 0, wxEXPAND | wxALL, 8);
 
     auto* shortcuts = new wxFlexGridSizer(2, 4, 8);
     const struct { const wxString keys; const wxString desc; } bindings[] = {
@@ -223,7 +189,6 @@ void TerrainSculptPanel::populateWindow()
 
     SetSizerAndFit(main);
 
-    _targetChoice->Bind(wxEVT_CHOICE, &TerrainSculptPanel::onTargetChanged, this);
     _modeChoice->Bind(wxEVT_CHOICE, &TerrainSculptPanel::onChoiceChange, this);
     _falloffTypeChoice->Bind(wxEVT_CHOICE, &TerrainSculptPanel::onChoiceChange, this);
     _radius->Bind(wxEVT_SPINCTRLDOUBLE, &TerrainSculptPanel::onSpinChange, this);
@@ -235,45 +200,6 @@ void TerrainSculptPanel::populateWindow()
     _noiseScale->Bind(wxEVT_SPINCTRLDOUBLE, &TerrainSculptPanel::onSpinChange, this);
     _noiseAmount->Bind(wxEVT_SPINCTRLDOUBLE, &TerrainSculptPanel::onSpinChange, this);
     _noiseSeed->Bind(wxEVT_SPINCTRL, &TerrainSculptPanel::onSeedChange, this);
-}
-
-void TerrainSculptPanel::refreshTargets()
-{
-    _targets.clear();
-    _targetChoice->Clear();
-
-    auto root = GlobalSceneGraph().root();
-    if (!root) return;
-
-    PatchCollector collector;
-    root->traverse(collector);
-
-    scene::INodePtr previous = TerrainSculptSettings::Instance().target.lock();
-    int indexToSelect = -1;
-
-    for (const auto& node : collector.patches)
-    {
-        _targets.push_back(node);
-        _targetChoice->Append(node->name());
-        if (node == previous)
-        {
-            indexToSelect = static_cast<int>(_targets.size()) - 1;
-        }
-    }
-
-    if (indexToSelect >= 0)
-    {
-        _targetChoice->SetSelection(indexToSelect);
-    }
-    else if (!_targets.empty())
-    {
-        _targetChoice->SetSelection(0);
-        TerrainSculptSettings::Instance().target = _targets.front();
-    }
-    else
-    {
-        TerrainSculptSettings::Instance().target.reset();
-    }
 }
 
 void TerrainSculptPanel::pullFromSettings()
@@ -334,22 +260,6 @@ void TerrainSculptPanel::updateModeVisibility()
     Layout();
 }
 
-void TerrainSculptPanel::onTargetChanged(wxCommandEvent&)
-{
-    int idx = _targetChoice->GetSelection();
-    auto& s = TerrainSculptSettings::Instance();
-    scene::INodePtr newTarget;
-    if (idx >= 0 && idx < static_cast<int>(_targets.size()))
-    {
-        newTarget = _targets[idx].lock();
-    }
-    if (newTarget != s.target.lock())
-    {
-        s.flattenHeightExplicit = false;
-    }
-    s.target = newTarget;
-}
-
 void TerrainSculptPanel::onChoiceChange(wxCommandEvent&)
 {
     pushToSettings();
@@ -370,53 +280,8 @@ void TerrainSculptPanel::onSeedChange(wxSpinEvent&)
     pushToSettings();
 }
 
-void TerrainSculptPanel::onMapEvent(IMap::MapEvent ev)
-{
-    if (ev == IMap::MapLoaded || ev == IMap::MapUnloaded)
-    {
-        refreshTargets();
-    }
-}
-
-void TerrainSculptPanel::onSelectionChanged(const ISelectable& selectable)
-{
-    if (!selectable.isSelected()) return;
-    if (GlobalSelectionSystem().countSelected() == 0) return;
-
-    scene::INodePtr node = GlobalSelectionSystem().ultimateSelected();
-    if (!node || !Node_isPatch(node)) return;
-
-    setTarget(node);
-}
-
-void TerrainSculptPanel::setTarget(const scene::INodePtr& node)
-{
-    auto& s = TerrainSculptSettings::Instance();
-    scene::INodePtr current = s.target.lock();
-    if (current != node)
-    {
-        s.flattenHeightExplicit = false;
-    }
-
-    for (std::size_t i = 0; i < _targets.size(); ++i)
-    {
-        if (_targets[i].lock() == node)
-        {
-            _targetChoice->SetSelection(static_cast<int>(i));
-            s.target = node;
-            return;
-        }
-    }
-
-    _targets.push_back(node);
-    _targetChoice->Append(node->name());
-    _targetChoice->SetSelection(static_cast<int>(_targets.size()) - 1);
-    s.target = node;
-}
-
 void TerrainSculptPanel::onPanelActivated()
 {
-    refreshTargets();
     pullFromSettings();
     updateModeVisibility();
 
@@ -440,6 +305,7 @@ void TerrainSculptPanel::onPanelDeactivated()
     auto& s = TerrainSculptSettings::Instance();
     s.panelActive = false;
     s.hoverValid = false;
+    s.target.reset();
     GlobalMainFrame().updateAllWindows();
 }
 

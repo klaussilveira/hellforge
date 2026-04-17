@@ -25,6 +25,7 @@ protected:
     void constructOrthoMergeActionOverlay(OpenGLState& pass, const Colour4& colour,
         OpenGLState::SortPosition sortPosition);
     bool supportsVertexColours() const override;
+    bool surfacesUseVertexColours() const override;
 };
 
 }

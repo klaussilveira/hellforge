@@ -507,6 +507,9 @@ enum class BuiltInShaderType
 
     // Highly transparent wire shader for inactive nodes
     WireframeInactive,
+
+    // Unlit fill shader that outputs the mesh's per-vertex colour, used by the vertex paint tool
+    VertexColourPreview,
 };
 
 // Available types of colour shaders. These areused

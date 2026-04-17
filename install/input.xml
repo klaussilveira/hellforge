@@ -36,6 +36,7 @@
       <tool name="DecalShooterTool" button="MMB" modifiers="CONTROL+SHIFT" />
       <tool name="TerrainSculptTool" button="LMB" modifiers="CONTROL+ALT" />
       <tool name="TerrainSculptTool" button="RMB" modifiers="CONTROL+ALT" />
+      <tool name="VertexPaintTool" button="LMB" modifiers="CONTROL+ALT" />
     </mouseToolMapping>
       <!-- ID 2 = textool -->
     <mouseToolMapping name="TextureTool" id="2">

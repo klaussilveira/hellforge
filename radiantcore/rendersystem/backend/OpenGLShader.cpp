@@ -118,9 +118,16 @@ void OpenGLShader::drawSurfaces(const VolumeTest& view)
 
         _geometryRenderer.renderAllVisibleGeometry();
 
-        // Surfaces are not allowed to render vertex colours (for now)
-        // otherwise they don't show up in their parent entity's colour
-        glDisableClientState(GL_COLOR_ARRAY);
+        // Surfaces normally inherit their parent entity's colour; opt-in
+        // shaders (vertex paint preview) can request per-vertex colours.
+        if (surfacesUseVertexColours())
+        {
+            glEnableClientState(GL_COLOR_ARRAY);
+        }
+        else
+        {
+            glDisableClientState(GL_COLOR_ARRAY);
+        }
         _surfaceRenderer.render(view);
     }
 

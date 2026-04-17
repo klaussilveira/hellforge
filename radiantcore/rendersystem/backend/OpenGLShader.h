@@ -168,6 +168,15 @@ protected:
     // Test if we can render using lighting mode
     bool canUseLightingMode() const;
 
+    // Whether IRenderableSurface instances rendered through this shader
+    // should pass per-vertex colours to OpenGL. Disabled by default so
+    // model surfaces inherit their parent entity colour. Override to true
+    // when the shader's purpose is to visualise vertex colours.
+    virtual bool surfacesUseVertexColours() const
+    {
+        return false;
+    }
+
     // Whether any surfaces or geometries should submit colours
     virtual bool supportsVertexColours() const
     {

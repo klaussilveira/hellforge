@@ -97,6 +97,7 @@
     <ClInclude Include="..\..\include\itextstream.h" />
     <ClInclude Include="..\..\include\itexturetoolmodel.h" />
     <ClInclude Include="..\..\include\itraceable.h" />
+    <ClInclude Include="..\..\include\ivertexpaintable.h" />
     <ClInclude Include="..\..\include\itransformable.h" />
     <ClInclude Include="..\..\include\itransformnode.h" />
     <ClInclude Include="..\..\include\iundo.h" />

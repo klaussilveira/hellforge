@@ -113,6 +113,15 @@ void ModelNodeBase::queueRenderableUpdate()
     }
 }
 
+void ModelNodeBase::applyPreviewModeToSurfaces(PaintablePreviewMode mode)
+{
+    for (auto& surface : _renderableSurfaces)
+    {
+        surface->setPreviewMode(mode);
+    }
+    detachFromShaders();
+}
+
 void ModelNodeBase::transformChangedLocal()
 {
     Node::transformChangedLocal();

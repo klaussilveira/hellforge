@@ -26,7 +26,9 @@ void StaticModelNode::createRenderableSurfaces()
             return; // don't handle empty surfaces
         }
 
-        emplaceRenderableSurface(std::make_shared<RenderableModelSurface>(surface, _renderEntity, localToWorld()));
+        auto renderable = std::make_shared<RenderableModelSurface>(surface, _renderEntity, localToWorld());
+        renderable->setPreviewMode(_previewMode);
+        emplaceRenderableSurface(std::move(renderable));
     });
 }
 
@@ -113,6 +115,34 @@ std::string StaticModelNode::getSkin() const
 void StaticModelNode::setDefaultSkin(const std::string& defaultSkin)
 {
     _defaultSkin = defaultSkin;
+}
+
+std::size_t StaticModelNode::getPaintableSurfaceCount()
+{
+    return static_cast<std::size_t>(_model->getSurfaceCount());
+}
+
+IIndexedModelSurface* StaticModelNode::getPaintableSurface(std::size_t index)
+{
+    if (index >= _model->getSurfaces().size()) return nullptr;
+    return _model->getSurfaces()[index].surface.get();
+}
+
+std::string StaticModelNode::getPaintableModelPath() const
+{
+    return _model->getModelPath();
+}
+
+std::string StaticModelNode::getPaintableModelFilename() const
+{
+    return _model->getFilename();
+}
+
+void StaticModelNode::setPreviewMode(PaintablePreviewMode mode)
+{
+    if (_previewMode == mode) return;
+    _previewMode = mode;
+    applyPreviewModeToSurfaces(mode);
 }
 
 } // namespace model

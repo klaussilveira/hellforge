@@ -1,6 +1,7 @@
 #include "TerrainSculptTool.h"
 
 #include "i18n.h"
+#include "iscenegraph.h"
 #include "iundo.h"
 #include "ipatch.h"
 #include "itraceable.h"
@@ -12,6 +13,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 namespace ui
@@ -68,6 +70,48 @@ namespace
         patch = Node_getIPatch(node);
         return patch != nullptr;
     }
+
+    class PatchPicker : public scene::NodeVisitor
+    {
+    public:
+        Ray ray;
+        scene::INodePtr bestNode;
+        IPatch* bestPatch = nullptr;
+        Vector3 bestPoint;
+        double bestDistSq = std::numeric_limits<double>::infinity();
+
+        bool pre(const scene::INodePtr& node) override
+        {
+            IPatch* patch = nullptr;
+            Vector3 point;
+            if (!raycastTarget(ray, node, patch, point)) return true;
+
+            double d = (point - ray.origin).getLengthSquared();
+            if (d < bestDistSq)
+            {
+                bestDistSq = d;
+                bestNode = node;
+                bestPatch = patch;
+                bestPoint = point;
+            }
+            return true;
+        }
+    };
+
+    scene::INodePtr pickPatchUnderRay(const Ray& ray, IPatch*& outPatch, Vector3& outPoint)
+    {
+        outPatch = nullptr;
+        auto root = GlobalSceneGraph().root();
+        if (!root) return {};
+
+        PatchPicker picker;
+        picker.ray = ray;
+        root->traverse(picker);
+
+        outPatch = picker.bestPatch;
+        outPoint = picker.bestPoint;
+        return picker.bestNode;
+    }
 }
 
 
@@ -75,9 +119,21 @@ MouseTool::Result TerrainSculptTool::onMouseDown(Event& ev)
 {
     auto& settings = TerrainSculptSettings::Instance();
     if (!settings.panelActive) return Result::Ignored;
-    if (!settings.target.lock()) return Result::Ignored;
 
     if (GlobalUndoSystem().operationStarted()) return Result::Ignored;
+
+    Ray ray;
+    if (!buildRayFromEvent(ev, ray)) return Result::Ignored;
+
+    IPatch* patch = nullptr;
+    Vector3 point;
+    scene::INodePtr hit = pickPatchUnderRay(ray, patch, point);
+    if (!hit || !patch) return Result::Ignored;
+
+    _strokeTarget = hit;
+    settings.target = hit;
+    settings.hoverValid = true;
+    settings.hoverPoint = point;
 
     _stroking = true;
     _undoStarted = false;
@@ -104,19 +160,19 @@ MouseTool::Result TerrainSculptTool::onMouseMove(Event& ev)
 
     settings.hoverValid = false;
 
-    scene::INodePtr target = settings.panelActive ? settings.target.lock() : nullptr;
-
-    if (target)
+    if (settings.panelActive)
     {
         Ray ray;
         if (buildRayFromEvent(ev, ray))
         {
             IPatch* patch = nullptr;
             Vector3 point;
-            if (raycastTarget(ray, target, patch, point))
+            scene::INodePtr hit = pickPatchUnderRay(ray, patch, point);
+            if (hit && patch)
             {
                 settings.hoverValid = true;
                 settings.hoverPoint = point;
+                settings.target = hit;
             }
         }
     }
@@ -135,6 +191,7 @@ MouseTool::Result TerrainSculptTool::onMouseUp(Event& ev)
     if (!_stroking) return Result::Ignored;
 
     _stroking = false;
+    _strokeTarget.reset();
     if (_undoStarted)
     {
         GlobalUndoSystem().finish("terrainSculpt");
@@ -150,6 +207,7 @@ MouseTool::Result TerrainSculptTool::onCancel(IInteractiveView&)
     if (_stroking)
     {
         _stroking = false;
+        _strokeTarget.reset();
         if (_undoStarted)
         {
             GlobalUndoSystem().finish("terrainSculpt");
@@ -168,7 +226,7 @@ bool TerrainSculptTool::applyStrokeAt(Event& ev)
 {
     const auto& settings = TerrainSculptSettings::Instance();
 
-    scene::INodePtr target = settings.target.lock();
+    scene::INodePtr target = _strokeTarget.lock();
     if (!target) return false;
 
     Ray ray;

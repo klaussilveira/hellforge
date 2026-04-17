@@ -80,6 +80,8 @@ public:
 	const std::vector<MeshVertex>& getVertexArray() const override;
 	const std::vector<unsigned int>& getIndexArray() const override;
 
+	std::vector<MeshVertex>* getMutableVertexArray() override;
+
 	const std::string& getDefaultMaterial() const override;
 	void setDefaultMaterial(const std::string& defaultMaterial);
 

@@ -75,6 +75,8 @@
 #include "ui/terrain/TerrainGeneratorDialog.h"
 #include "ui/terrain/TerrainSculptControl.h"
 #include "selection/TerrainSculptTool.h"
+#include "ui/vertexpaint/VertexPaintControl.h"
+#include "selection/VertexPaintTool.h"
 #include "ui/tilemap/TileMapDialog.h"
 #include "ui/sweep/SweepDialog.h"
 #include "ui/osm/OsmImporterDialog.h"
@@ -296,6 +298,7 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
     registerControl(std::make_shared<DecalShooterControl>());
     registerControl(std::make_shared<SelectionGroupControl>());
     registerControl(std::make_shared<TerrainSculptControl>());
+    registerControl(std::make_shared<VertexPaintControl>());
 
     GlobalMainFrame().signal_MainFrameConstructed().connect([&]()
 {
@@ -342,6 +345,9 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
         );
     GlobalMainFrame().addControl(
             UserControl::TerrainSculpt, ControlSettings::floating(320, 260)
+        );
+        GlobalMainFrame().addControl(
+            UserControl::VertexPaint, ControlSettings::floating(320, 260)
         );
 
         _viewMenu = std::make_unique<ViewMenu>();
@@ -619,28 +625,47 @@ void UserInterfaceModule::registerUICommands()
     // Terrain generator dialog for creating patch terrains
     GlobalCommandSystem().addCommand("TerrainGeneratorDialog", TerrainGeneratorDialog::Show);
 
-    // Terrain sculpt brush size / strength shortcuts
-    auto adjustRadius = [](float delta)
+    // Brush size / strength shortcuts shared between terrain sculpt and vertex paint;
+    // the active panel wins so [ ] work no matter which tool is in use.
+    auto adjustRadius = [](float terrainDelta, float paintDelta)
     {
-        auto& s = TerrainSculptSettings::Instance();
-        s.radius = std::clamp(s.radius + delta, 1.0f, 4096.0f);
-        s.signal_settingsChanged.emit();
+        if (VertexPaintSettings::Instance().panelActive)
+        {
+            auto& s = VertexPaintSettings::Instance();
+            s.radius = std::clamp(s.radius + paintDelta, 0.5f, 4096.0f);
+            s.signal_settingsChanged.emit();
+        }
+        else
+        {
+            auto& s = TerrainSculptSettings::Instance();
+            s.radius = std::clamp(s.radius + terrainDelta, 1.0f, 4096.0f);
+            s.signal_settingsChanged.emit();
+        }
         GlobalMainFrame().updateAllWindows();
     };
-    auto adjustStrength = [](float delta)
+    auto adjustStrength = [](float terrainDelta, float paintDelta)
     {
-        auto& s = TerrainSculptSettings::Instance();
-        s.strength = std::clamp(s.strength + delta, 0.01f, 1024.0f);
-        s.signal_settingsChanged.emit();
+        if (VertexPaintSettings::Instance().panelActive)
+        {
+            auto& s = VertexPaintSettings::Instance();
+            s.strength = std::clamp(s.strength + paintDelta, 0.01f, 1.0f);
+            s.signal_settingsChanged.emit();
+        }
+        else
+        {
+            auto& s = TerrainSculptSettings::Instance();
+            s.strength = std::clamp(s.strength + terrainDelta, 0.01f, 1024.0f);
+            s.signal_settingsChanged.emit();
+        }
     };
     GlobalCommandSystem().addCommand("TerrainSculptRadiusUp",
-        [adjustRadius](const cmd::ArgumentList&) { adjustRadius(+4.0f); });
+        [adjustRadius](const cmd::ArgumentList&) { adjustRadius(+4.0f, +2.0f); });
     GlobalCommandSystem().addCommand("TerrainSculptRadiusDown",
-        [adjustRadius](const cmd::ArgumentList&) { adjustRadius(-4.0f); });
+        [adjustRadius](const cmd::ArgumentList&) { adjustRadius(-4.0f, -2.0f); });
     GlobalCommandSystem().addCommand("TerrainSculptStrengthUp",
-        [adjustStrength](const cmd::ArgumentList&) { adjustStrength(+0.5f); });
+        [adjustStrength](const cmd::ArgumentList&) { adjustStrength(+0.5f, +0.05f); });
     GlobalCommandSystem().addCommand("TerrainSculptStrengthDown",
-        [adjustStrength](const cmd::ArgumentList&) { adjustStrength(-0.5f); });
+        [adjustStrength](const cmd::ArgumentList&) { adjustStrength(-0.5f, -0.05f); });
 
     // Tile map editor for quick 2D block-based level design
     GlobalCommandSystem().addCommand("TileMapDialog", TileMapDialog::Show);

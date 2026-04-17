@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imodelsurface.h"
+#include "ivertexpaintable.h"
 #include "render/RenderableSurface.h"
 
 namespace model
@@ -19,6 +20,8 @@ private:
     ShaderPtr _wireShader;
     ShaderPtr _fillShader;
 
+    PaintablePreviewMode _previewMode = PaintablePreviewMode::Material;
+
 public:
     using Ptr = std::shared_ptr<RenderableModelSurface>;
 
@@ -33,6 +36,8 @@ public:
     RenderableModelSurface(const RenderableModelSurface& other) = delete;
     RenderableModelSurface& operator=(const RenderableModelSurface& other) = delete;
 
+    void setPreviewMode(PaintablePreviewMode mode) { _previewMode = mode; }
+
     // By default the Model surface will return the render entity's wire shader
     virtual ShaderPtr captureWireShader(RenderSystem& renderSystem)
     {
@@ -42,7 +47,14 @@ public:
     // By default the Model surface will use the active material as defined by the surface
     virtual ShaderPtr captureFillShader(RenderSystem& renderSystem)
     {
-        return renderSystem.capture(getSurface().getActiveMaterial());
+        switch (_previewMode)
+        {
+        case PaintablePreviewMode::VertexColour:
+            return renderSystem.capture(BuiltInShaderType::VertexColourPreview);
+        case PaintablePreviewMode::Material:
+        default:
+            return renderSystem.capture(getSurface().getActiveMaterial());
+        }
     }
 
     const IIndexedModelSurface& getSurface() const

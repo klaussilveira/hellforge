@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "ivertexpaintable.h"
 #include "scene/Node.h"
 #include "RenderableModelSurface.h"
 
@@ -55,6 +56,8 @@ protected:
     void attachToShaders();
     void detachFromShaders();
     void queueRenderableUpdate();
+
+    void applyPreviewModeToSurfaces(PaintablePreviewMode mode);
 };
 
 }

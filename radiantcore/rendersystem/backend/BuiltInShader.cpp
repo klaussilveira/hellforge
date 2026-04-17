@@ -361,6 +361,21 @@ void BuiltInShader::construct()
         break;
     }
 
+    case BuiltInShaderType::VertexColourPreview:
+    {
+        pass.setRenderFlags(RENDER_FILL
+            | RENDER_CULLFACE
+            | RENDER_DEPTHTEST
+            | RENDER_DEPTHWRITE
+            | RENDER_SMOOTH
+            | RENDER_VERTEX_COLOUR);
+        pass.setColour(Colour4::WHITE());
+        pass.setSortPosition(OpenGLState::SORT_FULLBRIGHT);
+
+        enableViewType(RenderViewType::Camera);
+        break;
+    }
+
     default:
         throw std::runtime_error("Cannot construct this shader: " + getName());
     }
@@ -370,6 +385,11 @@ bool BuiltInShader::supportsVertexColours() const
 {
     // Disable vertex colours for the inactive wireframe shader
     return _type != BuiltInShaderType::WireframeInactive;
+}
+
+bool BuiltInShader::surfacesUseVertexColours() const
+{
+    return _type == BuiltInShaderType::VertexColourPreview;
 }
 
 void BuiltInShader::constructOrthoMergeActionOverlay(OpenGLState& pass, const Colour4& colour,
