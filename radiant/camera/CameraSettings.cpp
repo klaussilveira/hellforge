@@ -7,7 +7,6 @@
 #include "registry/registry.h"
 #include "util/ScopedBoolLock.h"
 #include "CameraWndManager.h"
-#include "string/convert.h"
 #include "wxutil/dialog/MessageBox.h"
 
 namespace ui
@@ -24,22 +23,12 @@ CameraSettings::CameraSettings() :
 	_farClipEnabled(registry::getValue<bool>(RKEY_ENABLE_FARCLIP)),
 	_solidSelectionBoxes(registry::getValue<bool>(RKEY_SOLID_SELECTION_BOXES)),
 	_toggleFreelook(registry::getValue<bool>(RKEY_TOGGLE_FREE_MOVE)),
-    _gridEnabled(registry::getValue<bool>(RKEY_CAMERA_GRID_ENABLED)),
-    _gridSpacing(registry::getValue<int>(RKEY_CAMERA_GRID_SPACING))
+    _gridEnabled(registry::getValue<bool>(RKEY_CAMERA_GRID_ENABLED))
 {
 	// Constrain the cubic scale to a fixed value
 	if (_cubicScale > MAX_CUBIC_SCALE) {
 		_cubicScale = MAX_CUBIC_SCALE;
 	}
-
-    if (_gridSpacing > 512)
-    {
-        _gridSpacing = 512;
-    }
-    else if (_gridSpacing < 4)
-    {
-        _gridSpacing = 4;
-    }
 
 	// Initialise the draw mode from the integer value stored in the registry
 	importDrawMode(registry::getValue<int>(RKEY_DRAWMODE));
@@ -54,7 +43,6 @@ CameraSettings::CameraSettings() :
 	observeKey(RKEY_SOLID_SELECTION_BOXES);
 	observeKey(RKEY_TOGGLE_FREE_MOVE);
 	observeKey(RKEY_CAMERA_GRID_ENABLED);
-	observeKey(RKEY_CAMERA_GRID_SPACING);
 
 	// greebo: Add the preference settings
 	constructPreferencePage();
@@ -92,13 +80,6 @@ void CameraSettings::constructPreferencePage()
     page.appendCheckBox(_("Show camera toolbar"), RKEY_SHOW_CAMERA_TOOLBAR);
 
     page.appendCheckBox(_("Draw 3D grid"), RKEY_CAMERA_GRID_ENABLED);
-
-    ComboBoxValueList gridSpacings;
-    for (int i = 4; i <= 512; i *= 2)
-    {
-        gridSpacings.push_back(string::to_string(i));
-    }
-    page.appendCombo(_("Grid spacing"), RKEY_CAMERA_GRID_SPACING, gridSpacings, true);
 }
 
 bool CameraSettings::showCameraToolbar() const
@@ -124,11 +105,6 @@ bool CameraSettings::learnerModeEnabled() const
 bool CameraSettings::gridEnabled() const
 {
     return _gridEnabled;
-}
-
-int CameraSettings::gridSpacing() const
-{
-    return _gridSpacing;
 }
 
 void CameraSettings::importDrawMode(const int mode)
@@ -186,7 +162,6 @@ void CameraSettings::keyChanged()
 	_farClipEnabled = registry::getValue<bool>(RKEY_ENABLE_FARCLIP);
 	_solidSelectionBoxes = registry::getValue<bool>(RKEY_SOLID_SELECTION_BOXES);
     _gridEnabled = registry::getValue<bool>(RKEY_CAMERA_GRID_ENABLED);
-    _gridSpacing = registry::getValue<int>(RKEY_CAMERA_GRID_SPACING);
 
 	// Determine the draw mode represented by the integer registry value
 	importDrawMode(registry::getValue<int>(RKEY_DRAWMODE));

@@ -162,6 +162,18 @@
 			<menuItem name="rotateZ" caption="Rotate Z" command="RotateSelectionZ" icon="brush_rotatez.png" />
 		</subMenu>
 
+		<subMenu name="rotationSnap" caption="Rotation Snap">
+			<menuItem name="rotationSnapOff" caption="Off" command="SetRotationSnap0" />
+			<menuSeparator />
+			<menuItem name="rotationSnap1" caption="1 degree" command="SetRotationSnap1" />
+			<menuItem name="rotationSnap5" caption="5 degrees" command="SetRotationSnap5" />
+			<menuItem name="rotationSnap10" caption="10 degrees" command="SetRotationSnap10" />
+			<menuItem name="rotationSnap15" caption="15 degrees" command="SetRotationSnap15" />
+			<menuItem name="rotationSnap30" caption="30 degrees" command="SetRotationSnap30" />
+			<menuItem name="rotationSnap45" caption="45 degrees" command="SetRotationSnap45" />
+			<menuItem name="rotationSnap90" caption="90 degrees" command="SetRotationSnap90" />
+		</subMenu>
+
 		<subMenu name="mirror" caption="Mirror">
 			<menuItem name="flipX" caption="Mirror &amp;X" command="MirrorSelectionX" icon="brush_flipx.png" />
 			<menuItem name="flipY" caption="Mirror &amp;Y" command="MirrorSelectionY" icon="brush_flipy.png" />

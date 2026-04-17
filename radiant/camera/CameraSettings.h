@@ -72,7 +72,6 @@ class CameraSettings: public sigc::trackable
 	bool _toggleFreelook;
 
 	bool _gridEnabled;
-	int _gridSpacing;
 
     // Signals
     sigc::signal<void> _sigRenderModeChanged;
@@ -98,7 +97,6 @@ public:
     bool showCameraToolbar() const;
 
     bool gridEnabled() const;
-    int gridSpacing() const;
 
     /// Whether to show keyboard shortcut hints in the 3D viewport
     bool learnerModeEnabled() const;

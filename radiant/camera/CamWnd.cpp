@@ -658,7 +658,7 @@ void CamWnd::drawGrid()
     constexpr double GRID_MAX_DIM = 2048.0;
     constexpr float GRID_MAX_F = static_cast<float>(GRID_MAX_DIM);
 
-    const double step = getCameraSettings()->gridSpacing();
+    const double step = GlobalGrid().getGridSize();
     const int majorEvery = 8;
 
     glDisable(GL_TEXTURE_2D);

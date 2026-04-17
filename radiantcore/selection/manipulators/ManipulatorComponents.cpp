@@ -6,10 +6,16 @@
 #include "math/FloatTools.h"
 #include "math/Ray.h"
 #include "pivot.h"
+#include "registry/registry.h"
 #include "string/convert.h"
 
 namespace selection
 {
+
+namespace
+{
+	const char* const RKEY_ROTATION_SNAP_DEGREES = "user/ui/rotation/snapDegrees";
+}
 
 void transform_local2object(Matrix4& object, const Matrix4& local, const Matrix4& local2object)
 {
@@ -126,6 +132,14 @@ void RotateAxis::transform(const Matrix4& pivot2world, const VolumeTest& view, c
 	if (constraintFlags & Constraint::Type1)
 	{
 		angle = float_snapped(angle, 5 * c_DEG2RADMULT);
+	}
+	else if (constraintFlags & Constraint::Grid)
+	{
+		auto snapDegrees = registry::getValue<float>(RKEY_ROTATION_SNAP_DEGREES, 15.0f);
+		if (snapDegrees > 0.0f)
+		{
+			angle = float_snapped(angle, snapDegrees * c_DEG2RADMULT);
+		}
 	}
 
 	_curAngle = angle;
