@@ -29,6 +29,8 @@ void bulge(const cmd::ArgumentList& args);
 
 void weldSelectedPatches(const cmd::ArgumentList& args);
 
+void sewSelectedPatches(const cmd::ArgumentList& args);
+
 } // namespace
 
 } // namespace

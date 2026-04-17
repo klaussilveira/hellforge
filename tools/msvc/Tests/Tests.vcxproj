@@ -127,6 +127,7 @@
     <ClCompile Include="..\..\..\test\Patch.cpp" />
     <ClCompile Include="..\..\..\test\PatchIterators.cpp" />
     <ClCompile Include="..\..\..\test\PatchWelding.cpp" />
+    <ClCompile Include="..\..\..\test\PatchSewing.cpp" />
     <ClCompile Include="..\..\..\test\PointTrace.cpp" />
     <ClCompile Include="..\..\..\test\precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

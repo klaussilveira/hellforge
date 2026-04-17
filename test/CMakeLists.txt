@@ -48,6 +48,7 @@ add_executable(drtest
                Patch.cpp
                PatchIterators.cpp
                PatchWelding.cpp
+               PatchSewing.cpp
                PointTrace.cpp
                Prefabs.cpp
                Registry.cpp

@@ -14,6 +14,7 @@
 #include "command/ExecutionFailure.h"
 #include "patch/PatchIterators.h"
 
+#include <limits>
 #include <map>
 
 namespace patch
@@ -451,6 +452,134 @@ void weldSelectedPatches(const cmd::ArgumentList& args)
     else
     {
         throw cmd::ExecutionFailure(_("Cannot weld patches, select (at least) two patches with the same parent entity."));
+    }
+}
+
+namespace
+{
+
+constexpr double SEW_DEFAULT_TOLERANCE = 64.0;
+
+double averageEdgeDistance(PatchControlIterator a, PatchControlIterator b, std::size_t length)
+{
+    double sum = 0.0;
+    std::size_t count = 0;
+    for (std::size_t i = 0; i < length && a.isValid() && b.isValid(); ++i, ++a, ++b)
+    {
+        sum += (a->vertex - b->vertex).getLength();
+        ++count;
+    }
+    return count > 0 ? sum / count : std::numeric_limits<double>::infinity();
+}
+
+void snapEdgesToMidpoint(PatchControlIterator a, PatchControlIterator b, std::size_t length)
+{
+    for (std::size_t i = 0; i < length && a.isValid() && b.isValid(); ++i, ++a, ++b)
+    {
+        Vector3 mid = (a->vertex + b->vertex) * 0.5;
+        a->vertex = mid;
+        b->vertex = mid;
+    }
+}
+
+bool sewPatchPair(const PatchNodePtr& patchNode1, const PatchNodePtr& patchNode2, double tolerance)
+{
+    if (patchNode1->getParent() != patchNode2->getParent()) return false;
+
+    auto& patch1 = patchNode1->getPatchInternal();
+    auto& patch2 = patchNode2->getPatchInternal();
+
+    std::vector<PatchEdge> p1Edges = {
+        { SinglePatchRowIterator(patch1, 0), patch1.getWidth(), EdgeType::Row },
+        { SinglePatchColumnIterator(patch1, 0), patch1.getHeight(), EdgeType::Column },
+        { SinglePatchRowIterator(patch1, patch1.getHeight() - 1), patch1.getWidth(), EdgeType::Row },
+        { SinglePatchColumnIterator(patch1, patch1.getWidth() - 1), patch1.getHeight(), EdgeType::Column }
+    };
+
+    std::vector<PatchEdge> p2Edges = {
+        { SinglePatchRowIterator(patch2, 0), patch2.getWidth(), EdgeType::Row },
+        { SinglePatchColumnIterator(patch2, 0), patch2.getHeight(), EdgeType::Column },
+        { SinglePatchRowIterator(patch2, patch2.getHeight() - 1), patch2.getWidth(), EdgeType::Row },
+        { SinglePatchColumnIterator(patch2, patch2.getWidth() - 1), patch2.getHeight(), EdgeType::Column },
+
+        { SinglePatchRowReverseIterator(patch2, 0), patch2.getWidth(), EdgeType::Row },
+        { SinglePatchColumnReverseIterator(patch2, 0), patch2.getHeight(), EdgeType::Column },
+        { SinglePatchRowReverseIterator(patch2, patch2.getHeight() - 1), patch2.getWidth(), EdgeType::Row },
+        { SinglePatchColumnReverseIterator(patch2, patch2.getWidth() - 1), patch2.getHeight(), EdgeType::Column }
+    };
+
+    int bestI = -1;
+    int bestJ = -1;
+    double bestAvg = std::numeric_limits<double>::infinity();
+
+    for (std::size_t i = 0; i < p1Edges.size(); ++i)
+    {
+        for (std::size_t j = 0; j < p2Edges.size(); ++j)
+        {
+            if (p1Edges[i].edgeLength != p2Edges[j].edgeLength) continue;
+
+            double avg = averageEdgeDistance(p1Edges[i].iterator, p2Edges[j].iterator, p1Edges[i].edgeLength);
+            if (avg < bestAvg)
+            {
+                bestAvg = avg;
+                bestI = static_cast<int>(i);
+                bestJ = static_cast<int>(j);
+            }
+        }
+    }
+
+    if (bestI < 0 || bestAvg > tolerance) return false;
+    if (bestAvg < 0.001) return false; // already coincident
+
+    patch1.undoSave();
+    patch2.undoSave();
+
+    snapEdgesToMidpoint(p1Edges[bestI].iterator, p2Edges[bestJ].iterator, p1Edges[bestI].edgeLength);
+
+    patch1.controlPointsChanged();
+    patch2.controlPointsChanged();
+    return true;
+}
+
+}
+
+void sewSelectedPatches(const cmd::ArgumentList& args)
+{
+    double tolerance = SEW_DEFAULT_TOLERANCE;
+    if (args.size() == 1)
+    {
+        tolerance = args[0].getDouble();
+        if (tolerance <= 0.0) tolerance = SEW_DEFAULT_TOLERANCE;
+    }
+    else if (args.size() > 1)
+    {
+        rWarning() << "Usage: SewSelectedPatches [tolerance]" << std::endl;
+        return;
+    }
+
+    auto selectedPatches = selection::algorithm::getSelectedPatches();
+    if (selectedPatches.size() < 2)
+    {
+        throw cmd::ExecutionFailure(_("Cannot sew patches, select (at least) two patches with the same parent entity."));
+    }
+
+    UndoableCommand cmd("SewSelectedPatches");
+
+    std::size_t numSewn = 0;
+    for (auto p1 = selectedPatches.begin(); p1 != selectedPatches.end(); ++p1)
+    {
+        for (auto p2 = p1 + 1; p2 != selectedPatches.end(); ++p2)
+        {
+            if (sewPatchPair(*p1, *p2, tolerance))
+            {
+                ++numSewn;
+            }
+        }
+    }
+
+    if (numSewn == 0)
+    {
+        throw cmd::ExecutionFailure(_("No matching edges found within tolerance."));
     }
 }
 

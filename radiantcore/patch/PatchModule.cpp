@@ -153,6 +153,10 @@ void PatchModule::registerPatchCommands()
     GlobalCommandSystem().addWithCheck("WeldSelectedPatches",
                                        patch::algorithm::weldSelectedPatches,
                                        [] { return selection::pred::havePatchesAtLeast(2); });
+    GlobalCommandSystem().addWithCheck("SewSelectedPatches",
+                                       patch::algorithm::sewSelectedPatches,
+                                       [] { return selection::pred::havePatchesAtLeast(2); },
+                                       {cmd::ARGTYPE_DOUBLE | cmd::ARGTYPE_OPTIONAL});
 }
 
 module::StaticModuleRegistration<PatchModule> patchModule;
