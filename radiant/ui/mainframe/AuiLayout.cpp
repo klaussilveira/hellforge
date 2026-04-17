@@ -677,69 +677,69 @@ void AuiLayout::restorePaneLocation(wxAuiPaneInfo& pane)
 
 void AuiLayout::restoreStateFromRegistry()
 {
-    // Check the saved version
-    if (registry::getValue<int>(RKEY_AUI_LAYOUT_VERSION) != AuiLayoutVersion)
+    const bool hasValidSavedState = registry::getValue<int>(RKEY_AUI_LAYOUT_VERSION) == AuiLayoutVersion;
+
+    if (hasValidSavedState)
+    {
+        _floatingPaneLocations.clear();
+        for (const auto& node : GlobalRegistry().findXPath(RKEY_AUI_FLOATING_PANE_LOCATIONS + "//*"))
+        {
+            _floatingPaneLocations[node.getAttributeValue(PANE_NAME_ATTRIBUTE)] = node.getAttributeValue(STATE_ATTRIBUTE);
+        }
+
+        _dockedPaneLocations.clear();
+        for (const auto& node : GlobalRegistry().findXPath(RKEY_AUI_DOCKED_PANE_LOCATIONS + "//*"))
+        {
+            _dockedPaneLocations[node.getAttributeValue(PANE_NAME_ATTRIBUTE)] = node.getAttributeValue(STATE_ATTRIBUTE);
+        }
+
+        // Restore all missing panes, this has to be done before the perspective is restored
+        for (const auto& node : GlobalRegistry().findXPath(RKEY_AUI_PANES + "//*"))
+        {
+            if (node.getName() != PANE_NODE_NAME) continue;
+
+            auto controlName = node.getAttributeValue(CONTROL_NAME_ATTRIBUTE);
+            auto paneName = node.getAttributeValue(PANE_NAME_ATTRIBUTE);
+
+            if (paneNameExists(paneName)) continue; // this one already exists
+
+            createPane(controlName, paneName, setupFloatingPane);
+        }
+
+        // Restore the property notebook state (will fall back to default if nothing found)
+        _propertyNotebook->restoreState();
+
+        // Nasty hack to get the panes sized properly. Since BestSize() is
+        // completely ignored (at least on Linux), we have to add the panes with a
+        // large *minimum* size and then reset this size after the initial addition.
+        for (const auto& info : _panes)
+        {
+            _auiMgr.GetPane(info.control).MinSize(MIN_SIZE);
+        }
+
+        _auiMgr.Update();
+
+        // If we have a stored perspective, load it
+        auto storedPersp = registry::getValue<std::string>(RKEY_AUI_PERSPECTIVE);
+
+        if (!storedPersp.empty())
+        {
+            _auiMgr.LoadPerspective(storedPersp);
+        }
+
+        // Make sure the properties panel can be closed (the flag might still be set on the stored perspective)
+        _auiMgr.GetPane(PROPERTIES_PANEL).CloseButton(true).DestroyOnClose(false);
+
+        ensureVisibleCenterPane();
+    }
+    else
     {
         rMessage() << "No compatible AUI layout state information found in registry" << std::endl;
 
         // We still need to set up the default pages of the notebook
         _propertyNotebook->restoreDefaultState();
-        return;
     }
 
-    _floatingPaneLocations.clear();
-    for (const auto& node : GlobalRegistry().findXPath(RKEY_AUI_FLOATING_PANE_LOCATIONS + "//*"))
-    {
-        _floatingPaneLocations[node.getAttributeValue(PANE_NAME_ATTRIBUTE)] = node.getAttributeValue(STATE_ATTRIBUTE);
-    }
-
-    _dockedPaneLocations.clear();
-    for (const auto& node : GlobalRegistry().findXPath(RKEY_AUI_DOCKED_PANE_LOCATIONS + "//*"))
-    {
-        _dockedPaneLocations[node.getAttributeValue(PANE_NAME_ATTRIBUTE)] = node.getAttributeValue(STATE_ATTRIBUTE);
-    }
-
-    // Restore all missing panes, this has to be done before the perspective is restored
-    for (const auto& node : GlobalRegistry().findXPath(RKEY_AUI_PANES + "//*"))
-    {
-        if (node.getName() != PANE_NODE_NAME) continue;
-
-        auto controlName = node.getAttributeValue(CONTROL_NAME_ATTRIBUTE);
-        auto paneName = node.getAttributeValue(PANE_NAME_ATTRIBUTE);
-
-        if (paneNameExists(paneName)) continue; // this one already exists
-
-        createPane(controlName, paneName, setupFloatingPane);
-    }
-
-    // Restore the property notebook state (will fall back to default if nothing found)
-    _propertyNotebook->restoreState();
-
-    // Nasty hack to get the panes sized properly. Since BestSize() is
-    // completely ignored (at least on Linux), we have to add the panes with a
-    // large *minimum* size and then reset this size after the initial addition.
-    for (const auto& info : _panes)
-    {
-        _auiMgr.GetPane(info.control).MinSize(MIN_SIZE);
-    }
-
-    _auiMgr.Update();
-
-    // If we have a stored perspective, load it
-    auto storedPersp = registry::getValue<std::string>(RKEY_AUI_PERSPECTIVE);
-
-    if (!storedPersp.empty())
-    {
-        _auiMgr.LoadPerspective(storedPersp);
-    }
-
-    // Make sure the properties panel can be closed (the flag might still be set on the stored perspective)
-    auto& propertyPane = _auiMgr.GetPane(PROPERTIES_PANEL);
-    propertyPane.CloseButton(true).DestroyOnClose(false);
-
-    ensureVisibleCenterPane();
-
-    // After restoring the perspective, ensure all visible panes are active
     for (const auto& info : _panes)
     {
         auto& paneInfo = _auiMgr.GetPane(info.control);
@@ -756,7 +756,7 @@ void AuiLayout::restoreStateFromRegistry()
 
     // Make sure the currently shown tab is made active after everything is restored
     // this way tabs can work with the restored window sizes
-    if (propertyPane.IsShown())
+    if (_auiMgr.GetPane(PROPERTIES_PANEL).IsShown())
     {
         _propertyNotebook->onNotebookPaneRestored();
     }
