@@ -856,6 +856,9 @@
     <ClCompile Include="..\..\radiant\ui\tilemap\TileMapDialog.cpp">
       <Filter>src\ui\tilemap</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\cityplanner\CityPlannerDialog.cpp">
+      <Filter>src\ui\cityplanner</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\xyview\OrthoView.cpp">
       <Filter>src\xyview</Filter>
     </ClCompile>
@@ -1700,6 +1703,15 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeometry.h">
       <Filter>src\ui\stairs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cityplanner\CityPlannerDialog.h">
+      <Filter>src\ui\cityplanner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cityplanner\CityPlannerGenerators.h">
+      <Filter>src\ui\cityplanner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cityplanner\CityPlannerModel.h">
+      <Filter>src\ui\cityplanner</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\xyview\OrthoView.h">
       <Filter>src\xyview</Filter>

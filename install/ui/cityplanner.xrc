@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+  <object class="wxPanel" name="CityPlannerControlPanel">
+    <style>wxTAB_TRAVERSAL</style>
+    <size>260,-1</size>
+    <object class="wxBoxSizer" name="">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALL</flag>
+        <border>6</border>
+        <option>0</option>
+        <object class="wxStaticText" name="CityPlannerTopLabel">
+          <label>City Planner</label>
+          <style>wxALIGN_CENTRE_HORIZONTAL</style>
+          <font>
+            <weight>bold</weight>
+          </font>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>6</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Grid Size</label>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxALL</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <cols>2</cols>
+              <vgap>4</vgap>
+              <hgap>6</hgap>
+              <growablecols>1</growablecols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <object class="wxStaticText"><label>Cols</label></object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <object class="wxSpinCtrl" name="CityPlannerGridCols">
+                  <value>16</value>
+                  <min>1</min>
+                  <max>64</max>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <object class="wxStaticText"><label>Rows</label></object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <object class="wxSpinCtrl" name="CityPlannerGridRows">
+                  <value>16</value>
+                  <min>1</min>
+                  <max>64</max>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>6</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Dimensions</label>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxALL</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <cols>2</cols>
+              <vgap>4</vgap>
+              <hgap>6</hgap>
+              <growablecols>1</growablecols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <object class="wxStaticText"><label>Tile Width</label></object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <object class="wxTextCtrl" name="CityPlannerTileWidth">
+                  <value>128</value>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <object class="wxStaticText"><label>Tile Height</label></object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <object class="wxTextCtrl" name="CityPlannerTileHeight">
+                  <value>128</value>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <object class="wxStaticText"><label>Floor Thickness</label></object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <object class="wxTextCtrl" name="CityPlannerFloorThickness">
+                  <value>16</value>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <object class="wxStaticText"><label>Wall Height</label></object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <object class="wxTextCtrl" name="CityPlannerWallHeight">
+                  <value>128</value>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxCheckBox" name="CityPlannerHeightVariation">
+              <label>Random Height Variation</label>
+              <checked>0</checked>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>6</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Brush</label>
+          <object class="sizeritem">
+            <flag>wxEXPAND|wxALL</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxChoice" name="CityPlannerBrush">
+              <selection>0</selection>
+              <content>
+                <item>Floor</item>
+                <item>Wall</item>
+                <item>Half Square N</item>
+                <item>Half Square S</item>
+                <item>Half Square E</item>
+                <item>Half Square W</item>
+                <item>Building</item>
+                <item>Windowless Building</item>
+              </content>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>6</border>
+        <option>1</option>
+        <object class="wxPanel" name="CityPlannerDefaultsPanel">
+          <style>wxTAB_TRAVERSAL</style>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxALL</flag>
+        <border>6</border>
+        <option>0</option>
+        <object class="wxStaticText" name="">
+          <label>Left click: paint
+Right click: erase
+Middle click: select building group</label>
+          <style>wxALIGN_LEFT</style>
+          <fg>#999999</fg>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

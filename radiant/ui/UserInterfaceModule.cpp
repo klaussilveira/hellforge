@@ -78,6 +78,7 @@
 #include "ui/vertexpaint/VertexPaintControl.h"
 #include "selection/VertexPaintTool.h"
 #include "ui/tilemap/TileMapDialog.h"
+#include "ui/cityplanner/CityPlannerDialog.h"
 #include "ui/sweep/SweepDialog.h"
 #include "ui/osm/OsmImporterDialog.h"
 
@@ -669,6 +670,9 @@ void UserInterfaceModule::registerUICommands()
 
     // Tile map editor for quick 2D block-based level design
     GlobalCommandSystem().addCommand("TileMapDialog", TileMapDialog::Show);
+
+    // City planner: combined tilemap + building generator on a 2D grid
+    GlobalCommandSystem().addCommand("CityPlannerDialog", CityPlannerDialog::Show);
 
     // Sweep brushes along a curve path
     GlobalCommandSystem().addCommand("SweepDialog", SweepDialog::Show);

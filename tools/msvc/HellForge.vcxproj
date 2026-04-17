@@ -400,6 +400,7 @@
     <ClCompile Include="..\..\radiant\ui\osm\OsmImporterDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\sweep\SweepDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\tilemap\TileMapDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\cityplanner\CityPlannerDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\UserInterfaceModule.cpp" />
     <ClCompile Include="..\..\radiant\xyview\GlobalXYWnd.cpp" />
     <ClCompile Include="..\..\radiant\xyview\OrthoView.cpp" />
@@ -644,6 +645,9 @@
     <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.h" />
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeometry.h" />
+    <ClInclude Include="..\..\radiant\ui\cityplanner\CityPlannerDialog.h" />
+    <ClInclude Include="..\..\radiant\ui\cityplanner\CityPlannerGenerators.h" />
+    <ClInclude Include="..\..\radiant\ui\cityplanner\CityPlannerModel.h" />
     <ClInclude Include="..\..\radiant\ui\statusbar\CommandStatus.h" />
     <ClInclude Include="..\..\radiant\ui\statusbar\EditingStopwatchStatus.h" />
     <ClInclude Include="..\..\radiant\ui\statusbar\MapStatistics.h" />

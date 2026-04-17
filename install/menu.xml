@@ -220,6 +220,7 @@
 		<menuItem name="cornerPatch" caption="Corner Patch..." command="CornerPatchDialog" />
 		<menuItem name="buildingGenerator" caption="Building..." command="BuildingGeneratorDialog" />
 		<menuItem name="tileMap" caption="Tile Map..." command="TileMapDialog" />
+		<menuItem name="cityPlanner" caption="City Plan..." command="CityPlannerDialog" />
 	</subMenu>
 
 	<subMenu name="brush" caption="B&amp;rush">
