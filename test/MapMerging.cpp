@@ -72,7 +72,7 @@ TEST_F(MapMergeTest, BrushFingerprint)
     lastFingerprint = comparable->getFingerprint();
 
     // Disable texture lock
-    registry::setValue(RKEY_ENABLE_TEXTURE_LOCK, false);
+    registry::setValue(RKEY_ENABLE_TEXTURE_LOCK, true);
 
     // Changing the planes
     auto transformable = std::dynamic_pointer_cast<ITransformable>(brush);

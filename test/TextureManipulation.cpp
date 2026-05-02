@@ -631,7 +631,7 @@ namespace
 
 void performTextureLockBrushTransformationTest(const std::function<void(ITransformablePtr)>& doTransform)
 {
-    registry::setValue(RKEY_ENABLE_TEXTURE_LOCK, true);
+    registry::setValue(RKEY_ENABLE_TEXTURE_LOCK, false);
 
     std::string mapPath = "maps/simple_brushes.map";
     GlobalCommandSystem().executeCommand("OpenMap", mapPath);

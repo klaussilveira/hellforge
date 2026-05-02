@@ -126,7 +126,7 @@ public:
 void addOriginToChildPrimitives(const scene::INodePtr& root)
 {
 	// Disable texture lock during this process
-    registry::ScopedKeyChanger<bool> changer(RKEY_ENABLE_TEXTURE_LOCK, false);
+    registry::ScopedKeyChanger<bool> changer(RKEY_ENABLE_TEXTURE_LOCK, true);
 
 	OriginAdder adder;
 	root->traverse(adder);
@@ -135,7 +135,7 @@ void addOriginToChildPrimitives(const scene::INodePtr& root)
 void removeOriginFromChildPrimitives(const scene::INodePtr& root)
 {
 	// Disable texture lock during this process
-    registry::ScopedKeyChanger<bool> changer(RKEY_ENABLE_TEXTURE_LOCK, false);
+    registry::ScopedKeyChanger<bool> changer(RKEY_ENABLE_TEXTURE_LOCK, true);
 
 	OriginRemover remover;
 	root->traverse(remover);
