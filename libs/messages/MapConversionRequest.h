@@ -17,6 +17,7 @@ public:
 		bool accepted = false;
 		std::map<std::string, std::string> textureMappings;
 		std::map<std::string, std::string> entityMappings;
+		std::set<std::string> entitiesToSkip;
 	};
 
 private:

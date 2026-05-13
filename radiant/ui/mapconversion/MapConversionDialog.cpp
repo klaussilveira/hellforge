@@ -4,6 +4,7 @@
 #include "itextstream.h"
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "gamelib.h"
 
 #include <fmt/format.h>
 
@@ -28,10 +29,12 @@ namespace ui
 namespace
 {
 
-const std::map<std::string, std::string> KNOWN_TEXTURE_MAP = {
+const std::map<std::string, std::string> BASE_TEXTURE_MAP = {
 	{ "tools/toolsnodraw", "textures/common/nodraw" },
+	{ "tools/toolsnodraw_roof", "textures/common/nodraw" },
 	{ "tools/toolsclip", "textures/common/clip" },
 	{ "tools/toolsinvisible", "textures/common/clip" },
+	{ "tools/toolsinvisibleladder", "textures/common/ladder_clip" },
 	{ "tools/toolsplayerclip", "textures/common/player_clip" },
 	{ "tools/toolsnpcclip", "textures/common/monster_clip" },
 	{ "tools/toolstrigger", "textures/common/trigger" },
@@ -42,8 +45,22 @@ const std::map<std::string, std::string> KNOWN_TEXTURE_MAP = {
 	{ "tools/toolsblocklight", "textures/common/shadow" },
 	{ "tools/toolsblockbullets", "textures/common/clip" },
 	{ "tools/toolsblocklos", "textures/common/clip" },
+	{ "tools/toolsblockaim", "textures/common/clip" },
+	{ "tools/toolsbulletshield", "textures/common/clip" },
+	{ "tools/toolsgrenadeclip", "textures/common/clip" },
+	{ "tools/toolsplayerclipnoshootthrough", "textures/common/player_clip" },
+	{ "tools/toolsinvisiblefloor", "textures/common/clip" },
+	{ "tools/toolsblocknpcs", "textures/common/monster_clip" },
+	{ "tools/toolsnpchint", "textures/common/hint" },
+	{ "tools/toolsareaportalwindow", "textures/editor/visportal" },
 	{ "tools/toolsskybox", "textures/common/nodraw" },
+	{ "tools/toolsskybox2d", "textures/common/nodraw" },
 	{ "tools/toolsfog", "textures/common/nodraw" },
+	{ "tools/toolsfogvolume", "textures/common/nodraw" },
+	{ "tools/toolsboundary", "textures/common/nodraw" },
+	{ "tools/toolsblack", "textures/common/nodraw" },
+	{ "tools/toolsdotted", "textures/common/nodraw" },
+	{ "tools/toolsorigin", "textures/common/origin" },
 
 	{ "clip", "textures/common/clip" },
 	{ "trigger", "textures/common/trigger" },
@@ -66,7 +83,7 @@ const std::map<std::string, std::string> KNOWN_TEXTURE_MAP = {
 	{ "common/areaportal", "textures/editor/visportal" },
 };
 
-const std::map<std::string, std::string> KNOWN_ENTITY_MAP = {
+const std::map<std::string, std::string> BASE_ENTITY_MAP = {
 	{ "worldspawn", "worldspawn" },
 	{ "info_player_start", "info_player_start" },
 	{ "info_player_deathmatch", "info_player_start" },
@@ -76,16 +93,35 @@ const std::map<std::string, std::string> KNOWN_ENTITY_MAP = {
 	{ "light", "light" },
 	{ "light_spot", "light" },
 	{ "light_environment", "light" },
+	{ "light_dynamic", "light" },
 	{ "func_wall", "func_static" },
 	{ "func_illusionary", "func_static" },
 	{ "func_detail", "func_static" },
 	{ "func_group", "func_static" },
+	{ "func_brush", "func_static" },
+	{ "func_lod", "func_static" },
+	{ "func_water", "func_static" },
+	{ "func_water_analog", "func_static" },
+	{ "func_pushable", "func_static" },
+	{ "func_physbox", "func_static" },
+	{ "func_physbox_multiplayer", "func_static" },
+	{ "prop_static", "func_static" },
+	{ "prop_dynamic", "func_static" },
+	{ "prop_dynamic_override", "func_static" },
+	{ "prop_physics", "func_static" },
+	{ "prop_physics_override", "func_static" },
+	{ "prop_physics_multiplayer", "func_static" },
+	{ "prop_ragdoll", "func_static" },
 	{ "func_door", "func_door" },
 	{ "func_door_rotating", "func_door" },
+	{ "func_movelinear", "func_door" },
+	{ "func_tracktrain", "func_door" },
+	{ "prop_door_rotating", "func_door" },
 	{ "func_button", "func_door" },
 	{ "func_plat", "func_plat" },
 	{ "func_rotating", "func_rotating" },
 	{ "func_breakable", "func_fracture" },
+	{ "func_breakable_surf", "func_fracture" },
 	{ "trigger_once", "trigger_once" },
 	{ "trigger_multiple", "trigger_multiple" },
 	{ "trigger_hurt", "trigger_hurt" },
@@ -93,10 +129,13 @@ const std::map<std::string, std::string> KNOWN_ENTITY_MAP = {
 	{ "trigger_teleport", "trigger_teleport" },
 	{ "ambient_generic", "speaker" },
 	{ "env_sound", "speaker" },
+	{ "env_soundscape", "speaker" },
+	{ "target_speaker", "speaker" },
 	{ "info_target", "target_null" },
 	{ "info_null", "target_null" },
 	{ "info_notnull", "target_null" },
 	{ "path_corner", "path_corner" },
+	{ "path_track", "path_corner" },
 };
 
 std::string toLower(const std::string& s)
@@ -131,6 +170,8 @@ std::string stripPrefix(const std::string& name)
 MapConversionDialog::MapConversionDialog(wxWindow* parent, const std::string& formatName) :
 	DialogBase(fmt::format("Convert {} Map", formatName), parent)
 {
+	buildKnownMaps();
+
 	auto* mainSizer = new wxBoxSizer(wxVERTICAL);
 
 	auto* infoLabel = new wxStaticText(this, wxID_ANY,
@@ -182,6 +223,8 @@ MapConversionDialog::MapConversionDialog(wxWindow* parent, const std::string& fo
 		wxDATAVIEW_CELL_EDITABLE, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE);
 	_entView->AppendTextColumn(_("Match"), _entColumns.matchType.getColumnIndex(),
 		wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE);
+	_entView->AppendToggleColumn(_("Skip Import"), _entColumns.skipImport.getColumnIndex(),
+		wxDATAVIEW_CELL_ACTIVATABLE, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE);
 
 	auto* browseEntBtn = new wxButton(entPanel, wxID_ANY, _("Find Entity Class..."));
 	browseEntBtn->Bind(wxEVT_BUTTON, &MapConversionDialog::onBrowseEntity, this);
@@ -219,13 +262,64 @@ MapConversionDialog::MapConversionDialog(wxWindow* parent, const std::string& fo
 	FitToScreen(0.6f, 0.7f);
 }
 
+void MapConversionDialog::buildKnownMaps()
+{
+	_knownTextures = BASE_TEXTURE_MAP;
+	_knownEntities = BASE_ENTITY_MAP;
+
+	auto nodrawShader = game::current::getValue<std::string>("/defaults/nodrawShader");
+	auto monsterClipShader = game::current::getValue<std::string>("/defaults/monsterClipShader");
+	auto visportalShader = game::current::getValue<std::string>("/defaults/visportalShader");
+	auto playerStart = game::current::getValue<std::string>("/mapFormat/playerStartPoint");
+
+	if (!nodrawShader.empty())
+	{
+		for (const char* key : {
+			"tools/toolsnodraw", "tools/toolsnodraw_roof", "tools/toolsskip",
+			"tools/toolsoccluder", "tools/toolsskybox", "tools/toolsskybox2d",
+			"tools/toolsfog", "tools/toolsfogvolume", "tools/toolsboundary",
+			"tools/toolsblack", "tools/toolsdotted",
+			"skip", "nodraw", "noclip", "hintskip",
+			"common/skip", "common/nodraw"
+		})
+		{
+			_knownTextures[key] = nodrawShader;
+		}
+	}
+
+	if (!monsterClipShader.empty())
+	{
+		_knownTextures["tools/toolsnpcclip"] = monsterClipShader;
+		_knownTextures["tools/toolsblocknpcs"] = monsterClipShader;
+	}
+
+	if (!visportalShader.empty())
+	{
+		_knownTextures["tools/toolsareaportal"] = visportalShader;
+		_knownTextures["tools/toolsareaportalwindow"] = visportalShader;
+		_knownTextures["areaportal"] = visportalShader;
+		_knownTextures["common/areaportal"] = visportalShader;
+	}
+
+	if (!playerStart.empty())
+	{
+		for (const char* key : {
+			"info_player_start", "info_player_deathmatch", "info_player_coop",
+			"info_player_terrorist", "info_player_counterterrorist"
+		})
+		{
+			_knownEntities[key] = playerStart;
+		}
+	}
+}
+
 std::string MapConversionDialog::findTextureMatch(const std::string& source) const
 {
 	std::string sourceLower = toLower(source);
 	std::string sourceStripped = stripPrefix(sourceLower);
 	std::string sourceBase = toLower(extractBaseName(source));
 
-	for (const auto& [key, value] : KNOWN_TEXTURE_MAP)
+	for (const auto& [key, value] : _knownTextures)
 	{
 		if (sourceLower == key || sourceStripped == key || sourceBase == key)
 			return value;
@@ -238,7 +332,7 @@ std::string MapConversionDialog::findEntityMatch(const std::string& source) cons
 {
 	std::string sourceLower = toLower(source);
 
-	for (const auto& [key, value] : KNOWN_ENTITY_MAP)
+	for (const auto& [key, value] : _knownEntities)
 	{
 		if (sourceLower == key)
 			return value;
@@ -266,10 +360,12 @@ void MapConversionDialog::populate(const std::set<std::string>& sourceTextures,
 	{
 		wxutil::TreeModel::Row row = _entStore->AddItem();
 		std::string match = findEntityMatch(ent);
+		bool isWorldspawn = (toLower(ent) == "worldspawn");
 
 		row[_entColumns.sourceEntity] = ent;
 		row[_entColumns.targetEntity] = match;
 		row[_entColumns.matchType] = match.empty() ? std::string("") : std::string("Known");
+		row[_entColumns.skipImport] = match.empty() && !isWorldspawn;
 
 		row.SendItemAdded();
 	}
@@ -446,6 +542,14 @@ void MapConversionDialog::onOK(wxCommandEvent& ev)
 	{
 		std::string source = row[_entColumns.sourceEntity];
 		std::string target = row[_entColumns.targetEntity];
+		bool skip = row[_entColumns.skipImport].getBool();
+
+		if (skip && toLower(source) != "worldspawn")
+		{
+			_result.entitiesToSkip.insert(source);
+			return;
+		}
+
 		if (!target.empty() && source != target)
 		{
 			_result.entityMappings[source] = target;

@@ -16,6 +16,7 @@
 #include "messages/ApplicationShutdownRequest.h"
 
 #include <map>
+#include <set>
 #include <sigc++/signal.h>
 #include "time/StopWatch.h"
 #include "scene/merge/MergeOperation.h"
@@ -300,9 +301,10 @@ private:
     void assignRenderSystem(const scene::IMapRootNodePtr& root);
 
     std::map<std::string, std::string> _pendingEntityMappings;
+    std::set<std::string> _pendingEntitiesToSkip;
 
     void offerMapConversion(const std::string& formatName, const std::string& mapPath);
-    void applyEntityMappings();
+    void applyEntityMappingsTo(const scene::IMapRootNodePtr& root);
 };
 
 } // namespace map

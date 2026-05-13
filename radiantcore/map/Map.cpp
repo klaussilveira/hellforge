@@ -194,7 +194,7 @@ void Map::loadMapResourceFromLocation(const MapLocation& location)
 
     ConversionMap::clear();
 
-    applyEntityMappings();
+    applyEntityMappingsTo(_resource->getRootNode());
 
     connectToRootNode();
 
@@ -243,6 +243,9 @@ void Map::assignRenderSystem(const scene::IMapRootNodePtr& root)
 
 void Map::offerMapConversion(const std::string& formatName, const std::string& mapPath)
 {
+    _pendingEntityMappings.clear();
+    _pendingEntitiesToSkip.clear();
+
     static const std::set<std::string> externalFormats = {
         "Quake 1", "Quake 2", "Valve 220", "Valve VMF"
     };
@@ -336,36 +339,72 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
     {
         ConversionMap::set(request.getResult().textureMappings);
         _pendingEntityMappings = request.getResult().entityMappings;
+        _pendingEntitiesToSkip = request.getResult().entitiesToSkip;
     }
 }
 
-void Map::applyEntityMappings()
+void Map::applyEntityMappingsTo(const scene::IMapRootNodePtr& root)
 {
-    if (_pendingEntityMappings.empty()) return;
+    if (_pendingEntityMappings.empty() && _pendingEntitiesToSkip.empty()) return;
 
-    auto root = _resource->getRootNode();
-    if (!root) return;
-
-    root->foreachNode([this](const scene::INodePtr& node) -> bool
+    if (!root)
     {
-        Entity* entity = node->tryGetEntity();
-        if (entity)
+        _pendingEntityMappings.clear();
+        _pendingEntitiesToSkip.clear();
+        return;
+    }
+
+    if (!_pendingEntitiesToSkip.empty())
+    {
+        std::vector<scene::INodePtr> toRemove;
+
+        root->foreachNode([this, &toRemove](const scene::INodePtr& node) -> bool
         {
-            std::string classname = entity->getKeyValue("classname");
-            auto it = _pendingEntityMappings.find(classname);
-            if (it != _pendingEntityMappings.end())
+            Entity* entity = node->tryGetEntity();
+            if (entity && !entity->isWorldspawn())
             {
-                entity->setKeyValue("classname", it->second);
+                std::string classname = entity->getKeyValue("classname");
+                if (_pendingEntitiesToSkip.find(classname) != _pendingEntitiesToSkip.end())
+                {
+                    toRemove.push_back(node);
+                }
             }
+            return true;
+        });
+
+        for (const auto& node : toRemove)
+        {
+            scene::removeNodeFromParent(node);
         }
 
-        return true;
-    });
+        rMessage() << "Skipped " << toRemove.size()
+                   << " entities during import." << std::endl;
+    }
 
-    rMessage() << "Applied " << _pendingEntityMappings.size()
-               << " entity mappings." << std::endl;
+    if (!_pendingEntityMappings.empty())
+    {
+        root->foreachNode([this](const scene::INodePtr& node) -> bool
+        {
+            Entity* entity = node->tryGetEntity();
+            if (entity)
+            {
+                std::string classname = entity->getKeyValue("classname");
+                auto it = _pendingEntityMappings.find(classname);
+                if (it != _pendingEntityMappings.end())
+                {
+                    entity->setKeyValue("classname", it->second);
+                }
+            }
+
+            return true;
+        });
+
+        rMessage() << "Applied " << _pendingEntityMappings.size()
+                   << " entity mappings." << std::endl;
+    }
 
     _pendingEntityMappings.clear();
+    _pendingEntitiesToSkip.clear();
 }
 
 void Map::finishMergeOperation()
@@ -849,6 +888,11 @@ bool Map::import(const std::string& filename, const MapFormatPtr& format)
 {
     bool success = false;
 
+	if (format)
+	{
+		offerMapConversion(format->getMapFormatName(), filename);
+	}
+
     IMapResourcePtr resource = GlobalMapResourceManager().createFromPath(filename);
 
 	if (format)
@@ -864,6 +908,8 @@ bool Map::import(const std::string& filename, const MapFormatPtr& format)
             // is not the NULL node
             const auto& otherRoot = resource->getRootNode();
 
+            applyEntityMappingsTo(otherRoot);
+
             // Adjust all new names to fit into the existing map namespace
             algorithm::prepareNamesForImport(getRoot(), otherRoot);
 
@@ -877,6 +923,8 @@ bool Map::import(const std::string& filename, const MapFormatPtr& format)
     {
         radiant::NotificationMessage::SendError(ex.what());
     }
+
+    ConversionMap::clear();
 
     return success;
 }

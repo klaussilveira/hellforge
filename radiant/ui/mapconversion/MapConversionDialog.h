@@ -18,6 +18,7 @@ public:
 	{
 		std::map<std::string, std::string> textureMappings;
 		std::map<std::string, std::string> entityMappings;
+		std::set<std::string> entitiesToSkip;
 	};
 
 	static MappingResult RunDialog(wxWindow* parent,
@@ -44,11 +45,13 @@ private:
 		wxutil::TreeModel::Column sourceEntity;
 		wxutil::TreeModel::Column targetEntity;
 		wxutil::TreeModel::Column matchType;
+		wxutil::TreeModel::Column skipImport;
 
 		EntityColumns() :
 			sourceEntity(add(wxutil::TreeModel::Column::String)),
 			targetEntity(add(wxutil::TreeModel::Column::String)),
-			matchType(add(wxutil::TreeModel::Column::String))
+			matchType(add(wxutil::TreeModel::Column::String)),
+			skipImport(add(wxutil::TreeModel::Column::Boolean))
 		{}
 	};
 
@@ -60,9 +63,14 @@ private:
 	wxutil::TreeModel* _entStore;
 	wxutil::TreeView* _entView;
 
+	std::map<std::string, std::string> _knownTextures;
+	std::map<std::string, std::string> _knownEntities;
+
 	MappingResult _result;
 
 	MapConversionDialog(wxWindow* parent, const std::string& formatName);
+
+	void buildKnownMaps();
 
 	void populate(const std::set<std::string>& sourceTextures,
 				  const std::set<std::string>& sourceEntities);
