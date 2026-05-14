@@ -124,7 +124,7 @@
       </texTool>
     </textures>
     <grid>
-      <defaultGridPower value="3" />
+      <defaultGridPower value="7" />
     </grid>
     <mainFrame>
       <windowLayout value="1" />

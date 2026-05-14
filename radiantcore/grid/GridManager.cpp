@@ -25,7 +25,7 @@ namespace
 }
 
 GridManager::GridManager() :
-	_activeGridSize(GRID_8)
+	_activeGridSize(GRID_16)
 {}
 
 std::string GridManager::getName() const
@@ -81,7 +81,7 @@ void GridManager::loadDefaultValue()
 	}
 	else
 	{
-		_activeGridSize = GRID_8;
+		_activeGridSize = GRID_16;
 	}
 }
 
