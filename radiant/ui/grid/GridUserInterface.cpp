@@ -17,6 +17,11 @@ namespace
 {
     inline std::string getGridStatusText()
     {
+        GridSize active = GlobalGrid().getActiveGridSize();
+        if (grid::isMetric(active))
+        {
+            return grid::getStringForSize(active);
+        }
         return fmt::format("{0:g}", GlobalGrid().getGridSize());
     }
 }
@@ -53,7 +58,7 @@ void GridUserInterface::initialiseModule(const IApplicationContext& ctx)
 	);
 
 	// Add a Toggle element for each grid size, such that the Menu items can bind to it
-	for (int size = GRID_0125; size <= GRID_256; size++)
+	for (int size = GRID_0125; size <= GRID_M_8; size++)
 	{
 		GridSize gridSize = static_cast<GridSize>(size);
 
@@ -63,7 +68,7 @@ void GridUserInterface::initialiseModule(const IApplicationContext& ctx)
 
 		_toggleItemNames.emplace(gridSize, toggleName);
 
-		GlobalEventManager().setToggled(toggleName, GlobalGrid().getGridPower() == size);
+		GlobalEventManager().setToggled(toggleName, GlobalGrid().getActiveGridSize() == gridSize);
 	}
 }
 
@@ -76,7 +81,7 @@ void GridUserInterface::onGridChanged()
 {
 	for (const auto& item : _toggleItemNames)
 	{
-		GlobalEventManager().setToggled(item.second, GlobalGrid().getGridPower() == item.first);
+		GlobalEventManager().setToggled(item.second, GlobalGrid().getActiveGridSize() == item.first);
 	}
 
 	GlobalStatusBarManager().setText("GridStatus", getGridStatusText());

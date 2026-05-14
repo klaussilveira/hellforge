@@ -628,10 +628,13 @@ Vector4 OrthoView::getWindowCoordinates()
 
 void OrthoView::drawGrid()
 {
-    double step, minor_step, stepx, stepy;
-    step = minor_step = stepx = stepy = GlobalGrid().getGridSize();
+    const double baseStep = GlobalGrid().getGridSize();
+    const int basePower = GlobalGrid().getGridPower();
 
-    int minor_power = GlobalGrid().getGridPower();
+    double step, minor_step, stepx, stepy;
+    step = minor_step = stepx = stepy = baseStep;
+
+    int minor_power = basePower;
 
     while (minor_step * _scale <= 4.0f) // make sure minor grid spacing is at least 4 pixels on the screen
     {
@@ -644,7 +647,7 @@ void OrthoView::drawGrid()
     while (power % 3 != 0 || step * _scale <= 32.0f) // make sure major grid spacing is at least 32 pixels on the screen
     {
         ++power;
-        step = double(two_to_the_power(power));
+        step = baseStep * double(two_to_the_power(power - basePower));
     }
 
     int mask = (1 << (power - minor_power)) - 1;
@@ -835,24 +838,44 @@ void OrthoView::drawGrid()
     // draw coordinate text if needed
     if (GlobalXYWnd().showCoordinates())
     {
-        char text[32];
+        char text[64];
 
         glColor3dv(GlobalColourSchemeManager().getColour("grid_text").data());
 
         double offx = _origin[nDim2] + h - 12 / _scale;
         double offy = _origin[nDim1] - w + 1 / _scale;
 
+        const auto coordMode = static_cast<grid::CoordLabelMode>(
+            registry::getValue<int>(grid::RKEY_COORD_LABEL_MODE));
+
+        auto formatCoord = [coordMode](char* buf, std::size_t bufSize, double v)
+        {
+            switch (coordMode)
+            {
+            case grid::CoordLabelMode::Metric:
+                snprintf(buf, bufSize, "%gm", v / grid::UNITS_PER_METER);
+                break;
+            case grid::CoordLabelMode::Both:
+                snprintf(buf, bufSize, "%g (%gm)", v, v / grid::UNITS_PER_METER);
+                break;
+            case grid::CoordLabelMode::Units:
+            default:
+                snprintf(buf, bufSize, "%g", v);
+                break;
+            }
+        };
+
         for (double x = xb - fmod(xb, stepx); x <= xe ; x += stepx)
         {
             glRasterPos2d (x, offx);
-            sprintf(text, "%g", x);
+            formatCoord(text, sizeof(text), x);
             _font->drawString(text);
         }
 
         for (double y = yb - fmod(yb, stepy); y <= ye ; y += stepy)
         {
             glRasterPos2f (offy, y);
-            sprintf (text, "%g", y);
+            formatCoord(text, sizeof(text), y);
             _font->drawString(text);
         }
 

@@ -72,10 +72,10 @@ void GridManager::loadDefaultValue()
 	// Get the registry value
 	int registryValue = registry::getValue<int>(RKEY_DEFAULT_GRID_SIZE);
 
-	// Map the [0..N] values to [GRID_0125...GRID_256]
+	// Map the [0..N] values to [GRID_0125...GRID_M_8]
 	int mapped = registryValue + static_cast<int>(GRID_0125);
 
-	if (mapped >= GRID_0125 && mapped <= GRID_256)
+	if (mapped >= GRID_0125 && mapped <= GRID_M_8)
 	{
 		_activeGridSize = static_cast<GridSize>(mapped);
 	}
@@ -88,7 +88,7 @@ void GridManager::loadDefaultValue()
 void GridManager::populateGridItems()
 {
 	// Populate the GridItem map
-	for (int size = GRID_0125; size <= GRID_256; size++)
+	for (int size = GRID_0125; size <= GRID_M_8; size++)
 	{
 		_gridItems.emplace_back(
 			grid::getStringForSize(static_cast<GridSize>(size)),
@@ -140,6 +140,12 @@ void GridManager::constructPreferences()
 
 	page.appendCombo(_("Major Grid Style"), RKEY_GRID_LOOK_MAJOR, looks);
 	page.appendCombo(_("Minor Grid Style"), RKEY_GRID_LOOK_MINOR, looks);
+
+	ComboBoxValueList coordModes;
+	coordModes.push_back(_("Units"));
+	coordModes.push_back(_("Metric"));
+	coordModes.push_back(_("Units and Metric"));
+	page.appendCombo(_("Coordinate Labels"), grid::RKEY_COORD_LABEL_MODE, coordModes);
 }
 
 
@@ -190,7 +196,8 @@ void GridManager::gridDownCmd(const cmd::ArgumentList& args)
 
 void GridManager::gridDown()
 {
-	if (_activeGridSize > GRID_0125)
+	GridSize lowerBound = grid::isMetric(_activeGridSize) ? GRID_M_0125 : GRID_0125;
+	if (_activeGridSize > lowerBound)
 	{
 		int _activeGridIndex = static_cast<int>(_activeGridSize);
 		_activeGridIndex--;
@@ -205,7 +212,8 @@ void GridManager::gridUpCmd(const cmd::ArgumentList& args)
 
 void GridManager::gridUp()
 {
-	if (_activeGridSize < GRID_256)
+	GridSize upperBound = grid::isMetric(_activeGridSize) ? GRID_M_8 : GRID_256;
+	if (_activeGridSize < upperBound)
 	{
 		int _activeGridIndex = static_cast<int>(_activeGridSize);
 		_activeGridIndex++;
@@ -222,14 +230,25 @@ void GridManager::setGridSize(GridSize gridSize)
     }
 }
 
+GridSize GridManager::getActiveGridSize() const
+{
+	return _activeGridSize;
+}
+
 float GridManager::getGridSize(grid::Space space) const
 {
+	if (space == grid::Space::World)
+	{
+		return grid::getStepForSize(_activeGridSize);
+	}
 	return pow(2.0f, static_cast<float>(getGridPower(space)));
 }
 
 int GridManager::getGridPower(grid::Space space) const
 {
-    int power = static_cast<int>(_activeGridSize);
+    int power = grid::isMetric(_activeGridSize)
+        ? static_cast<int>(_activeGridSize) - static_cast<int>(GRID_M_0125)
+        : static_cast<int>(_activeGridSize);
 
     // Texture space is using smaller grid sizes, since it doesn't make much
     // sense to have grid spacing greater than 1.0

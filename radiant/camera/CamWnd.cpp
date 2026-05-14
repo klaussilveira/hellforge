@@ -738,15 +738,16 @@ void CamWnd::drawGrid()
     };
 
     // Pre-compute all grid line vertices and colors into arrays
-    const int numSteps = static_cast<int>(2.0 * GRID_MAX_DIM / step) + 2;
+    const int halfSteps = static_cast<int>(GRID_MAX_DIM / step);
+    const int numSteps = 2 * halfSteps + 1;
     std::vector<GLfloat> gridVertices;
     std::vector<GLfloat> gridColors;
     gridVertices.reserve(numSteps * 2 * 2 * 3);
     gridColors.reserve(numSteps * 2 * 2 * 4);
 
-    for (double x = -GRID_MAX_DIM; x <= GRID_MAX_DIM + 1e-6; x += step)
+    for (int idx = -halfSteps; idx <= halfSteps; ++idx)
     {
-        const int idx = static_cast<int>(std::llround(x / step));
+        const double x = idx * step;
         const bool isMajor = (idx % majorEvery) == 0;
         const float a = alphaFor(std::abs(x));
         const float xf = static_cast<float>(x);

@@ -708,7 +708,7 @@ void TileMapDialog::Show(const cmd::ArgumentList& args)
         default: thicknessGrid = GRID_16; break;
         }
 
-        GridSize savedGrid = static_cast<GridSize>(GlobalGrid().getGridPower());
+        GridSize savedGrid = GlobalGrid().getActiveGridSize();
         GlobalGrid().setGridSize(thicknessGrid);
 
         switch (roomStyle)

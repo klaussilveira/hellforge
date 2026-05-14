@@ -191,6 +191,13 @@
 		<shortcut command="SetGrid64" key="7" modifiers=""/>
 		<shortcut command="SetGrid128" key="8" modifiers=""/>
 		<shortcut command="SetGrid256" key="9" modifiers=""/>
+		<shortcut command="SetGrid0.125m" key="" modifiers=""/>
+		<shortcut command="SetGrid0.25m" key="" modifiers=""/>
+		<shortcut command="SetGrid0.5m" key="" modifiers=""/>
+		<shortcut command="SetGrid1m" key="" modifiers=""/>
+		<shortcut command="SetGrid2m" key="" modifiers=""/>
+		<shortcut command="SetGrid4m" key="" modifiers=""/>
+		<shortcut command="SetGrid8m" key="" modifiers=""/>
 		<shortcut command="GroupCycleBackward" key="ISO_Left_Tab" modifiers="SHIFT"/>
 		<shortcut command="GroupCycleForward" key="Tab" modifiers=""/>
 		<shortcut command="RevertToWorldspawn" key="G" modifiers="SHIFT"/>

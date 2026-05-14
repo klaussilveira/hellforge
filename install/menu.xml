@@ -205,6 +205,14 @@
 		<menuItem name="grid64" caption="Grid64" command="SetGrid64" />
 		<menuItem name="grid128" caption="Grid128" command="SetGrid128" />
 		<menuItem name="grid256" caption="Grid256" command="SetGrid256" />
+		<menuSeparator />
+		<menuItem name="grid0.125m" caption="Grid0.125m" command="SetGrid0.125m" />
+		<menuItem name="grid0.25m" caption="Grid0.25m" command="SetGrid0.25m" />
+		<menuItem name="grid0.5m" caption="Grid0.5m" command="SetGrid0.5m" />
+		<menuItem name="grid1m" caption="Grid1m" command="SetGrid1m" />
+		<menuItem name="grid2m" caption="Grid2m" command="SetGrid2m" />
+		<menuItem name="grid4m" caption="Grid4m" command="SetGrid4m" />
+		<menuItem name="grid8m" caption="Grid8m" command="SetGrid8m" />
 	</subMenu>
 
 	<subMenu name="map" caption="M&amp;ap">

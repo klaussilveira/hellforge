@@ -22,10 +22,28 @@ enum GridSize
 	GRID_64 = 6,
 	GRID_128 = 7,
 	GRID_256 = 8,
+	GRID_M_0125 = 9,
+	GRID_M_025 = 10,
+	GRID_M_05 = 11,
+	GRID_M_1 = 12,
+	GRID_M_2 = 13,
+	GRID_M_4 = 14,
+	GRID_M_8 = 15,
 };
 
 namespace grid
 {
+
+constexpr float UNITS_PER_METER = 40.0f;
+
+constexpr const char* RKEY_COORD_LABEL_MODE = "user/ui/grid/coordLabelMode";
+
+enum class CoordLabelMode
+{
+	Units = 0,
+	Metric = 1,
+	Both = 2,
+};
 
 inline const char* getStringForSize(GridSize size)
 {
@@ -43,9 +61,49 @@ inline const char* getStringForSize(GridSize size)
 	case GRID_64:  return "64";
 	case GRID_128:  return "128";
 	case GRID_256:  return "256";
+	case GRID_M_0125: return "0.125m";
+	case GRID_M_025:  return "0.25m";
+	case GRID_M_05:   return "0.5m";
+	case GRID_M_1:    return "1m";
+	case GRID_M_2:    return "2m";
+	case GRID_M_4:    return "4m";
+	case GRID_M_8:    return "8m";
 	default:
 		throw new std::logic_error("Grid size not handled in switch!");
 	};
+}
+
+inline float getStepForSize(GridSize size)
+{
+	switch (size)
+	{
+	case GRID_0125: return 0.125f;
+	case GRID_025:  return 0.25f;
+	case GRID_05:   return 0.5f;
+	case GRID_1:    return 1.0f;
+	case GRID_2:    return 2.0f;
+	case GRID_4:    return 4.0f;
+	case GRID_8:    return 8.0f;
+	case GRID_16:   return 16.0f;
+	case GRID_32:   return 32.0f;
+	case GRID_64:   return 64.0f;
+	case GRID_128:  return 128.0f;
+	case GRID_256:  return 256.0f;
+	case GRID_M_0125: return 5.0f;
+	case GRID_M_025:  return 10.0f;
+	case GRID_M_05:   return 20.0f;
+	case GRID_M_1:    return 40.0f;
+	case GRID_M_2:    return 80.0f;
+	case GRID_M_4:    return 160.0f;
+	case GRID_M_8:    return 320.0f;
+	default:
+		throw new std::logic_error("Grid size not handled in switch!");
+	};
+}
+
+inline bool isMetric(GridSize size)
+{
+	return size >= GRID_M_0125;
 }
 
 // The space the grid is dividing. Regular map editing is using the
@@ -79,7 +137,10 @@ public:
 	virtual ~IGridManager() {}
 
 	virtual void setGridSize(GridSize gridSize) = 0;
-	
+
+    // Returns the currently active grid size enum value
+    virtual GridSize getActiveGridSize() const = 0;
+
     // Returns the grid spacing in units of the given space
     virtual float getGridSize(grid::Space = grid::Space::World) const = 0;
 

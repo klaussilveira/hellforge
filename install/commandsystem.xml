@@ -84,17 +84,24 @@
 		<bind name="HideLayer8" value="HideLayer 8" readonly="1" />
 		<bind name="HideLayer9" value="HideLayer 9" readonly="1" />
 		<!-- Grid Size Shortcuts -->
-		<bind name="SetGrid0.125" value="SetGrid -3" readonly="1" />
-		<bind name="SetGrid0.25" value="SetGrid -2" readonly="1" />
-		<bind name="SetGrid0.5" value="SetGrid -1" readonly="1" />
-		<bind name="SetGrid1" value="SetGrid 0" readonly="1" />
-		<bind name="SetGrid2" value="SetGrid 1" readonly="1" />
-		<bind name="SetGrid4" value="SetGrid 2" readonly="1" />
-		<bind name="SetGrid8" value="SetGrid 3" readonly="1" />
-		<bind name="SetGrid16" value="SetGrid 4" readonly="1" />
-		<bind name="SetGrid32" value="SetGrid 5" readonly="1" />
-		<bind name="SetGrid64" value="SetGrid 6" readonly="1" />
-		<bind name="SetGrid128" value="SetGrid 7" readonly="1" />
-		<bind name="SetGrid256" value="SetGrid 8" readonly="1" />
+		<bind name="SetGrid0.125" value="SetGrid 0.125" readonly="1" />
+		<bind name="SetGrid0.25" value="SetGrid 0.25" readonly="1" />
+		<bind name="SetGrid0.5" value="SetGrid 0.5" readonly="1" />
+		<bind name="SetGrid1" value="SetGrid 1" readonly="1" />
+		<bind name="SetGrid2" value="SetGrid 2" readonly="1" />
+		<bind name="SetGrid4" value="SetGrid 4" readonly="1" />
+		<bind name="SetGrid8" value="SetGrid 8" readonly="1" />
+		<bind name="SetGrid16" value="SetGrid 16" readonly="1" />
+		<bind name="SetGrid32" value="SetGrid 32" readonly="1" />
+		<bind name="SetGrid64" value="SetGrid 64" readonly="1" />
+		<bind name="SetGrid128" value="SetGrid 128" readonly="1" />
+		<bind name="SetGrid256" value="SetGrid 256" readonly="1" />
+		<bind name="SetGrid0.125m" value="SetGrid 0.125m" readonly="1" />
+		<bind name="SetGrid0.25m" value="SetGrid 0.25m" readonly="1" />
+		<bind name="SetGrid0.5m" value="SetGrid 0.5m" readonly="1" />
+		<bind name="SetGrid1m" value="SetGrid 1m" readonly="1" />
+		<bind name="SetGrid2m" value="SetGrid 2m" readonly="1" />
+		<bind name="SetGrid4m" value="SetGrid 4m" readonly="1" />
+		<bind name="SetGrid8m" value="SetGrid 8m" readonly="1" />
 	</binds>
 </commandsystem>

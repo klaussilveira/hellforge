@@ -46,6 +46,13 @@ TEST_F(GridTest, WorldGridSize)
     checkGridSize(GRID_64, grid::Space::World, 64.0f);
     checkGridSize(GRID_128, grid::Space::World, 128.0f);
     checkGridSize(GRID_256, grid::Space::World, 256.0f);
+    checkGridSize(GRID_M_0125, grid::Space::World, 5.0f);
+    checkGridSize(GRID_M_025, grid::Space::World, 10.0f);
+    checkGridSize(GRID_M_05, grid::Space::World, 20.0f);
+    checkGridSize(GRID_M_1, grid::Space::World, 40.0f);
+    checkGridSize(GRID_M_2, grid::Space::World, 80.0f);
+    checkGridSize(GRID_M_4, grid::Space::World, 160.0f);
+    checkGridSize(GRID_M_8, grid::Space::World, 320.0f);
 }
 
 TEST_F(GridTest, WorldGridPower)
@@ -62,6 +69,13 @@ TEST_F(GridTest, WorldGridPower)
     checkGridPower(GRID_64, grid::Space::World, 6);
     checkGridPower(GRID_128, grid::Space::World, 7);
     checkGridPower(GRID_256, grid::Space::World, 8);
+    checkGridPower(GRID_M_0125, grid::Space::World, 0);
+    checkGridPower(GRID_M_025, grid::Space::World, 1);
+    checkGridPower(GRID_M_05, grid::Space::World, 2);
+    checkGridPower(GRID_M_1, grid::Space::World, 3);
+    checkGridPower(GRID_M_2, grid::Space::World, 4);
+    checkGridPower(GRID_M_4, grid::Space::World, 5);
+    checkGridPower(GRID_M_8, grid::Space::World, 6);
 }
 
 TEST_F(GridTest, TextureGridSize)
@@ -94,6 +108,42 @@ TEST_F(GridTest, TextureGridPower)
     checkGridPower(GRID_64, grid::Space::Texture, -1);
     checkGridPower(GRID_128, grid::Space::Texture, 0); // upper bound
     checkGridPower(GRID_256, grid::Space::Texture, 0);
+}
+
+TEST_F(GridTest, GridUpDownStaysInImperialLadder)
+{
+    GlobalGrid().setGridSize(GRID_256);
+    GlobalGrid().gridUp();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_256) << "gridUp must clamp at GRID_256, not cross into metric";
+
+    GlobalGrid().setGridSize(GRID_0125);
+    GlobalGrid().gridDown();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_0125) << "gridDown must clamp at GRID_0125";
+
+    GlobalGrid().setGridSize(GRID_16);
+    GlobalGrid().gridUp();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_32);
+    GlobalGrid().gridDown();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_16);
+}
+
+TEST_F(GridTest, GridUpDownStaysInMetricLadder)
+{
+    GlobalGrid().setGridSize(GRID_M_8);
+    GlobalGrid().gridUp();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_8) << "gridUp must clamp at GRID_M_8, not wrap";
+
+    GlobalGrid().setGridSize(GRID_M_0125);
+    GlobalGrid().gridDown();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_0125) << "gridDown must clamp at GRID_M_0125, not cross into imperial";
+
+    GlobalGrid().setGridSize(GRID_M_1);
+    GlobalGrid().gridUp();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_2);
+    EXPECT_EQ(GlobalGrid().getGridSize(), 80.0f);
+    GlobalGrid().gridDown();
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_1);
+    EXPECT_EQ(GlobalGrid().getGridSize(), 40.0f);
 }
 
 TEST_F(GridTest, ChangedSignal)
@@ -139,6 +189,10 @@ TEST_F(GridTest, SetGridSizeByCmd)
     checkGridSizeByCmd(grid::getStringForSize(GRID_64), grid::Space::World, 64.0f);
     checkGridSizeByCmd(grid::getStringForSize(GRID_128), grid::Space::World, 128.0f);
     checkGridSizeByCmd(grid::getStringForSize(GRID_256), grid::Space::World, 256.0f);
+    checkGridSizeByCmd(grid::getStringForSize(GRID_M_0125), grid::Space::World, 5.0f);
+    checkGridSizeByCmd(grid::getStringForSize(GRID_M_1), grid::Space::World, 40.0f);
+    checkGridSizeByCmd(grid::getStringForSize(GRID_M_4), grid::Space::World, 160.0f);
+    checkGridSizeByCmd(grid::getStringForSize(GRID_M_8), grid::Space::World, 320.0f);
 }
 
 TEST_F(GridTest, GridSnapMessageIsSent)
