@@ -31,7 +31,58 @@ namespace ui
             return view != nullptr ? view : dynamic_cast<wxutil::TreeView*>(window->GetParent());
         }
 
-        // Checks if the key event refers to a well-knnown shortcut that 
+        wxWindow* findSpinCtrlAncestor(wxWindow* w)
+        {
+            for (; w; w = w->GetParent())
+            {
+                if (wxDynamicCast(w, wxSpinCtrl) || wxDynamicCast(w, wxSpinCtrlDouble))
+                    return w;
+            }
+            return nullptr;
+        }
+
+        bool navigateToSibling(wxWindow* current, bool backward)
+        {
+            wxWindow* parent = current->GetParent();
+            if (!parent) return false;
+
+            auto& children = parent->GetChildren();
+            auto it = std::find(children.begin(), children.end(), current);
+            if (it == children.end()) return false;
+
+            auto canFocus = [](wxWindow* w) {
+                return w && w->IsShown() && w->IsEnabled() && w->CanAcceptFocus();
+            };
+
+            wxWindow* next = nullptr;
+            if (backward)
+            {
+                if (it != children.begin())
+                {
+                    for (auto i = std::prev(it); ; --i)
+                    {
+                        if (canFocus(*i)) { next = *i; break; }
+                        if (i == children.begin()) break;
+                    }
+                }
+            }
+            else
+            {
+                for (auto i = std::next(it); i != children.end(); ++i)
+                {
+                    if (canFocus(*i)) { next = *i; break; }
+                }
+            }
+
+            if (next)
+            {
+                next->SetFocus();
+                return true;
+            }
+            return false;
+        }
+
+        // Checks if the key event refers to a well-knnown shortcut that
         // needs to be propagated to input controls. Returns false if the shortcut should be propagated.
         bool FilterInTextControls(wxKeyEvent& keyEvent)
         {
@@ -108,6 +159,16 @@ GlobalKeyEventFilter::EventCheckResult GlobalKeyEventFilter::checkEvent(wxKeyEve
     wxWindow* window = dynamic_cast<wxWindow*>(keyEvent.GetEventObject());
 
     if (!window) return EventShouldBeIgnored;
+
+    if (keyEvent.GetEventType() == wxEVT_KEY_DOWN &&
+        normalizeGtkKeyCode(keyEvent.GetKeyCode()) == WXK_TAB)
+    {
+        if (wxWindow* spinCtrl = findSpinCtrlAncestor(window))
+        {
+            navigateToSibling(spinCtrl, keyEvent.ShiftDown());
+            return EventAlreadyProcessed;
+        }
+    }
 
     if (window->GetEventHandler()->ProcessEvent(keyEvent))
     {

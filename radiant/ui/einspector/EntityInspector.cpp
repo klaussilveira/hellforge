@@ -63,6 +63,19 @@ namespace
     const std::string RKEY_PANE_STATE = RKEY_ROOT + "pane";
     const std::string RKEY_SHOW_HELP_AREA = RKEY_ROOT + "showHelpArea";
     const std::string RKEY_SHOW_INHERITED_PROPERTIES = RKEY_ROOT + "showInheritedProperties";
+
+    wxWindow* findFirstFocusableDescendant(wxWindow* parent)
+    {
+        if (!parent) return nullptr;
+        for (auto* child : parent->GetChildren())
+        {
+            if (child->IsShown() && child->IsEnabled() && child->CanAcceptFocus())
+                return child;
+            if (auto* deep = findFirstFocusableDescendant(child))
+                return deep;
+        }
+        return nullptr;
+    }
 }
 
 EntityInspector::EntityInspector(wxWindow* parent) :
@@ -607,6 +620,19 @@ wxWindow* EntityInspector::createTreeViewPane(wxWindow* parent)
     // is directly changed by the wxWidgets event handlers. On model value change, this event is fired afterwards
     _keyValueTreeView->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED,
                             &EntityInspector::_onDataViewItemChanged, this);
+
+    _keyValueTreeView->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& ev)
+    {
+        if (ev.GetKeyCode() == WXK_TAB && !ev.ShiftDown() && !ev.ControlDown() && !ev.AltDown())
+        {
+            if (auto* first = findFirstFocusableDescendant(_editorFrame))
+            {
+                first->SetFocus();
+                return;
+            }
+        }
+        ev.Skip();
+    });
 
     wxBoxSizer* buttonHbox = new wxBoxSizer(wxHORIZONTAL);
 
