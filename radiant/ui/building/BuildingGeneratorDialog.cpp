@@ -9,6 +9,7 @@
 #include "ishaderclipboard.h"
 #include "iundo.h"
 
+#include "gamelib.h"
 #include "string/convert.h"
 #include "selectionlib.h"
 #include "scenelib.h"
@@ -47,6 +48,12 @@ Vector3 getSpawnPosition()
     }
     catch (const std::runtime_error&) {}
     return Vector3(0, 0, 0);
+}
+
+template<typename T>
+T gameDefault(const std::string& key, T fallback)
+{
+    return game::current::getValue<T>("/generators/building/" + key, fallback);
 }
 
 } // anonymous namespace
@@ -100,6 +107,31 @@ BuildingGeneratorDialog::BuildingGeneratorDialog(bool hasBrushSelection, double 
     std::string shader = getSelectedShader();
     findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWallMaterial")->SetValue(shader);
     findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorTrimMaterial")->SetValue(shader);
+
+    auto setText = [&](const std::string& widget, const std::string& key) {
+        auto* ctrl = findNamedObject<wxTextCtrl>(_dialog, widget);
+        double xrcDefault = string::convert<double>(ctrl->GetValue().ToStdString(), 0.0);
+        ctrl->SetValue(string::to_string(static_cast<int>(gameDefault<double>(key, xrcDefault))));
+    };
+
+    if (!_hasBrushSelection)
+    {
+        setText("BuildingGeneratorWidth", "width");
+        setText("BuildingGeneratorDepth", "depth");
+        setText("BuildingGeneratorHeight", "height");
+    }
+
+    setText("BuildingGeneratorWallThickness", "wallThickness");
+    setText("BuildingGeneratorTrimHeight", "trimHeight");
+    setText("BuildingGeneratorWindowWidth", "windowWidth");
+    setText("BuildingGeneratorWindowHeight", "windowHeight");
+    setText("BuildingGeneratorSillHeight", "sillHeight");
+    setText("BuildingGeneratorCornerExtrude", "cornerExtrude");
+    setText("BuildingGeneratorRoofHeight", "roofHeight");
+    setText("BuildingGeneratorRoofBorderHeight", "roofBorderHeight");
+
+    auto* floorCountCtrl = findNamedObject<wxSpinCtrl>(_dialog, "BuildingGeneratorFloorCount");
+    floorCountCtrl->SetValue(gameDefault<int>("floorCount", floorCountCtrl->GetValue()));
 
     int fh = static_cast<int>(defaultFloorHeight);
     findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorFloorHeight")
@@ -303,10 +335,14 @@ void BuildingGeneratorDialog::Show(const cmd::ArgumentList& args)
         }
     }
 
+    double cfgHeight = gameDefault<double>("height", 384.0);
+    int cfgFloors = std::max(1, gameDefault<int>("floorCount", 3));
     double totalHeight = hasBrush
         ? (brushBounds.getExtents().z() * 2.0)
-        : 384.0;
-    double defaultFloorHeight = totalHeight / 3.0;
+        : cfgHeight;
+    double defaultFloorHeight = hasBrush
+        ? (totalHeight / cfgFloors)
+        : gameDefault<double>("floorHeight", totalHeight / cfgFloors);
 
     BuildingGeneratorDialog dialog(hasBrush, defaultFloorHeight);
 
@@ -335,6 +371,8 @@ void BuildingGeneratorDialog::Show(const cmd::ArgumentList& args)
     params.roofType = dialog.getRoofType();
     params.roofHeight = dialog.getRoofHeight();
     params.roofBorderHeight = dialog.getRoofBorderHeight();
+    params.doorWidth = gameDefault<double>("doorWidth", params.doorWidth);
+    params.doorHeight = gameDefault<double>("doorHeight", params.doorHeight);
     params.wallMaterial = dialog.getWallMaterial();
     params.trimMaterial = dialog.getTrimMaterial();
 

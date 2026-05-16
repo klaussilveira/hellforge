@@ -3,6 +3,7 @@
 #include "ibrush.h"
 #include "ipatch.h"
 #include "scenelib.h"
+#include "gamelib.h"
 #include "math/Plane3.h"
 #include "math/Matrix3.h"
 #include "math/Vector3.h"
@@ -15,6 +16,11 @@
 
 namespace tilemap
 {
+
+inline double getTextureScale()
+{
+    return game::current::getValue<double>("/generators/texScale", 1.0 / 128.0);
+}
 
 enum class TileType : uint8_t
 {
@@ -100,7 +106,7 @@ inline scene::INodePtr createBoxBrushMultiMat(
 
     auto& brush = *Node_getIBrush(brushNode);
 
-    double texScale = 0.0078125;
+    double texScale = getTextureScale();
     Matrix3 proj = Matrix3::getIdentity();
     proj.xx() = texScale;
     proj.yy() = texScale;
@@ -216,7 +222,7 @@ inline void generateRoomBrushes(
 
         auto& brush = *Node_getIBrush(brushNode);
 
-        double texScale = 0.0078125;
+        double texScale = getTextureScale();
         Matrix3 proj = Matrix3::getIdentity();
         proj.xx() = texScale;
         proj.yy() = texScale;

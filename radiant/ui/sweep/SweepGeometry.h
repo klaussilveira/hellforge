@@ -2,6 +2,7 @@
 
 #include "ibrush.h"
 #include "scenelib.h"
+#include "gamelib.h"
 #include "math/AABB.h"
 #include "math/Plane3.h"
 #include "math/Matrix3.h"
@@ -16,6 +17,11 @@
 
 namespace sweep
 {
+
+inline double getTextureScale()
+{
+    return game::current::getValue<double>("/generators/texScale", 1.0 / 128.0);
+}
 
 struct SweepParams
 {
@@ -229,7 +235,7 @@ inline void sweepBrushesAlongPath(
     Vector3 srcOrigin = sourceBounds.getOrigin();
     double sweepMid = sweepCoord(srcOrigin, sweepAxis);
 
-    double texScale = 0.0078125;
+    double texScale = getTextureScale();
     Matrix3 defaultProj = Matrix3::getIdentity();
     defaultProj.xx() = texScale;
     defaultProj.yy() = texScale;

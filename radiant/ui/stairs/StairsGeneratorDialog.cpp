@@ -9,6 +9,7 @@
 #include "ishaderclipboard.h"
 #include "iundo.h"
 
+#include "gamelib.h"
 #include "string/convert.h"
 #include "selectionlib.h"
 #include "scenelib.h"
@@ -85,6 +86,23 @@ StairsGeneratorDialog::StairsGeneratorDialog()
 
     findNamedObject<wxTextCtrl>(_dialog, "StairsGeneratorMaterial")
         ->SetValue(getSelectedShader());
+
+    auto applyStairsDefault = [&](const std::string& widget, const std::string& key) {
+        auto* ctrl = findNamedObject<wxTextCtrl>(_dialog, widget);
+        double xrcDefault = string::convert<double>(ctrl->GetValue().ToStdString(), 0.0);
+        double v = game::current::getValue<double>("/generators/stairs/" + key, xrcDefault);
+        ctrl->SetValue(string::to_string(static_cast<int>(v)));
+    };
+    applyStairsDefault("StairsGeneratorStepHeight", "stepHeight");
+    applyStairsDefault("StairsGeneratorStepDepth", "stepDepth");
+    applyStairsDefault("StairsGeneratorWidth", "width");
+    applyStairsDefault("StairsGeneratorLandingDepth", "landingDepth");
+    applyStairsDefault("StairsGeneratorInnerRadius", "innerRadius");
+    applyStairsDefault("StairsGeneratorOuterRadius", "outerRadius");
+
+    auto* stepCountCtrl = findNamedObject<wxSpinCtrl>(_dialog, "StairsGeneratorStepCount");
+    stepCountCtrl->SetValue(
+        game::current::getValue<int>("/generators/stairs/stepCount", stepCountCtrl->GetValue()));
 
     updateControlVisibility();
 }

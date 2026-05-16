@@ -2,6 +2,7 @@
 
 #include "ibrush.h"
 #include "scenelib.h"
+#include "gamelib.h"
 #include "math/Plane3.h"
 #include "math/Matrix3.h"
 #include "math/Vector3.h"
@@ -14,6 +15,11 @@
 
 namespace building
 {
+
+inline double getTextureScale()
+{
+    return game::current::getValue<double>("/generators/texScale", 1.0 / 128.0);
+}
 
 struct BuildingParams
 {
@@ -50,7 +56,7 @@ inline scene::INodePtr createBoxBrush(
 
     auto& brush = *Node_getIBrush(brushNode);
 
-    double texScale = 0.0078125;
+    double texScale = getTextureScale();
     Matrix3 proj = Matrix3::getIdentity();
     proj.xx() = texScale;
     proj.yy() = texScale;
@@ -330,7 +336,7 @@ inline void generateBuilding(
     }
 
     double roofBaseZ = topZ + params.trimHeight;
-    double texScale = 0.0078125;
+    double texScale = getTextureScale();
     Matrix3 proj = Matrix3::getIdentity();
     proj.xx() = texScale;
     proj.yy() = texScale;
@@ -594,7 +600,10 @@ inline void generateBuilding(const MaskedFootprint& fp,
     int x0, y0, x1, y1;
     bool isRect = maskIsSingleRect(fp.mask, fp.cols, fp.rows, x0, y0, x1, y1);
 
-    double floorHeight = paramsIn.floorHeight > 0 ? paramsIn.floorHeight : 128.0;
+    if (paramsIn.floorHeight <= 0 || paramsIn.floorCount <= 0)
+        return;
+
+    double floorHeight = paramsIn.floorHeight;
     double totalHeight = paramsIn.floorCount * floorHeight;
 
     bool hasOcclusion = !fp.occlusion.empty();

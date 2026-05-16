@@ -2,6 +2,7 @@
 
 #include "ibrush.h"
 #include "scenelib.h"
+#include "gamelib.h"
 #include "math/Plane3.h"
 #include "math/Matrix3.h"
 #include "math/Vector3.h"
@@ -14,6 +15,11 @@
 
 namespace stairs
 {
+
+inline double getTextureScale()
+{
+    return game::current::getValue<double>("/generators/texScale", 1.0 / 128.0);
+}
 
 const double DEG2RAD = math::PI / 180.0;
 
@@ -43,7 +49,7 @@ inline scene::INodePtr createBoxBrush(
 
     auto& brush = *Node_getIBrush(brushNode);
 
-    double texScale = 0.0078125;
+    double texScale = getTextureScale();
     Matrix3 proj = Matrix3::getIdentity();
     proj.xx() = texScale;
     proj.yy() = texScale;
@@ -68,7 +74,7 @@ inline scene::INodePtr createWedgeBrush(
 
     auto& brush = *Node_getIBrush(brushNode);
 
-    double texScale = 0.0078125;
+    double texScale = getTextureScale();
     Matrix3 proj = Matrix3::getIdentity();
     proj.xx() = texScale;
     proj.yy() = texScale;

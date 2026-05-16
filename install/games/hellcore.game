@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<game
+  type="doom3"
+  index="40"
+  name="HellCore"
+  enginepath_win32="C:/games/hellcore/"
+  enginepath_linux="/usr/local/games/hellcore/"
+  enginepath_macos="/usr/local/games/hellcore/"
+  engine_win32="HellCore.exe"
+  engine_linux="hellcore"
+  engine_macos="hellcore.app"
+  prefix=".hellcore"
+  basegame="base"
+  basegamename="HellCore"
+  unknowngamename="Custom HellCore modification"
+  archivetypes="pk4"
+  modeltypes="lwo ase md5mesh md3 obj"
+  maptypes="mapdoom3"
+  shaders="doom3"
+  entityclass="doom3"
+  entities="doom3"
+  brushtypes="doom3"
+  patchtypes="doom3 def2doom3"
+>
+	<filetypes>
+		<texture>
+			<extension>tga</extension>
+			<extension>jpg</extension>
+			<extension>png</extension>
+			<extension>dds</extension>
+		</texture>
+	</filetypes>
+
+	<filtersystem>
+		<filter name="World geometry">
+			<filterCriterion type="entityclass" match="worldspawn" action="hide" />
+		</filter>
+		<filter name="Caulk">
+			<filterCriterion type="texture" match="textures/common/caulk" action="hide" />
+		</filter>
+		<filter name="Collision surfaces">
+			<filterCriterion type="texture" match="textures/common/collision" action="hide" />
+		</filter>
+		<filter name="Lights">
+			<filterCriterion type="entityclass" match="light" action="hide" />
+			<filterCriterion type="entityclass" match="light_.*" action="hide" />
+		</filter>
+		<filter name="Func_static Entities">
+			<filterCriterion type="entityclass" match="func_static" action="hide" />
+		</filter>
+		<filter name="All entities">
+			<filterCriterion type="entityclass" match=".*" action="hide" />
+			<filterCriterion type="entityclass" match="worldspawn" action="show" />
+		</filter>
+		<filter name="Visportals">
+			<filterCriterion type="texture" match="textures/editor/visportal" action="hide" />
+			<filterCriterion type="texture" match="textures/common/nodraw" action="hide" />
+		</filter>
+		<filter name="Decals">
+			<filterCriterion type="texture" match="textures(.*)decals(.*)" action="hide" />
+		</filter>
+		<filter name="Clip Textures">
+			<filterCriterion type="texture" match="textures/common/(.*)_clip$" action="hide" />
+			<filterCriterion type="texture" match="textures/common/clip(_plusmovables)*$" action="hide" />
+		</filter>
+		<filter name="Trigger Textures">
+			<filterCriterion type="texture" match="textures/common/trig(.*)" action="hide" />
+		</filter>
+		<filter name="Nodraw Textures">
+			<filterCriterion type="texture" match="textures/common/nodraw(.*)" action="hide" />
+		</filter>
+		<filter name="Patches">
+			<filterCriterion type="object" match="patch" action="hide" />
+		</filter>
+		<filter name="Brushes">
+			<filterCriterion type="object" match="brush" action="hide" />
+		</filter>
+		<filter name="Paths">
+			<filterCriterion type="entityclass" match="path_.*" action="hide" />
+		</filter>
+	</filtersystem>
+
+	<filesystem>
+		<shaders>
+			<basepath>materials</basepath>
+			<extension>mtr</extension>
+		</shaders>
+		<fonts>
+			<basepath>fonts</basepath>
+			<extension>dat</extension>
+		</fonts>
+	</filesystem>
+
+	<defaults>
+		<lightShader value="lights/defaultPointLight" />
+		<lightScale>1</lightScale>
+		<lightRadius value="320 320 320" />
+		<maxWorldCoord value="65536" />
+		<minWorldCoord value="-65536" />
+		<defaultTexture value="_default" />
+		<collisionTexture value="textures/common/collision" />
+		<monsterClipShader value="textures/common/monster_clip" />
+		<visportalShader value="textures/editor/visportal" />
+		<nodrawShader value="textures/common/nodraw" />
+		<collisionModelExt value="cm" />
+		<defaultCurveEntity value="func_splinemover" />
+		<curveNurbsKey value="curve_Nurbs" />
+		<curveCatmullRomKey value="curve_CatmullRomSpline" />
+		<bindKey value="bind" />
+		<playerHeight value="72" />
+		<speakerMinRadius value="40" />
+		<speakerMaxRadius value="80" />
+		<guiSmallFontLimit value="0.15" />
+		<guiMediumFontLimit value="0.30" />
+	</defaults>
+
+	<generators>
+		<texScale value="0.00625" />
+		<building>
+			<width value="320" />
+			<depth value="320" />
+			<height value="480" />
+			<floorCount value="3" />
+			<floorHeight value="160" />
+			<wallThickness value="20" />
+			<trimHeight value="10" />
+			<windowWidth value="40" />
+			<windowHeight value="60" />
+			<sillHeight value="40" />
+			<doorWidth value="60" />
+			<doorHeight value="100" />
+			<cornerExtrude value="0" />
+			<roofHeight value="80" />
+			<roofBorderHeight value="20" />
+		</building>
+		<cityplanner>
+			<tileWidth value="160" />
+			<tileHeight value="160" />
+			<floorThickness value="4" />
+			<wallHeight value="160" />
+		</cityplanner>
+		<tilemap>
+			<tileWidth value="160" />
+			<tileHeight value="160" />
+			<floorGap value="0" />
+			<ceilingHeight value="160" />
+		</tilemap>
+		<stairs>
+			<stepCount value="10" />
+			<stepHeight value="16" />
+			<stepDepth value="16" />
+			<width value="80" />
+			<landingDepth value="40" />
+			<innerRadius value="40" />
+			<outerRadius value="120" />
+		</stairs>
+	</generators>
+
+	<modelFormat>
+		<ase>
+			<useMaterialNameIfNoBitmapFound value="0" />
+		</ase>
+	</modelFormat>
+
+	<entityChooser>
+		<displayFolderKey value="editor_displayFolder" />
+	</entityChooser>
+
+	<entityInspector>
+		<property match="origin" category="Basic" type="vector3">The origin of this object in 3D space</property>
+		<property match="classname" category="Basic" type="classname">The classname of this entity</property>
+		<property match="name" category="Basic" type="text">The displayed name of this entity</property>
+		<property match="rotation" category="Basic" type="text" />
+		<property match="_color" category="Basic" type="colour" />
+		<property match="angle" category="Basic" type="angle">The direction this entity initially faces</property>
+		<property match="falloff" category="Light" type="text" />
+		<property match="light_radius" category="Light" type="vector3" />
+		<property match="light_rotation" category="Light" type="text" />
+		<property match="light_center" category="Light" type="vector3" />
+		<property match="light_target" category="Light" type="vector3" />
+		<property match="light_up" category="Light" type="vector3" />
+		<property match="light_right" category="Light" type="vector3" />
+		<property match="light_start" category="Light" type="vector3" />
+		<property match="light_end" category="Light" type="vector3" />
+		<property match="parallel" category="Light" type="bool" />
+		<property match="nodiffuse" category="Light" type="bool" />
+		<property match="noshadows" category="Light" type="bool" />
+		<property match="nospecular" category="Light" type="bool" />
+		<property match="texture" category="Light" type="texture" />
+		<property match="model" category="Model" type="model" />
+		<property match="skin" category="Model" type="skin" />
+		<property match="solid" category="Model" type="bool" />
+		<property match="target" category="Links" type="entity" />
+		<property match="bind" category="Links" type="entity" />
+		<property match="bindToJoint" category="Links" type="text" />
+		<property match="s_shader" category="Sound" type="sound" />
+		<property match="snd_.*" category="Sound" type="sound" hidden="1" />
+	</entityInspector>
+
+	<light>
+		<texture>
+			<prefix>lights</prefix>
+			<prefix>fogs</prefix>
+		</texture>
+	</light>
+
+	<mapFormat>
+		<floatPrecision value="16" />
+		<fileExtension value="map" />
+		<mapFolder value="maps/" />
+		<prefabFolder value="prefabs/" />
+		<compatibility>
+			<addDummyBrushes value="false" />
+		</compatibility>
+		<lastCameraPositionKey value="editor_drLastCameraPos" />
+		<lastCameraAngleKey value="editor_drLastCameraAngle" />
+		<mapPositionPosKey value="editor_drMapPos" />
+		<mapPositionAngleKey value="editor_drMapAngle" />
+		<playerStartPoint value="info_player_start" />
+		<infoFileExtension value=".darkradiant" />
+	</mapFormat>
+
+	<materialPreview>
+		<defaultRoomMaterial value="_default" />
+		<defaultLightDef value="lights/defaultPointLight" />
+	</materialPreview>
+</game>

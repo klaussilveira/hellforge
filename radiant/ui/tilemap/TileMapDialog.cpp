@@ -16,6 +16,7 @@
 #include "scene/Entity.h"
 #include "scene/EntityNode.h"
 
+#include "gamelib.h"
 #include "string/convert.h"
 #include "selectionlib.h"
 #include "scenelib.h"
@@ -248,6 +249,17 @@ TileMapDialog::TileMapDialog()
 
     auto* controlPanel = loadNamedPanel(_dialog, "TileMapControlPanel");
     mainSizer->Add(controlPanel, 0, wxEXPAND | wxALL, 6);
+
+    auto applyTilemapDefault = [&](const std::string& widget, const std::string& key) {
+        auto* ctrl = findNamedObject<wxTextCtrl>(_dialog, widget);
+        double xrcDefault = string::convert<double>(ctrl->GetValue().ToStdString(), 0.0);
+        double v = game::current::getValue<double>("/generators/tilemap/" + key, xrcDefault);
+        ctrl->SetValue(string::to_string(static_cast<int>(v)));
+    };
+    applyTilemapDefault("TileMapTileWidth", "tileWidth");
+    applyTilemapDefault("TileMapTileHeight", "tileHeight");
+    applyTilemapDefault("TileMapFloorGap", "floorGap");
+    applyTilemapDefault("TileMapCeilingHeight", "ceilingHeight");
 
     auto* rightSizer = new wxBoxSizer(wxVERTICAL);
 

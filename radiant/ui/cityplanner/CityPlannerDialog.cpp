@@ -14,6 +14,7 @@
 #include "iundo.h"
 #include "iscenegraph.h"
 
+#include "gamelib.h"
 #include "string/convert.h"
 #include "selectionlib.h"
 #include "scenelib.h"
@@ -50,6 +51,18 @@ inline std::string getDefaultShader()
     if (s.empty())
         s = texdef_name_default();
     return s;
+}
+
+template<typename T>
+T cityDefault(const std::string& key, T fallback)
+{
+    return game::current::getValue<T>("/generators/cityplanner/" + key, fallback);
+}
+
+template<typename T>
+T buildingDefault(const std::string& key, T fallback)
+{
+    return game::current::getValue<T>("/generators/building/" + key, fallback);
 }
 
 inline Vector3 getSpawnPosition()
@@ -138,6 +151,16 @@ CityPlannerDialog::CityPlannerDialog()
 
     auto* controlPanel = loadNamedPanel(_dialog, "CityPlannerControlPanel");
     mainSizer->Add(controlPanel, 0, wxEXPAND | wxALL, 6);
+
+    auto applyCityDefault = [&](const std::string& widget, const std::string& key) {
+        auto* ctrl = findNamedObject<wxTextCtrl>(_dialog, widget);
+        double xrcDefault = string::convert<double>(ctrl->GetValue().ToStdString(), 0.0);
+        ctrl->SetValue(string::to_string(static_cast<int>(cityDefault<double>(key, xrcDefault))));
+    };
+    applyCityDefault("CityPlannerTileWidth", "tileWidth");
+    applyCityDefault("CityPlannerTileHeight", "tileHeight");
+    applyCityDefault("CityPlannerFloorThickness", "floorThickness");
+    applyCityDefault("CityPlannerWallHeight", "wallHeight");
 
     _gridCols = findNamedObject<wxSpinCtrl>(_dialog, "CityPlannerGridCols");
     _gridRows = findNamedObject<wxSpinCtrl>(_dialog, "CityPlannerGridRows");
@@ -235,21 +258,25 @@ wxPanel* CityPlannerDialog::buildBuildingParamsPanel(wxWindow* parent)
         grid->Add(new wxStaticText(panel, wxID_ANY, text), 0, wxALIGN_CENTER_VERTICAL);
     };
 
+    int defFloors = buildingDefault<int>("floorCount", 3);
     addLabel("Floors:");
-    _bpFloorCount = new wxSpinCtrl(panel, wxID_ANY, "3",
-        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 64, 3);
+    _bpFloorCount = new wxSpinCtrl(panel, wxID_ANY, string::to_string(defFloors),
+        wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 64, defFloors);
     grid->Add(_bpFloorCount, 1, wxEXPAND);
 
     addLabel("Floor Height:");
-    _bpFloorHeight = new wxTextCtrl(panel, wxID_ANY, "128");
+    _bpFloorHeight = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("floorHeight", 128.0))));
     grid->Add(_bpFloorHeight, 1, wxEXPAND);
 
     addLabel("Wall Thickness:");
-    _bpWallThickness = new wxTextCtrl(panel, wxID_ANY, "8");
+    _bpWallThickness = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("wallThickness", 8.0))));
     grid->Add(_bpWallThickness, 1, wxEXPAND);
 
     addLabel("Trim Height:");
-    _bpTrimHeight = new wxTextCtrl(panel, wxID_ANY, "8");
+    _bpTrimHeight = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("trimHeight", 8.0))));
     grid->Add(_bpTrimHeight, 1, wxEXPAND);
 
     addLabel("Windows:");
@@ -266,15 +293,18 @@ wxPanel* CityPlannerDialog::buildBuildingParamsPanel(wxWindow* parent)
     grid->Add(_bpWindowsPerFloor, 1, wxEXPAND);
 
     addLabel("Window W:");
-    _bpWindowWidth = new wxTextCtrl(panel, wxID_ANY, "48");
+    _bpWindowWidth = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("windowWidth", 48.0))));
     grid->Add(_bpWindowWidth, 1, wxEXPAND);
 
     addLabel("Window H:");
-    _bpWindowHeight = new wxTextCtrl(panel, wxID_ANY, "56");
+    _bpWindowHeight = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("windowHeight", 56.0))));
     grid->Add(_bpWindowHeight, 1, wxEXPAND);
 
     addLabel("Sill H:");
-    _bpSillHeight = new wxTextCtrl(panel, wxID_ANY, "32");
+    _bpSillHeight = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("sillHeight", 32.0))));
     grid->Add(_bpSillHeight, 1, wxEXPAND);
 
     addLabel("Corner Cols:");
@@ -282,7 +312,8 @@ wxPanel* CityPlannerDialog::buildBuildingParamsPanel(wxWindow* parent)
     grid->Add(_bpCornerColumns, 1, wxEXPAND);
 
     addLabel("Col Extrude:");
-    _bpCornerExtrude = new wxTextCtrl(panel, wxID_ANY, "0");
+    _bpCornerExtrude = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("cornerExtrude", 0.0))));
     grid->Add(_bpCornerExtrude, 1, wxEXPAND);
 
     addLabel("No 1F Windows:");
@@ -303,11 +334,13 @@ wxPanel* CityPlannerDialog::buildBuildingParamsPanel(wxWindow* parent)
     grid->Add(_bpRoofType, 1, wxEXPAND);
 
     addLabel("Roof Height:");
-    _bpRoofHeight = new wxTextCtrl(panel, wxID_ANY, "64");
+    _bpRoofHeight = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("roofHeight", 64.0))));
     grid->Add(_bpRoofHeight, 1, wxEXPAND);
 
     addLabel("Border H:");
-    _bpRoofBorderHeight = new wxTextCtrl(panel, wxID_ANY, "16");
+    _bpRoofBorderHeight = new wxTextCtrl(panel, wxID_ANY,
+        string::to_string(static_cast<int>(buildingDefault<double>("roofBorderHeight", 16.0))));
     grid->Add(_bpRoofBorderHeight, 1, wxEXPAND);
 
     _bpWallMaterial = addMaterialRow(panel, grid, "Wall Mat:", defMat);
