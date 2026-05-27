@@ -32,6 +32,11 @@ public:
 	// Call this to enable/disable the private GL context of this widget
 	void SetHasPrivateContext(bool hasPrivateContext);
 
+	// wx reports window sizes in logical pixels on HiDPI displays, while
+	// OpenGL viewport/readback dimensions must use physical framebuffer pixels.
+	wxSize GetGLViewportSize() const;
+	wxSize GetGLViewportSize(const wxSize& logicalSize) const;
+
 	// Render the scene to the back buffer and save as PNG.
 	// Must be called on the main thread. Returns true on success.
 	bool captureToFile(const std::string& filename, int maxWidth = 0);
@@ -45,4 +50,3 @@ private:
 typedef std::shared_ptr<GLWidget> GLWidgetPtr;
 
 } // namespace
-

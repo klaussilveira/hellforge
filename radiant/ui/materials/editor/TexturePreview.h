@@ -67,7 +67,8 @@ private:
 
         glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-        glViewport(0, 0, req.GetWidth(), req.GetHeight());
+        wxSize viewportSize = GetGLViewportSize();
+        glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 
         // Initialise
         glClearColor(0.9f, 0.9f, 0.9f, 0);

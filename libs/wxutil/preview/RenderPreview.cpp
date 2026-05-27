@@ -475,7 +475,8 @@ bool RenderPreview::drawPreview()
         _glFont = GlobalOpenGL().getFont(fontStyle, fontSize);
     }
 
-    glViewport(0, 0, _previewWidth, _previewHeight);
+    wxSize viewportSize = _glWidget->GetGLViewportSize();
+    glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 
     // Set up the render and clear the drawing area in any case
     glDepthMask(GL_TRUE);
