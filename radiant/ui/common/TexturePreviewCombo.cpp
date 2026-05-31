@@ -143,7 +143,8 @@ bool TexturePreviewCombo::_onRender()
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	glViewport(0, 0, req.GetWidth(), req.GetHeight());
+	wxSize viewportSize = _glWidget->GetGLViewportSize();
+	glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 
     // Initialise
     glClearColor(0.3f, 0.3f, 0.3f, 0);

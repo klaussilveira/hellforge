@@ -722,7 +722,8 @@ bool TexTool::onGLDraw()
     }
 
 	// Initialise the viewport
-	glViewport(0, 0, _windowDims[0], _windowDims[1]);
+	wxSize viewportSize = _glWidget->GetGLViewportSize();
+	glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);

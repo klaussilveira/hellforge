@@ -1393,7 +1393,8 @@ void OrthoView::draw()
     ensureFont();
 
     // clear
-    glViewport(0, 0, _width, _height);
+    wxSize viewportSize = _wxGLWidget->GetGLViewportSize();
+    glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
     Vector3 colourGridBack = GlobalColourSchemeManager().getColour("grid_background");
     glClearColor (colourGridBack[0], colourGridBack[1], colourGridBack[2], 0);
 

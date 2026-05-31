@@ -728,7 +728,8 @@ void TextureThumbnailBrowser::draw()
 
     Vector3 colorBackground = GlobalColourSchemeManager().getColour("texture_background");
     glClearColor(colorBackground[0], colorBackground[1], colorBackground[2], 0);
-    glViewport(0, 0, getViewportSize().x(), getViewportSize().y());
+    wxSize viewportSize = _wxGLWidget->GetGLViewportSize();
+    glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

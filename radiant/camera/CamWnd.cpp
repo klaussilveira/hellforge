@@ -800,7 +800,7 @@ void CamWnd::drawGrid()
 
 void CamWnd::Cam_Draw()
 {
-    wxSize glSize = _wxGLWidget->GetSize();
+    wxSize glSize = _wxGLWidget->GetClientSize();
 
     if (_camera->getDeviceWidth() != glSize.GetWidth() || _camera->getDeviceHeight() != glSize.GetHeight())
     {
@@ -817,7 +817,8 @@ void CamWnd::Cam_Draw()
 
     ensureFont();
 
-    glViewport(0, 0, width, height);
+    wxSize viewportSize = _wxGLWidget->GetGLViewportSize();
+    glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 
     // enable depth buffer writes
     glDepthMask(GL_TRUE);

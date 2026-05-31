@@ -9,6 +9,7 @@
 #include <vector>
 #include <wx/dcclient.h>
 #include <wx/image.h>
+#include <wx/math.h>
 
 namespace wxutil
 {
@@ -54,6 +55,27 @@ void GLWidget::DestroyPrivateContext()
 		_privateContext->UnRef();
 		_privateContext = nullptr;
 	}
+}
+
+wxSize GLWidget::GetGLViewportSize() const
+{
+	return GetGLViewportSize(GetClientSize());
+}
+
+wxSize GLWidget::GetGLViewportSize(const wxSize& logicalSize) const
+{
+#if wxCHECK_VERSION(3, 1, 6)
+	return ToPhys(logicalSize);
+#elif defined(wxHAS_DPI_INDEPENDENT_PIXELS) || defined(wxHAVE_DPI_INDEPENDENT_PIXELS) || \
+	defined(__WXGTK3__) || defined(__WXMAC__)
+	double scale = GetContentScaleFactor();
+	return wxSize(
+		wxRound(logicalSize.GetWidth() * scale),
+		wxRound(logicalSize.GetHeight() * scale)
+	);
+#else
+	return logicalSize;
+#endif
 }
 
 GLWidget::~GLWidget()
@@ -129,8 +151,9 @@ bool GLWidget::captureToFile(const std::string& filename, int maxWidth)
 	if (!_renderCallback())
 		return false;
 
-	int width = GetClientSize().GetWidth();
-	int height = GetClientSize().GetHeight();
+	wxSize viewportSize = GetGLViewportSize();
+	int width = viewportSize.GetWidth();
+	int height = viewportSize.GetHeight();
 	if (width <= 0 || height <= 0)
 		return false;
 

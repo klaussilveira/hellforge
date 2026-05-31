@@ -25,7 +25,8 @@ void MissionInfoGuiView::setGLViewPort()
 		height = width / aspectRatio;
 	}
 
-	glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+	wxSize viewportSize = GetGLViewportSize(wxSize(static_cast<int>(width), static_cast<int>(height)));
+	glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 }
 
 void MissionInfoGuiView::setGui(const gui::IGuiPtr& gui)

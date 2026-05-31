@@ -28,7 +28,8 @@ void ReadableGuiView::setGLViewPort()
 
 	SetSize(static_cast<int>(width), -1);
 
-	glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+	wxSize viewportSize = GetGLViewportSize(wxSize(static_cast<int>(width), static_cast<int>(height)));
+	glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
 }
 
 void ReadableGuiView::setGui(const IGuiPtr& gui)
