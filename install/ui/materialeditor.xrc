@@ -230,6 +230,23 @@
 																			</object>
 																		</object>
 																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+																		<border>0</border>
+																		<object class="wxStaticText" name="m_staticText_basicfile">
+																			<label>File:</label>
+																			<wrap>-1</wrap>
+																		</object>
+																	</object>
+																	<object class="sizeritem">
+																		<option>0</option>
+																		<flag>wxALIGN_LEFT</flag>
+																		<border>0</border>
+																		<object class="wxButton" name="BasicOpenFileLocation">
+																			<label>Open File Location</label>
+																		</object>
+																	</object>
 																</object>
 															</object>
 														</object>

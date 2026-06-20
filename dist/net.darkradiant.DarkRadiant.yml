@@ -1,6 +1,6 @@
 app-id: net.darkradiant.DarkRadiant
 runtime: org.freedesktop.Platform
-runtime-version: '24.08'
+runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 command: darkradiant
 
@@ -25,8 +25,8 @@ modules:
       - '*'
     sources:
       - type: archive
-        url: https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
-        sha256: 8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72
+        url: https://gitlab.com/libeigen/eigen/-/archive/3.4.1/eigen-3.4.1.tar.gz
+        sha256: b93c667d1b69265cdb4d9f30ec21f8facbbe8b307cf34c0b9942834c6d4fdbe2
 
   - name: libsigc++
     buildsystem: meson
@@ -46,8 +46,8 @@ modules:
       - make GLEW_PREFIX=/app GLEW_DEST=/app LIBDIR=/app/lib install
     sources:
       - type: archive
-        url: https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.tgz
-        sha256: d4fc82893cfb00109578d0a1a2337fb8ca335b3ceccf97b97e5cc7f08e4353e1
+        url: https://github.com/nigels-com/glew/releases/download/glew-2.3.1/glew-2.3.1.tgz
+        sha256: b64790f94b926acd7e8f84c5d6000a86cb43967bd1e688b03089079799c9e889
 
   - name: glu
     buildsystem: meson
@@ -59,13 +59,13 @@ modules:
         sha256: bd43fe12f374b1192eb15fe20e45ff456b9bc26ab57f0eee919f96ca0f8a330f
 
   - name: ftgl
-    buildsystem: autotools
-    build-options:
-      cxxflags: -fpermissive
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     sources:
-      - type: archive
-        url: https://github.com/frankheckenbach/ftgl/archive/refs/tags/v2.4.0.tar.gz
-        sha256: aa97da1c3442a8fd3941037655df18016d70b5266381c81d81e8b5335f196ea8
+      - type: git
+        url: https://github.com/frankheckenbach/ftgl.git
+        commit: 1f2b47428ec6a6452a3be5c7a916b94c65df80ce
 
   - name: libgit2
     buildsystem: cmake-ninja
@@ -75,8 +75,8 @@ modules:
       - -DUSE_SSH=OFF
     sources:
       - type: archive
-        url: https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.4.tar.gz
-        sha256: 49d0fc50ab931816f6bfc1ac68f8d74b760450eebdb5374e803ee36550f26774
+        url: https://github.com/libgit2/libgit2/archive/refs/tags/v1.8.5.tar.gz
+        sha256: ec70049b8af823b21032447f91a2274fd8d91c435ef326a533dff3824e21b27f
 
   - name: openal-soft
     buildsystem: cmake-ninja
@@ -87,8 +87,8 @@ modules:
       - -DALSOFT_TESTS=OFF
     sources:
       - type: archive
-        url: https://github.com/kcat/openal-soft/archive/refs/tags/1.23.1.tar.gz
-        sha256: dfddf3a1f61059853c625b7bb03de8433b455f2f79f89548cbcbd5edca3d4a4a
+        url: https://github.com/kcat/openal-soft/archive/refs/tags/1.25.1.tar.gz
+        sha256: 5f8efe8dfba5e9307a50251ba615ace857c7fa9dddfe34130b83e213d7f7cf24
 
   - name: freealut
     buildsystem: autotools
@@ -118,8 +118,8 @@ modules:
       - /share/bakefile
     sources:
       - type: archive
-        url: https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.6/wxWidgets-3.2.6.tar.bz2
-        sha256: 939e5b77ddc5b6092d1d7d29491fe67010a2433cf9b9c0d841ee4d04acb9dce7
+        url: https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.10/wxWidgets-3.2.10.tar.bz2
+        sha256: d66e929569947a4a5920699539089a9bda83a93e5f4917fb313a61f0c344b896
 
   - name: darkradiant
     buildsystem: cmake-ninja

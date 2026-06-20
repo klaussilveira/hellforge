@@ -31,6 +31,7 @@
       <tool name="CameraBrushCreatorTool" button="LMB" modifiers="" />
       <tool name="BasicSelectionTool" button="LMB" modifiers="SHIFT" />
       <tool name="DragSelectionMouseToolFaceOnly" button="LMB" modifiers="SHIFT+CONTROL" />
+      <tool name="DragSelectionMouseToolFaceOnlyCopyShader" button="RMB" modifiers="SHIFT+CONTROL" />
       <tool name="CycleSelectionMouseTool" button="LMB" modifiers="ALT+SHIFT" />
       <tool name="CycleSelectionMouseToolFaceOnly" button="LMB" modifiers="SHIFT+CONTROL+ALT" />
       <tool name="DecalShooterTool" button="MMB" modifiers="CONTROL+SHIFT" />

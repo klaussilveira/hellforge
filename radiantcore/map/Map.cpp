@@ -1297,7 +1297,10 @@ void Map::openMapCmd(const cmd::ArgumentList& args)
     {
         if (GlobalFileSystem().openTextFile(candidate))
         {
-            mapToLoad = candidate;
+            auto vfsRoot = GlobalFileSystem().findFile(candidate);
+
+            mapToLoad = !vfsRoot.empty() ?
+                os::standardPathWithSlash(vfsRoot) + candidate : candidate;
         }
         else
         {

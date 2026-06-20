@@ -169,6 +169,19 @@ void ModelNodeBase::setRenderSystem(const RenderSystemPtr& renderSystem)
     }
 }
 
+void ModelNodeBase::setRenderEntity(IRenderEntity* entity)
+{
+    if (_renderEntity == entity) return;
+
+    Node::setRenderEntity(entity);
+
+    if (inScene())
+    {
+        destroyRenderableSurfaces();
+        createRenderableSurfaces();
+    }
+}
+
 void ModelNodeBase::onRenderStateChanged()
 {
     Node::onRenderStateChanged();

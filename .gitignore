@@ -24,6 +24,8 @@ perf.data*
 # Editor temporary files
 *.swp
 tags
+test/resources/tdm/maps/altar_autosave.darkradiant
+test/resources/tdm/maps/altar_autosave.map
 
 # Windows directories
 w32deps

@@ -1,6 +1,7 @@
 #include "SelectionMouseTools.h"
 
 #include "iscenegraph.h"
+#include "ishaderclipboard.h"
 #include "i18n.h"
 #include "icolourscheme.h"
 #include "registry/registry.h"
@@ -223,6 +224,28 @@ const std::string& DragSelectionMouseToolFaceOnly::getDisplayName()
 {
     static std::string displayName(_("Select Faces"));
     return displayName;
+}
+
+const std::string& DragSelectionMouseToolFaceOnlyCopyShader::getName()
+{
+    static std::string name("DragSelectionMouseToolFaceOnlyCopyShader");
+    return name;
+}
+
+const std::string& DragSelectionMouseToolFaceOnlyCopyShader::getDisplayName()
+{
+    static std::string displayName(_("Select Faces and Copy Shader"));
+    return displayName;
+}
+
+void DragSelectionMouseToolFaceOnlyCopyShader::performSelectionTest(SelectionVolume& volume, SelectionType type, MouseTool::Event& ev)
+{
+    BasicSelectionTool::performSelectionTest(volume, type, ev);
+
+    if (type == SelectionType::Point)
+    {
+        GlobalShaderClipboard().pickFromSelectionTest(volume);
+    }
 }
 
 // Cycle Selection

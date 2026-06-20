@@ -67,7 +67,7 @@ namespace
     // Widget minimum sizes. Different values needed on Linux (which has various
     // GTK styles) vs Windows.
 #ifdef __WXMSW__
-    constexpr int SPINBOX_WIDTH_CHARS = 7;
+    constexpr int SPINBOX_WIDTH_CHARS = 10;
 #else
     constexpr int SPINBOX_WIDTH_CHARS = 14;
 #endif

@@ -28,6 +28,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -48,6 +54,23 @@ jobs:
           fi
 
           cp hellforge-flatpak-x86_64/hellforge.flatpak hellforge-nightly-x86_64.flatpak
+
+      - name: Generate commit summary
+        id: changelog
+        run: |
+          prev=$(git rev-parse --verify --quiet nightly^{commit} || true)
+          {
+            echo "changelog<<COMMITS_EOF"
+            if [ -n "$prev" ] && [ "$prev" != "$(git rev-parse HEAD)" ]; then
+              echo "**Changes since last nightly:**"
+              echo
+              git log --no-merges --pretty=format:'- %h %s' "$prev"..HEAD
+              echo
+            else
+              echo "**Changes since last nightly:** none"
+            fi
+            echo "COMMITS_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Delete existing nightly release
         run: gh release delete nightly --cleanup-tag --yes || true
@@ -70,8 +93,11 @@ jobs:
             --title "Nightly Build" \
             --notes "Automated nightly build from \`master\` ($(date -u '+%Y-%m-%d %H:%M UTC')).
 
-          **Warning:** These builds are untested and may be unstable." \
+          **Warning:** These builds are untested and may be unstable.
+
+          ${CHANGELOG}" \
             "${files[@]}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}

@@ -51,10 +51,14 @@ TextureProjection& TextureProjection::operator=(const TextureProjection& other)
 
 void TextureProjection::setTransform(const Matrix3& transform)
 {
+    TextureMatrix newMatrix(transform);
+
     // Check the matrix for validity
-    if ((transform.xx() != 0 || transform.yx() != 0) && (transform.xy() != 0 || transform.yy() != 0))
+    if (newMatrix.isSane()
+        && (transform.xx() != 0 || transform.yx() != 0)
+        && (transform.xy() != 0 || transform.yy() != 0))
     {
-        _matrix = TextureMatrix(transform);
+        _matrix = newMatrix;
     }
     else
     {

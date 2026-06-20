@@ -4,6 +4,7 @@
 #include "igrid.h"
 #include "iclipper.h"
 #include "icommandsystem.h"
+#include "ishaderclipboard.h"
 #include "scenelib.h"
 #include "selectionlib.h"
 #include "command/ExecutionNotPossible.h"
@@ -122,10 +123,15 @@ MouseTool::Result BrushCreatorTool::onMouseMove(Event& ev)
             return Result::Finished;
         }
 
-        // Dispatch the command
+        std::string shader = GlobalShaderClipboard().getShaderName();
+        if (shader.empty())
+        {
+            shader = GlobalTextureBrowser().getSelectedShader();
+        }
+
         GlobalCommandSystem().executeCommand(
             "ResizeSelectedBrushesToBounds",
-            {startPos, endPos, GlobalTextureBrowser().getSelectedShader()}
+            {startPos, endPos, shader}
         );
     }
     catch (cmd::ExecutionNotPossible&)

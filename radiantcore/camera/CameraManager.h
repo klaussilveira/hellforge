@@ -17,6 +17,8 @@ private:
 	// issue focusCamera calls to them
 	std::list<ICameraView::Ptr> _cameras;
 
+	ICameraView::Ptr _activeCamera;
+
 public:
 	// RegisterableModule
 	std::string getName() const override;

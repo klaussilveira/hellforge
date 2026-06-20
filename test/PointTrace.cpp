@@ -71,6 +71,18 @@ TEST_F(PointTraceTest, IdentifyMapPointfiles)
     EXPECT_EQ(pfs[1].filename(), "altar_portalL_544_64_112.lin");
 }
 
+TEST_F(PointTraceTest, IdentifyMapPointfilesFromModRelativePath)
+{
+    GlobalCommandSystem().executeCommand("OpenMap", std::string("maps/altar.map"));
+
+    auto pfs = pointfiles();
+    ASSERT_EQ(pfs.size(), 2);
+    EXPECT_EQ(pfs[0].filename(), "ALTAr.lin");
+    EXPECT_EQ(pfs[1].filename(), "altar_portalL_544_64_112.lin");
+    EXPECT_TRUE(pfs[0].is_absolute());
+    EXPECT_TRUE(pfs[1].is_absolute());
+}
+
 TEST_F(PointTraceTest, PointFilesAssociatedWithCorrectMap)
 {
     std::string modRelativePath = "maps/altar_in_pk4.map";

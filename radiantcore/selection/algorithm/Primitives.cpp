@@ -301,15 +301,12 @@ public:
 				patch->ctrlAt(1,2).vertex = (patch->ctrlAt(2,2).vertex + patch->ctrlAt(0,2).vertex)/2;
 			}
 
-			// Use the texture in the clipboard, if it's a decal texture
+			// Use the texture in the clipboard
 			Texturable& clipboard = ShaderClipboard::Instance().getSource();
 
 			if (!clipboard.empty())
 			{
-				if (clipboard.getShader().find("decals") != std::string::npos)
-				{
-					patch->setShader(clipboard.getShader());
-				}
+				patch->setShader(clipboard.getShader());
 			}
 
 			// Fit the texture on it

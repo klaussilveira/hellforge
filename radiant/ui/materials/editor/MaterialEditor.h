@@ -208,6 +208,7 @@ private:
     void _onBasicAddFrobStages(wxCommandEvent& ev);
     void _onBasicRemoveFrobStages(wxCommandEvent& ev);
     void _onBasicTestFrobStages(wxMouseEvent& ev);
+    void _onBasicOpenFileLocation(wxCommandEvent& ev);
     void _onClose(wxCommandEvent& ev);
     void _onReloadImages(wxCommandEvent& ev);
     void _onSourceTextChanged(wxStyledTextEvent& ev);

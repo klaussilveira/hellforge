@@ -176,10 +176,15 @@ void WindowPosition::fitToScreen(float xfraction, float yfraction)
 {
     if (_window == nullptr) return;
 
-    wxDisplay display(wxDisplay::GetFromWindow(_window));
-
-    // Pass the call
-    fitToScreen(display.GetGeometry(), xfraction, yfraction);
+    if (auto* parent = _window->GetParent())
+    {
+        fitToScreen(parent->GetScreenRect(), xfraction, yfraction);
+    }
+    else
+    {
+        wxDisplay display(wxDisplay::GetFromWindow(_window));
+        fitToScreen(display.GetGeometry(), xfraction, yfraction);
+    }
 }
 
 void WindowPosition::fitToScreen(const wxRect& screen, float xfraction, float yfraction)

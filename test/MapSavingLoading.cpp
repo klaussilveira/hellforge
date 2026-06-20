@@ -717,11 +717,12 @@ TEST_F(MapSavingTest, saveAsWithFormatWillContinueUsingThatFormat)
 TEST_F(MapSavingTest, saveCopyAs)
 {
     std::string modRelativePath = "maps/altar.map";
+    std::string expectedMapName = _context.getTestProjectPath() + modRelativePath;
 
     GlobalCommandSystem().executeCommand("OpenMap", modRelativePath);
     checkAltarScene();
 
-    EXPECT_EQ(GlobalMapModule().getMapName(), modRelativePath);
+    EXPECT_EQ(GlobalMapModule().getMapName(), expectedMapName);
 
     // Select the format based on the extension
     auto format = GlobalMapFormatManager().getMapFormatForFilename(modRelativePath);
@@ -738,7 +739,7 @@ TEST_F(MapSavingTest, saveCopyAs)
     EXPECT_TRUE(os::fileOrDirExists(tempPath));
 
     // The map path should NOT have been changed
-    EXPECT_EQ(GlobalMapModule().getMapName(), modRelativePath);
+    EXPECT_EQ(GlobalMapModule().getMapName(), expectedMapName);
 
     // Load the copy and verify the scene
     GlobalCommandSystem().executeCommand("OpenMap", tempPath.string());
@@ -748,11 +749,12 @@ TEST_F(MapSavingTest, saveCopyAs)
 TEST_F(MapSavingTest, saveCopyAsMapx)
 {
     std::string modRelativePath = "maps/altar.map";
+    std::string expectedMapName = _context.getTestProjectPath() + modRelativePath;
 
     GlobalCommandSystem().executeCommand("OpenMap", modRelativePath);
     checkAltarScene();
 
-    EXPECT_EQ(GlobalMapModule().getMapName(), modRelativePath);
+    EXPECT_EQ(GlobalMapModule().getMapName(), expectedMapName);
 
     // Select the format based on the mapx extension
     fs::path tempPath = _context.getTemporaryDataPath();
@@ -774,7 +776,7 @@ TEST_F(MapSavingTest, saveCopyAsMapx)
     algorithm::assertFileIsMapxFile(tempPath.string());
 
     // The map path should NOT have been changed
-    EXPECT_EQ(GlobalMapModule().getMapName(), modRelativePath);
+    EXPECT_EQ(GlobalMapModule().getMapName(), expectedMapName);
 
     // Load the portable format map and verify the scene
     GlobalCommandSystem().executeCommand("OpenMap", tempPath.string());

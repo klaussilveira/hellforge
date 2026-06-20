@@ -112,6 +112,20 @@ protected:
 };
 
 /**
+ * Face-only variant of the BasicSelectionTool with shader copy.
+ */
+class DragSelectionMouseToolFaceOnlyCopyShader :
+    public DragSelectionMouseToolFaceOnly
+{
+public:
+    const std::string& getName() override;
+    const std::string& getDisplayName() override;
+
+protected:
+    void performSelectionTest(SelectionVolume& volume, SelectionType type, MouseTool::Event& ev) override;
+};
+
+/**
  * Used to cycle between single selectables while holding a special modifier.
  * The selection candidates are traverse from front to back, moving
  * "deeper" into the scene. Works both in Camera and XY views.

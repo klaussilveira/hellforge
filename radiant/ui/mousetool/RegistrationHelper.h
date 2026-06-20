@@ -33,6 +33,7 @@ public:
         camGroup.registerMouseTool(std::make_shared<SceneManipulateMouseTool>());
         camGroup.registerMouseTool(std::make_shared<BasicSelectionTool>());
         camGroup.registerMouseTool(std::make_shared<DragSelectionMouseToolFaceOnly>());
+        camGroup.registerMouseTool(std::make_shared<DragSelectionMouseToolFaceOnlyCopyShader>());
         camGroup.registerMouseTool(std::make_shared<CycleSelectionMouseTool>());
         camGroup.registerMouseTool(std::make_shared<CycleSelectionMouseToolFaceOnly>());
         camGroup.registerMouseTool(std::make_shared<TerrainSculptTool>());

@@ -21,6 +21,9 @@
 #include <wx/clrpicker.h>
 
 #include "os/file.h"
+#include "os/path.h"
+#include "ifilesystem.h"
+#include <wx/utils.h>
 #include "wxutil/sourceview/SourceView.h"
 #include "wxutil/FileChooser.h"
 #include "wxutil/dialog/MessageBox.h"
@@ -716,6 +719,9 @@ void MaterialEditor::setupBasicMaterialPage()
 
     testFrob->Bind(wxEVT_LEFT_DOWN, &MaterialEditor::_onBasicTestFrobStages, this);
     testFrob->Bind(wxEVT_LEFT_UP, &MaterialEditor::_onBasicTestFrobStages, this);
+
+    getControl<wxButton>("BasicOpenFileLocation")->Bind(wxEVT_BUTTON,
+        &MaterialEditor::_onBasicOpenFileLocation, this);
 }
 
 void MaterialEditor::createDecalColourBinding(const std::string& controlName, const std::function<double(const MaterialPtr&)>& loadFunc)
@@ -2027,6 +2033,10 @@ void MaterialEditor::updateMaterialControlSensitivity()
     unlockButton->SetForegroundColour(unlockButton->IsEnabled() ? *wxWHITE : wxNullColour);
 
     getControl<wxButton>("MaterialEditorReloadImagesButton")->Enable(_material != nullptr);
+
+    auto hasPhysicalFile = _material && !_material->getShaderFileInfo().fullPath().empty() &&
+        !GlobalFileSystem().findFile(_material->getShaderFileInfo().fullPath()).empty();
+    getControl<wxButton>("BasicOpenFileLocation")->Enable(hasPhysicalFile);
 }
 
 std::pair<IShaderLayer::Ptr, std::size_t> MaterialEditor::findMaterialStageByType(IShaderLayer::Type type)
@@ -3125,6 +3135,34 @@ void MaterialEditor::_onBasicTestFrobStages(wxMouseEvent& ev)
 {
     _preview->enableFrobHighlight(ev.ButtonDown());
     ev.Skip();
+}
+
+void MaterialEditor::_onBasicOpenFileLocation(wxCommandEvent& ev)
+{
+    if (!_material) return;
+
+    auto vfsPath = _material->getShaderFileInfo().fullPath();
+    if (vfsPath.empty()) return;
+
+    auto rootPath = GlobalFileSystem().findFile(vfsPath);
+    if (rootPath.empty())
+    {
+        wxutil::Messagebox::ShowError(
+            _("This material is not stored in a writeable location on disk."), this);
+        return;
+    }
+
+    auto absolutePath = os::standardPathWithSlash(rootPath) + vfsPath;
+
+#if defined(__WXMSW__)
+    wxExecute(wxString::Format("explorer.exe /select,\"%s\"",
+        wxString::FromUTF8(absolutePath)), wxEXEC_ASYNC);
+#elif defined(__WXMAC__)
+    wxExecute(wxString::Format("open -R \"%s\"",
+        wxString::FromUTF8(absolutePath)), wxEXEC_ASYNC);
+#else
+    wxLaunchDefaultApplication(os::getDirectory(absolutePath));
+#endif
 }
 
 void MaterialEditor::assignDecalInfoToMaterial(const MaterialPtr& material, bool isEnabled)

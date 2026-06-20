@@ -65,21 +65,25 @@ DialogBase::DialogBase(const std::string& title, wxWindow* parent, const std::st
 
 void DialogBase::FitToScreen(float xProp, float yProp)
 {
-    int curDisplayIdx = 0;
+    auto* mainFrame = GlobalMainFrame().getWxTopLevelWindow();
 
-    if (GlobalMainFrame().getWxTopLevelWindow() != nullptr)
+    wxRect rect;
+    if (mainFrame != nullptr)
     {
-        curDisplayIdx = wxDisplay::GetFromWindow(GlobalMainFrame().getWxTopLevelWindow());
+        rect = mainFrame->GetScreenRect();
+    }
+    else
+    {
+        unsigned int displayIdx = 0;
+        wxDisplay display(displayIdx);
+        rect = display.GetGeometry();
     }
 
-    wxDisplay curDisplay(curDisplayIdx);
-
-    wxRect rect = curDisplay.GetGeometry();
     int newWidth = static_cast<int>(rect.GetWidth() * xProp);
     int newHeight = static_cast<int>(rect.GetHeight() * yProp);
 
     SetSize(newWidth, newHeight);
-    CenterOnScreen();
+    CenterOnParent();
 }
 
 int DialogBase::ShowModal()

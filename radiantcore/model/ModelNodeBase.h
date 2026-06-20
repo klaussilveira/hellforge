@@ -41,6 +41,8 @@ public:
 
     void setRenderSystem(const RenderSystemPtr& renderSystem) override;
 
+    void setRenderEntity(IRenderEntity* entity) override;
+
 protected:
     // To be implemented by subclasses, this should populate the _renderableSurfaces collection
     virtual void createRenderableSurfaces() = 0;

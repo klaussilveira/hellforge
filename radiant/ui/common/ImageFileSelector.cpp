@@ -1,8 +1,13 @@
 #include "ImageFileSelector.h"
 
 #include "i18n.h"
+#include "iclipboard.h"
+#include "ifilesystem.h"
 #include "ImageFilePopulator.h"
+#include "os/path.h"
 #include "wxutil/dataview/ResourceTreeViewToolbar.h"
+#include "wxutil/menu/IconTextMenuItem.h"
+#include <wx/artprov.h>
 #include <wx/sizer.h>
 
 namespace ui
@@ -45,6 +50,39 @@ protected:
         }
 
         return ResourceTreeView::IsTreeModelRowVisible(row);
+    }
+
+    void PopulateContextMenu(wxutil::PopupMenu& popupMenu) override
+    {
+        ResourceTreeView::PopulateContextMenu(popupMenu);
+
+        popupMenu.addItem(
+            new wxutil::StockIconTextMenuItem(_("Copy Local File Location"), wxART_COPY),
+            [this]() { _onCopyLocalFileLocation(); },
+            [this]() { return !_getAbsoluteFilePathOfSelection().empty(); },
+            [this]() { return !IsDirectorySelected() && module::GlobalModuleRegistry().moduleExists(MODULE_CLIPBOARD); }
+        );
+    }
+
+private:
+    std::string _getAbsoluteFilePathOfSelection()
+    {
+        auto resourcePath = GetResourcePathOfSelection();
+        if (resourcePath.empty()) return {};
+
+        auto rootPath = GlobalFileSystem().findFile(resourcePath);
+        if (rootPath.empty()) return {};
+
+        return os::standardPathWithSlash(rootPath) + resourcePath;
+    }
+
+    void _onCopyLocalFileLocation()
+    {
+        auto absolutePath = _getAbsoluteFilePathOfSelection();
+        if (!absolutePath.empty())
+        {
+            GlobalClipboard().setString(absolutePath);
+        }
     }
 };
 

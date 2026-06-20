@@ -30,12 +30,17 @@ void CameraManager::initialiseModule(const IApplicationContext& ctx)
 ICameraView::Ptr CameraManager::createCamera(render::IRenderView& view, const std::function<void(bool)>& requestRedraw)
 {
 	_cameras.emplace_back(std::make_shared<Camera>(view, requestRedraw));
+	_activeCamera = _cameras.back();
 	return _cameras.back();
 }
 
 void CameraManager::destroyCamera(const ICameraView::Ptr& camera)
 {
 	_cameras.remove(camera);
+	if (_activeCamera == camera)
+	{
+		_activeCamera = _cameras.empty() ? nullptr : _cameras.back();
+	}
 }
 
 void CameraManager::focusAllCameras(const Vector3& position, const Vector3& angles)
@@ -51,6 +56,11 @@ camera::ICameraView& CameraManager::getActiveView()
 	if (_cameras.empty())
 	{
 		throw std::runtime_error("No active camera view present");
+	}
+
+	if (_activeCamera)
+	{
+		return *_activeCamera;
 	}
 
 	return *_cameras.front();

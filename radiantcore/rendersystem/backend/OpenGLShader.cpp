@@ -439,6 +439,32 @@ void OpenGLShader::applyAlphaTestToPass(OpenGLState& pass, double alphaTest)
 // Construct lighting mode render passes
 void OpenGLShader::constructLightingPassesFromMaterial()
 {
+    // Portal sky materials cannot be rendered in lighting mode, but users
+    // prefer a black appearance than a distracting white one
+    if (_material->getSortRequest() == Material::SORT_PORTAL_SKY)
+    {
+        OpenGLState& state = appendDefaultPass();
+        state.setRenderFlag(RENDER_FILL);
+        state.setRenderFlag(RENDER_BLEND);
+        state.setRenderFlag(RENDER_DEPTHTEST);
+        state.setRenderFlag(RENDER_DEPTHWRITE);
+        state.setRenderFlag(RENDER_TEXTURE_2D);
+        state.setRenderFlag(RENDER_PROGRAM);
+        state.setRenderFlag(RENDER_CULLFACE);
+        state.setDepthFunc(GL_LEQUAL);
+
+        state.m_blend_src = GL_ONE;
+        state.m_blend_dst = GL_ZERO;
+
+        auto blackTex = GlobalMaterialManager().getDefaultInteractionTexture(IShaderLayer::DIFFUSE);
+        state.texture0 = blackTex ? blackTex->getGLTexNum() : 0;
+
+        state.glProgram = _renderSystem.getGLProgramFactory().getBuiltInProgram(ShaderProgram::RegularStage);
+        state.setColour(Colour4::BLACK());
+        state.setSortPosition(OpenGLState::SORT_FULLBRIGHT);
+        return;
+    }
+
     // Build up and add shader passes for DBS stages similar to the game code.
     // DBS stages are first sorted and stored in the interaction pass where
     // they will be evaluated and grouped to DBS triplets in every frame.
