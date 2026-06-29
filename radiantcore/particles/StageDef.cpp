@@ -492,6 +492,20 @@ void StageDef::parseFromTokens(parser::DefTokeniser& tok)
 				setCustomPathParm(0, parseFloatWithErrorMsg(tok, "Bad drip param1 value"));
 				setCustomPathParm(1, parseFloatWithErrorMsg(tok, "Bad drip param2 value"));
 			}
+			else if (pathType == "wind")
+			{
+				setCustomPathType(PATH_WIND);
+
+				// Read wind parameters ( dirX dirY dirZ windSpeed turbAmp turbScale riseSpeed windOnset )
+				setCustomPathParm(0, parseFloatWithErrorMsg(tok, "Bad wind param1 value"));
+				setCustomPathParm(1, parseFloatWithErrorMsg(tok, "Bad wind param2 value"));
+				setCustomPathParm(2, parseFloatWithErrorMsg(tok, "Bad wind param3 value"));
+				setCustomPathParm(3, parseFloatWithErrorMsg(tok, "Bad wind param4 value"));
+				setCustomPathParm(4, parseFloatWithErrorMsg(tok, "Bad wind param5 value"));
+				setCustomPathParm(5, parseFloatWithErrorMsg(tok, "Bad wind param6 value"));
+				setCustomPathParm(6, parseFloatWithErrorMsg(tok, "Bad wind param7 value"));
+				setCustomPathParm(7, parseFloatWithErrorMsg(tok, "Bad wind param8 value"));
+			}
 			else
 			{
 				rError() << "[particles] Unknown custom path type type: " <<
@@ -661,6 +675,17 @@ std::ostream& operator<<(std::ostream& stream, const StageDef& stage)
 						   << stage.getCustomPathParm(2) << " "
 						   << stage.getCustomPathParm(3) << " "
 						   << stage.getCustomPathParm(4) << std::endl;
+		break;
+	case StageDef::PATH_WIND:
+		stream << "\t\t" << "customPath " << "\t\t\t";
+		stream << "wind " << stage.getCustomPathParm(0) << " "
+						   << stage.getCustomPathParm(1) << " "
+						   << stage.getCustomPathParm(2) << " "
+						   << stage.getCustomPathParm(3) << " "
+						   << stage.getCustomPathParm(4) << " "
+						   << stage.getCustomPathParm(5) << " "
+						   << stage.getCustomPathParm(6) << " "
+						   << stage.getCustomPathParm(7) << std::endl;
 		break;
 	default:
 		break;

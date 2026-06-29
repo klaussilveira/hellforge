@@ -93,7 +93,8 @@ public:
 		PATH_HELIX,		// ( sizeX sizeY sizeZ radialSpeed climbSpeed )
 		PATH_FLIES,
 		PATH_ORBIT,
-		PATH_DRIP
+		PATH_DRIP,
+		PATH_WIND		// ( dirX dirY dirZ windSpeed turbAmp turbScale riseSpeed windOnset )
 	};
 
 public:

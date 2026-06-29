@@ -96,6 +96,8 @@ void EClassManager::initialiseModule(const IApplicationContext& ctx)
         std::make_shared<decl::DeclarationCreator<Doom3ModelDef>>(decl::Type::ModelDef)
     );
     GlobalDeclarationManager().registerDeclFolder(decl::Type::EntityDef, "def/", ".def");
+    GlobalDeclarationManager().registerDeclFolder(decl::Type::EntityDef, "monsters/", ".def");
+    GlobalDeclarationManager().registerDeclFolder(decl::Type::EntityDef, "weapons/", ".def");
 
     GlobalCommandSystem().addCommand("ReloadDefs", std::bind(&EClassManager::reloadDefsCmd, this, std::placeholders::_1));
 

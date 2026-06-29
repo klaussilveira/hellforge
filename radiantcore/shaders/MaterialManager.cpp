@@ -331,6 +331,10 @@ void MaterialManager::initialiseModule(const IApplicationContext& ctx)
 
     GlobalDeclarationManager().registerDeclFolder(decl::Type::Material, "materials/", ".mtr",
         [guides = _guideManager](const std::string& content) { return guides->expandGuides(content); });
+    GlobalDeclarationManager().registerDeclFolder(decl::Type::Material, "monsters/", ".mtr",
+        [guides = _guideManager](const std::string& content) { return guides->expandGuides(content); });
+    GlobalDeclarationManager().registerDeclFolder(decl::Type::Material, "weapons/", ".mtr",
+        [guides = _guideManager](const std::string& content) { return guides->expandGuides(content); });
 
     // Connect to materials reloaded signal
     auto& materialsReloadedSig = GlobalDeclarationManager().signal_DeclsReloaded(

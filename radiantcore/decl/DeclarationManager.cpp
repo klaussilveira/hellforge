@@ -1,5 +1,6 @@
 #include <future>
 #include <fstream>
+#include <algorithm>
 
 #include "i18n.h"
 #include "DeclarationManager.h"
@@ -69,10 +70,11 @@ void DeclarationManager::registerDeclFolder(Type defaultType, const std::string&
     std::lock_guard declLock(_declarationAndCreatorLock);
     auto& decls = _declarationsByType.try_emplace(defaultType, Declarations()).first->second;
 
-    // Start the parser thread
-    decls.parser = std::make_unique<DeclarationFolderParser>(*this, defaultType, vfsPath, extension,
-        getTypenameMapping(), std::move(preprocessor));
-    decls.parser->start();
+    // One type can have multiple folders, so append rather than replace the parser
+    auto& parser = decls.parsers.emplace_back(std::make_unique<DeclarationFolderParser>(*this, defaultType, vfsPath, extension,
+        getTypenameMapping(), std::move(preprocessor)));
+    decls.runningParserCount++;
+    parser->start();
 }
 
 std::map<std::string, Type, string::ILess> DeclarationManager::getTypenameMapping()
@@ -268,10 +270,14 @@ void DeclarationManager::waitForTypedParsersToFinish()
 
         for (auto& [_, decl] : _declarationsByType)
         {
-            if (decl.parser)
+            for (auto& parser : decl.parsers)
             {
-                parsersToFinish.emplace_back(std::move(decl.parser));
+                if (parser)
+                {
+                    parsersToFinish.emplace_back(std::move(parser));
+                }
             }
+            decl.parsers.clear();
         }
 
         if (!parsersToFinish.empty())
@@ -334,11 +340,16 @@ void DeclarationManager::waitForSignalInvokersToFinish()
 
         for (auto& [_, decl] : _declarationsByType)
         {
-            if (decl.signalInvoker.valid())
+            for (auto& invoker : decl.signalInvokers)
             {
-                signalInvoker = std::move(decl.signalInvoker);
-                break;
+                if (invoker.valid())
+                {
+                    signalInvoker = std::move(invoker);
+                    break;
+                }
             }
+
+            if (signalInvoker.valid()) break;
         }
 
         if (signalInvoker.valid())
@@ -740,7 +751,7 @@ void DeclarationManager::emitDeclsReloadedSignal(Type type)
     signal_DeclsReloaded(type).emit();
 }
 
-void DeclarationManager::onParserFinished(Type parserType, ParseResult& parsedBlocks)
+void DeclarationManager::onParserFinished(DeclarationFolderParser* parser, Type parserType, ParseResult& parsedBlocks)
 {
     if (_reparseInProgress)
     {
@@ -768,27 +779,44 @@ void DeclarationManager::onParserFinished(Type parserType, ParseResult& parsedBl
         auto decls = _declarationsByType.find(parserType);
         assert(decls != _declarationsByType.end());
 
-        // Check if the parser reference is still there,
-        // it might have already been moved out in doWithDeclarationLock()
-        if (decls->second.parser)
+        // Reap completed cleanup futures so these lists don't grow with every reload
+        auto isDone = [](std::future<void>& f)
         {
-            // Move the parser reference from the dictionary as capture to the lambda
-            // Then let the unique_ptr in the lambda go out of scope to finish off the thread
-            // Lambda is mutable to make the unique_ptr member non-const
-            decls->second.parserFinisher = std::async(std::launch::async, [p = std::move(decls->second.parser)]() mutable
+            return !f.valid() || f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+        };
+        auto reap = [&](std::vector<std::future<void>>& futures)
+        {
+            futures.erase(std::remove_if(futures.begin(), futures.end(), isDone), futures.end());
+        };
+        reap(decls->second.parserFinishers);
+        reap(decls->second.signalInvokers);
+
+        // Move the finished parser out and let it die on a separate thread.
+        // It may already be gone if doWithDeclarationLock() moved it out first.
+        for (auto it = decls->second.parsers.begin(); it != decls->second.parsers.end(); ++it)
+        {
+            if (it->get() == parser)
             {
-                p.reset();
-            });
+                // Lambda is mutable to make the unique_ptr member non-const
+                decls->second.parserFinishers.emplace_back(std::async(std::launch::async, [p = std::move(*it)]() mutable
+                {
+                    p.reset();
+                }));
+                decls->second.parsers.erase(it);
+                break;
+            }
         }
 
         // In the reparse scenario the calling code will emit this signal
-        // In the regular threaded scenario, the signal should fire on a separate thread
-        if (!_reparseInProgress)
+        // In the regular threaded scenario, the signal should fire on a separate thread.
+        // Emit only after the last folder of this type is done, otherwise sibling parsers
+        // would emit the same (non thread-safe) signal concurrently
+        if (!_reparseInProgress && --decls->second.runningParserCount == 0)
         {
-            decls->second.signalInvoker = std::async(std::launch::async, [=]()
+            decls->second.signalInvokers.emplace_back(std::async(std::launch::async, [=]()
             {
                 emitDeclsReloadedSignal(parserType);
-            });
+            }));
         }
     }
 }

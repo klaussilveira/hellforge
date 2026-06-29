@@ -546,6 +546,25 @@ TEST_F(ParticlesTest, SyntaxChangeStageParameterChange)
     });
 }
 
+TEST_F(ParticlesTest, SyntaxChangeStageCustomPathWind)
+{
+    expectSyntaxChangeAfter("firefly_blue", [](const particles::IParticleDef::Ptr& decl)
+    {
+        const auto& stage = decl->getStage(0);
+        stage->setCustomPathType(particles::IStageDef::PATH_WIND);
+
+        for (int i = 0; i < 8; ++i)
+        {
+            stage->setCustomPathParm(i, static_cast<float>(i + 1));
+        }
+    },
+    [](const std::string& contents)
+    {
+        EXPECT_NE(contents.find("wind 1.000 2.000 3.000 4.000 5.000 6.000 7.000 8.000"), std::string::npos)
+            << "Wind custom path should serialize all 8 parameters in order";
+    });
+}
+
 // Acquiring a particle node with or without .prt as the name suffix
 TEST_F(ParticlesTest, AcquireParticleNode)
 {

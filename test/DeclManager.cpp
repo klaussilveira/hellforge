@@ -407,6 +407,29 @@ TEST_F(DeclManagerTest, DeclsReloadedSignals)
     EXPECT_EQ(callingThreadId, signalThreadId) << "Reloaded Signal should have been fired on the calling thread.";
 }
 
+TEST_F(DeclManagerTest, MultipleFoldersForSameTypeReloadOnce)
+{
+    GlobalDeclarationManager().registerDeclType("testdecl", std::make_shared<TestDeclarationCreator>());
+
+    std::size_t reloadedFireCount = 0;
+    GlobalDeclarationManager().signal_DeclsReloaded(decl::Type::TestDecl).connect(
+        [&]() { ++reloadedFireCount; }
+    );
+
+    GlobalDeclarationManager().registerDeclFolder(decl::Type::TestDecl, TEST_DECL_FOLDER, ".decl");
+    GlobalDeclarationManager().registerDeclFolder(decl::Type::TestDecl, TEST_DECL_FOLDER, ".decl");
+
+    checkKnownTestDeclNames();
+
+    EXPECT_TRUE(algorithm::waitUntil([&]() { return reloadedFireCount >= 1; }))
+        << "DeclsReloaded should have fired after the folders of this type were parsed";
+
+    EXPECT_FALSE(algorithm::waitUntil([&]() { return reloadedFireCount >= 2; }, 1000))
+        << "DeclsReloaded must fire only once, not once per folder registered for the type";
+
+    EXPECT_EQ(reloadedFireCount, 1);
+}
+
 TEST_F(DeclManagerTest, FindDeclaration)
 {
     GlobalDeclarationManager().registerDeclType("testdecl", std::make_shared<TestDeclarationCreator>());

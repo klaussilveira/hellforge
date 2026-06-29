@@ -44,11 +44,14 @@ private:
         // The decl library
         NamedDeclarations decls;
 
-        // If not empty, holds the running parser
-        std::unique_ptr<DeclarationFolderParser> parser;
+        // Holds the running parsers, one for each registered folder of this type
+        std::vector<std::unique_ptr<DeclarationFolderParser>> parsers;
 
-        std::future<void> parserFinisher;
-        std::future<void> signalInvoker;
+        // Number of startup parsers not yet finished; the reloaded signal fires once it hits zero
+        std::size_t runningParserCount = 0;
+
+        std::vector<std::future<void>> parserFinishers;
+        std::vector<std::future<void>> signalInvokers;
     };
 
     // One entry for each decl
@@ -101,7 +104,7 @@ public:
     void shutdownModule() override;
 
     // Invoked once a parser thread has finished
-    void onParserFinished(Type parserType, ParseResult& parsedBlocks);
+    void onParserFinished(DeclarationFolderParser* parser, Type parserType, ParseResult& parsedBlocks);
 
 private:
     void processParseResult(Type parserType, ParseResult& parsedBlocks);
