@@ -52,8 +52,10 @@ GLenum glBlendFromString(const std::string& value)
 BlendFunc blendFuncFromStrings(const StringPair& blendFunc)
 {
     // Handle predefined blend modes first: add, modulate, filter
-    if (blendFunc.first == "diffusemap" || blendFunc.first == "bumpmap" ||
-        blendFunc.first == "specularmap" || blendFunc.first == "parallaxmap")
+    if (blendFunc.first == "diffusemap" || blendFunc.first == "basecolormap" ||
+        blendFunc.first == "bumpmap" || blendFunc.first == "normalmap" ||
+        blendFunc.first == "specularmap" || blendFunc.first == "rmaomap" ||
+        blendFunc.first == "parallaxmap")
     {
         return BlendFunc(GL_ONE, GL_ZERO);
     }
@@ -90,6 +92,7 @@ StringPair getDefaultBlendFuncStringsForType(IShaderLayer::Type type)
     case IShaderLayer::DIFFUSE: return { "diffusemap" , "" };
     case IShaderLayer::BUMP: return { "bumpmap" , "" };
     case IShaderLayer::SPECULAR: return { "specularmap" , "" };
+    case IShaderLayer::RMAO: return { "rmaomap" , "" };
     default: return { "gl_one", "gl_zero" }; // needs to be lowercase
     }
 
@@ -566,17 +569,21 @@ void Doom3ShaderLayer::setBlendFuncStrings(const StringPair& func)
 {
     _blendFuncStrings = func;
 
-    if (_blendFuncStrings.first == "diffusemap")
+    if (_blendFuncStrings.first == "diffusemap" || _blendFuncStrings.first == "basecolormap")
     {
         setLayerType(IShaderLayer::DIFFUSE);
     }
-    else if (_blendFuncStrings.first == "bumpmap")
+    else if (_blendFuncStrings.first == "bumpmap" || _blendFuncStrings.first == "normalmap")
     {
         setLayerType(IShaderLayer::BUMP);
     }
     else if (_blendFuncStrings.first == "specularmap")
     {
         setLayerType(IShaderLayer::SPECULAR);
+    }
+    else if (_blendFuncStrings.first == "rmaomap")
+    {
+        setLayerType(IShaderLayer::RMAO);
     }
     else
     {

@@ -64,6 +64,7 @@ public:
         BUMP,
         DIFFUSE,
         SPECULAR,
+        RMAO,
         BLEND
     };
 
@@ -494,6 +495,8 @@ inline std::ostream& operator<< (std::ostream& os, IShaderLayer::Type type)
         return os << "diffusemap";
     case IShaderLayer::SPECULAR:
         return os << "specularmap";
+    case IShaderLayer::RMAO:
+        return os << "rmaomap";
     case IShaderLayer::BLEND:
         return os << "blend";
     default:

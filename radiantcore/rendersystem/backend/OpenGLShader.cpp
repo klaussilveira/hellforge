@@ -498,6 +498,9 @@ void OpenGLShader::constructLightingPassesFromMaterial()
             interactionLayers.push_back(layer);
             break;
 
+        case IShaderLayer::RMAO:
+            break; // no interaction slot for roughness/metallic/AO
+
         case IShaderLayer::BLEND:
             appendBlendLayer(layer);
         }

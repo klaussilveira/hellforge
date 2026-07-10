@@ -182,7 +182,8 @@ D3DeclarationViewCtrl::D3DeclarationViewCtrl(wxWindow* parent) :
 D3MaterialSourceViewCtrl::D3MaterialSourceViewCtrl(wxWindow* parent) :
 	D3DeclarationViewCtrl(parent)
 {
-	SetKeyWords(0, "diffusemap qer_editorimage bumpmap specularmap map if description polygonOffset "
+	SetKeyWords(0, "diffusemap basecolormap qer_editorimage bumpmap normalmap specularmap rmaomap "
+		"map if description polygonOffset "
 		"noshadows noShadows noselfshadow forceshadows nooverlays forceoverlays translucent clamp zeroclamp "
 		"alphazeroclamp forceopaque twosided backsided mirror nofog unsmoothedTangents guisurf sort "
 		"decal reflect spectrum deform decalInfo renderbump DECAL_MACRO sprite tube flare expand move "
@@ -202,7 +203,7 @@ D3MaterialSourceViewCtrl::D3MaterialSourceViewCtrl(wxWindow* parent) :
 	SetKeyWords(1, "_white _flat _black gl_src_alpha gl_one_minus_src_alpha gl_one gl_dst_color "
 		"gl_zero gl_one_minus_dst_color gl_dst_alpha gl_one_minus_dst_alpha gl_src_alpha_saturate "
 		"gl_src_color gl_one_minus_src_color add filter modulate none heightmap addnormals smoothnormals "
-		"add scale invertAlpha invertColor makeIntensity makeAlpha parm0 parm1 parm2 parm3 parm4 parm5 "
+		"add scale invertAlpha invertColor invertGreen makeIntensity makeAlpha parm0 parm1 parm2 parm3 parm4 parm5 "
 		"parm6 parm7 parm8 parm9 parm10 parm11 global0 global1 global2 global3 global4 global5 global6 global7 ");
 };
 

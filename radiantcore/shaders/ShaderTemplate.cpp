@@ -609,17 +609,11 @@ bool ShaderTemplate::parseBlendShortcuts(parser::DefTokeniser& tokeniser,
     {
         _editorTex = MapExpression::createForToken(tokeniser);
     }
-    else if (token == "diffusemap")
+    else if (token == "diffusemap" || token == "basecolormap" ||
+             token == "specularmap" || token == "rmaomap" ||
+             token == "bumpmap" || token == "normalmap")
     {
-        addLayer(IShaderLayer::DIFFUSE, MapExpression::createForToken(tokeniser));
-    }
-    else if (token == "specularmap")
-    {
-		addLayer(IShaderLayer::SPECULAR, MapExpression::createForToken(tokeniser));
-    }
-    else if (token == "bumpmap")
-    {
-		addLayer(IShaderLayer::BUMP, MapExpression::createForToken(tokeniser));
+        addLayer(token, MapExpression::createForToken(tokeniser));
     }
 	else
 	{
@@ -1551,6 +1545,17 @@ void ShaderTemplate::addLayer(IShaderLayer::Type type, const MapExpressionPtr& m
 {
 	// Construct a layer out of this mapexpression and pass the call
 	addLayer(std::make_shared<Doom3ShaderLayer>(*this, type, mapExpr));
+}
+
+void ShaderTemplate::addLayer(const std::string& keyword, const MapExpressionPtr& mapExpr)
+{
+	auto layer = std::make_shared<Doom3ShaderLayer>(*this);
+	layer->setBindableTexture(mapExpr);
+
+	// The keyword determines the layer type, see Doom3ShaderLayer::setBlendFuncStrings
+	layer->setBlendFuncStrings({ keyword, "" });
+
+	addLayer(layer);
 }
 
 std::size_t ShaderTemplate::addLayer(IShaderLayer::Type type)

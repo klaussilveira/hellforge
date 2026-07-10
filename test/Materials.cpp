@@ -255,6 +255,119 @@ TEST_F(MaterialsTest, MaterialParser)
     EXPECT_TRUE(materialManager.materialExists("textures/parsertest/something3"));
 }
 
+TEST_F(MaterialsTest, ParsePbrStageKeywords)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/knight");
+    EXPECT_TRUE(material);
+
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(layers.size(), 3);
+
+    // basecolormap is an alias of diffusemap
+    EXPECT_EQ(layers.at(0)->getType(), IShaderLayer::DIFFUSE);
+    EXPECT_EQ(layers.at(0)->getMapImageFilename(), "textures/parsertest/pbr/knight_d");
+
+    // normalmap is an alias of bumpmap, invertGreen is a valid map expression
+    EXPECT_EQ(layers.at(1)->getType(), IShaderLayer::BUMP);
+    EXPECT_EQ(layers.at(1)->getMapExpression()->getExpressionString(),
+              "invertGreen(textures/parsertest/pbr/knight_n)");
+
+    // rmaomap gets its own type, it is not a specularmap
+    EXPECT_EQ(layers.at(2)->getType(), IShaderLayer::RMAO);
+    EXPECT_EQ(layers.at(2)->getMapImageFilename(), "textures/parsertest/pbr/knight_rmao");
+
+    // The stage keywords are remembered such that they survive a save
+    EXPECT_EQ(layers.at(0)->getBlendFuncStrings().first, "basecolormap");
+    EXPECT_EQ(layers.at(1)->getBlendFuncStrings().first, "normalmap");
+    EXPECT_EQ(layers.at(2)->getBlendFuncStrings().first, "rmaomap");
+
+    // Like the keywords they alias, the PBR stages are not blended
+    for (const auto& layer : layers)
+    {
+        EXPECT_EQ(layer->getBlendFunc().src, GL_ONE);
+        EXPECT_EQ(layer->getBlendFunc().dest, GL_ZERO);
+    }
+}
+
+TEST_F(MaterialsTest, PbrEditorImageFallbackSkipsNonDiffuseStages)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/fallbackskipsnondiffuse");
+    EXPECT_TRUE(material);
+
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(layers.size(), 3);
+
+    // The normalmap and rmaomap stages come first, but point to non-existent images
+    EXPECT_EQ(layers.at(0)->getType(), IShaderLayer::BUMP);
+    EXPECT_EQ(layers.at(1)->getType(), IShaderLayer::RMAO);
+    EXPECT_EQ(layers.at(2)->getType(), IShaderLayer::DIFFUSE);
+
+    // Picking either of them would yield the shader-not-found texture
+    EXPECT_FALSE(material->isEditorImageNoTex()) << "Fallback should have skipped the bump and rmao stages";
+    EXPECT_EQ(material->getEditorImage(), layers.at(2)->getTexture());
+}
+
+TEST_F(MaterialsTest, ParsePbrBlendStageKeywords)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/blendstages");
+    EXPECT_TRUE(material);
+
+    // The PBR keywords are also accepted as "blend <type>" within a regular stage
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(layers.size(), 3);
+
+    EXPECT_EQ(layers.at(0)->getType(), IShaderLayer::DIFFUSE);
+    EXPECT_EQ(layers.at(1)->getType(), IShaderLayer::BUMP);
+    EXPECT_EQ(layers.at(2)->getType(), IShaderLayer::RMAO);
+
+    for (const auto& layer : layers)
+    {
+        EXPECT_EQ(layer->getBlendFunc().src, GL_ONE);
+        EXPECT_EQ(layer->getBlendFunc().dest, GL_ZERO);
+    }
+}
+
+TEST_F(MaterialsTest, InvertGreenMapExpression)
+{
+    auto plain = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/plaineditorimage");
+    auto inverted = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/invertgreeneditorimage");
+
+    EXPECT_EQ(inverted->getEditorImageExpression()->getExpressionString(),
+              "invertGreen(textures/a_1024x512)");
+
+    // Evaluating the expression must produce a valid image of unchanged dimensions
+    EXPECT_FALSE(inverted->isEditorImageNoTex()) << "invertGreen should have produced an image";
+    EXPECT_EQ(inverted->getEditorImage()->getWidth(), plain->getEditorImage()->getWidth());
+    EXPECT_EQ(inverted->getEditorImage()->getHeight(), plain->getEditorImage()->getHeight());
+
+    // It is a processed copy, not the source image itself
+    EXPECT_NE(inverted->getEditorImage(), plain->getEditorImage());
+
+    // Copying the template re-parses the editor image from its string form. An unregistered
+    // expression would silently degrade to an image named "invertGreen".
+    inverted->setDescription("forces a template copy");
+
+    EXPECT_EQ(inverted->getEditorImageExpression()->getExpressionString(),
+              "invertGreen(textures/a_1024x512)");
+    EXPECT_FALSE(inverted->isEditorImageNoTex()) << "invertGreen did not survive a template copy";
+
+    inverted->revertModifications();
+}
+
+TEST_F(MaterialsTest, PbrMaterialWithoutEditorImage)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/editorimagefallback");
+    EXPECT_TRUE(material);
+
+    EXPECT_FALSE(material->getEditorImageExpression()) << "This material has no qer_editorimage";
+
+    // Without a qer_editorimage the basecolormap stage is used instead
+    EXPECT_FALSE(material->isEditorImageNoTex()) << "basecolormap should be used as editor image";
+
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(material->getEditorImage(), layers.at(0)->getTexture());
+}
+
 TEST_F(MaterialsTest, EnumerateMaterialLayers)
 {
     auto material = GlobalMaterialManager().getMaterial("tdm_spider_black");

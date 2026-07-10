@@ -155,6 +155,17 @@ public:
     std::string getExpressionString() override;
 };
 
+class InvertGreenExpression :
+    public MapExpression
+{
+	MapExpressionPtr mapExp;
+public:
+	InvertGreenExpression(DefTokeniser& token);
+	ImagePtr getImage() const override;
+	std::string getIdentifier() const override;
+    std::string getExpressionString() override;
+};
+
 class MakeIntensityExpression :
     public MapExpression
 {

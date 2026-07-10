@@ -84,10 +84,11 @@ TexturePtr CShader::getEditorImage()
 
         if (!editorTex)
         {
-            // If there is no editor expression defined, use the an image from a layer, but no Bump or speculars
+            // If there is no editor expression defined, use the an image from a layer, but no Bump, speculars or rmaos
             for (const auto& layer : _template->getLayers())
             {
                 if (layer->getType() != IShaderLayer::BUMP && layer->getType() != IShaderLayer::SPECULAR &&
+                    layer->getType() != IShaderLayer::RMAO &&
                     std::dynamic_pointer_cast<MapExpression>(layer->getMapExpression()))
                 {
                     editorTex = std::static_pointer_cast<MapExpression>(layer->getMapExpression());

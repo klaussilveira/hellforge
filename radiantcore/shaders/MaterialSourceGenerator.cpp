@@ -387,10 +387,11 @@ bool stageQualifiesForShortcut(Doom3ShaderLayer& layer)
         return false; // no map expression => disqualified
     }
 
-    // Only DBS qualify for shortcuts
+    // Only DBS and RMAO qualify for shortcuts
     if (layer.getType() != IShaderLayer::DIFFUSE &&
         layer.getType() != IShaderLayer::BUMP &&
-        layer.getType() != IShaderLayer::SPECULAR)
+        layer.getType() != IShaderLayer::SPECULAR &&
+        layer.getType() != IShaderLayer::RMAO)
     {
         return false;
     }
@@ -408,9 +409,13 @@ void writeBlendShortcut(std::ostream& stream, Doom3ShaderLayer& layer)
 
     switch (layer.getType())
     {
-    case IShaderLayer::DIFFUSE:  stream << "\tdiffusemap " << mapExpr->getExpressionString() << "\n"; break;
-    case IShaderLayer::BUMP:     stream << "\tbumpmap " << mapExpr->getExpressionString() << "\n"; break;
-    case IShaderLayer::SPECULAR: stream << "\tspecularmap " << mapExpr->getExpressionString() << "\n"; break;
+    case IShaderLayer::DIFFUSE:
+    case IShaderLayer::BUMP:
+    case IShaderLayer::SPECULAR:
+    case IShaderLayer::RMAO:
+        // Use the keyword this stage was declared with, to keep aliases like "basecolormap" intact
+        stream << "\t" << layer.getBlendFuncStrings().first << " " << mapExpr->getExpressionString() << "\n";
+        break;
     default:
         throw std::logic_error("Wrong stage type stranded in writeBlendShortcut");
     };

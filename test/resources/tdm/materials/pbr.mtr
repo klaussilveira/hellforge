@@ -1,0 +1,44 @@
+textures/parsertest/pbr/knight
+{
+    basecolormap textures/parsertest/pbr/knight_d
+    normalmap invertGreen(textures/parsertest/pbr/knight_n)
+    rmaomap textures/parsertest/pbr/knight_rmao
+}
+
+textures/parsertest/pbr/editorimagefallback
+{
+    basecolormap textures/a_1024x512
+}
+
+textures/parsertest/pbr/fallbackskipsnondiffuse
+{
+    normalmap textures/parsertest/pbr/missing_n
+    rmaomap textures/parsertest/pbr/missing_rmao
+    basecolormap textures/a_1024x512
+}
+
+textures/parsertest/pbr/blendstages
+{
+    {
+        blend basecolormap
+        map textures/parsertest/pbr/knight_d
+    }
+    {
+        blend normalmap
+        map textures/parsertest/pbr/knight_n
+    }
+    {
+        blend rmaomap
+        map textures/parsertest/pbr/knight_rmao
+    }
+}
+
+textures/parsertest/pbr/plaineditorimage
+{
+    qer_editorimage textures/a_1024x512
+}
+
+textures/parsertest/pbr/invertgreeneditorimage
+{
+    qer_editorimage invertGreen(textures/a_1024x512)
+}

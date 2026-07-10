@@ -222,6 +222,7 @@ void ShaderSystemInterface::registerInterface(py::module& scope, py::dict& globa
         .value("DIFFUSE", IShaderLayer::Type::DIFFUSE)
         .value("BUMP", IShaderLayer::Type::BUMP)
         .value("SPECULAR", IShaderLayer::Type::SPECULAR)
+        .value("RMAO", IShaderLayer::Type::RMAO)
         .value("BLEND", IShaderLayer::Type::BLEND)
         .export_values();
 

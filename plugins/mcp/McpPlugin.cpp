@@ -2051,6 +2051,7 @@ JsonValue McpPlugin::getMaterialInfo(const JsonValue& params)
             case IShaderLayer::BUMP: typeName = "bump"; break;
             case IShaderLayer::DIFFUSE: typeName = "diffuse"; break;
             case IShaderLayer::SPECULAR: typeName = "specular"; break;
+            case IShaderLayer::RMAO: typeName = "rmao"; break;
             default: break;
         }
 

@@ -533,6 +533,10 @@ public:
 	// Add a specific layer to this template
 	void addLayer(IShaderLayer::Type type, const MapExpressionPtr& mapExpr);
 
+	// Add a layer declared through a stage keyword like "diffusemap" or "basecolormap".
+	// The keyword determines the layer type and is remembered, such that aliases survive a save.
+	void addLayer(const std::string& keyword, const MapExpressionPtr& mapExpr);
+
 	// Returns true if this shader template includes a diffusemap stage
 	bool hasDiffusemap();
 

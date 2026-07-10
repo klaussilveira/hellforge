@@ -77,6 +77,10 @@ MapExpressionPtr MapExpression::createForToken(DefTokeniser& token)
     {
         return std::make_shared<InvertColorExpression>(token);
     }
+    else if (string::iequals(type, "invertgreen"))
+    {
+        return std::make_shared<InvertGreenExpression>(token);
+    }
     else if (string::iequals(type, "makeintensity"))
     {
         return std::make_shared<MakeIntensityExpression>(token);
@@ -601,6 +605,59 @@ std::string InvertColorExpression::getIdentifier() const {
 std::string InvertColorExpression::getExpressionString()
 {
     return fmt::format("invertColor({0})", mapExp->getExpressionString());
+}
+
+InvertGreenExpression::InvertGreenExpression (DefTokeniser& token) {
+    token.assertNextToken("(");
+    mapExp = createForToken(token);
+    token.assertNextToken(")");
+}
+
+ImagePtr InvertGreenExpression::getImage() const {
+    ImagePtr img = mapExp->getImage();
+
+    if (img == NULL) return ImagePtr();
+
+    // Don't process precompressed images
+    if (img->isPrecompressed()) {
+        rWarning() << "Cannot evaluate map expression with precompressed texture." << std::endl;
+        return img;
+    }
+
+    std::size_t width = img->getWidth();
+    std::size_t height = img->getHeight();
+
+    ImagePtr result (new image::RGBAImage(width, height));
+
+    byte* in = img->getPixels();
+    byte* out = result->getPixels();
+
+    // iterate through the pixels
+    for( std::size_t y = 0; y < height; y++) {
+        for( std::size_t x = 0; x < width; x++) {
+            out[0] = in[0];
+            out[1] = 255 - in[1];
+            out[2] = in[2];
+            out[3] = in[3];
+
+            // advance the pixel pointer
+            in += 4;
+            out += 4;
+        }
+    }
+
+    return result;
+}
+
+std::string InvertGreenExpression::getIdentifier() const {
+    std::string identifier = "_invertgreen_";
+    identifier.append(mapExp->getIdentifier());
+    return identifier;
+}
+
+std::string InvertGreenExpression::getExpressionString()
+{
+    return fmt::format("invertGreen({0})", mapExp->getExpressionString());
 }
 
 MakeIntensityExpression::MakeIntensityExpression (DefTokeniser& token) {

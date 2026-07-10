@@ -1273,6 +1273,44 @@ TEST_F(MaterialExportTest, BlendShortcuts)
     material->revertModifications();
 }
 
+TEST_F(MaterialExportTest, PbrStageKeywordsArePreserved)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/knight");
+
+    // Any modification forces the source to be regenerated from the template
+    material->setDescription("pbr");
+
+    expectDefinitionContains(material, "basecolormap textures/parsertest/pbr/knight_d");
+    expectDefinitionContains(material, "normalmap invertGreen(textures/parsertest/pbr/knight_n)");
+    expectDefinitionContains(material, "rmaomap textures/parsertest/pbr/knight_rmao");
+
+    // The stages must not be written back using their non-PBR aliases
+    expectDefinitionDoesNotContain(material, "diffusemap");
+    expectDefinitionDoesNotContain(material, "bumpmap");
+    expectDefinitionDoesNotContain(material, "specularmap");
+
+    material->revertModifications();
+}
+
+TEST_F(MaterialExportTest, PbrBlendStagesArePreserved)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/pbr/knight");
+
+    // A stage modifier prevents the shortcut from being used, the stage is written in full
+    material->getEditableLayer(2)->setClampType(CLAMP_ZEROCLAMP);
+
+    expectDefinitionContains(material, "blend rmaomap");
+
+    // The untouched stages keep their shortcut form
+    expectDefinitionContains(material, "basecolormap textures/parsertest/pbr/knight_d");
+    expectDefinitionContains(material, "normalmap invertGreen(textures/parsertest/pbr/knight_n)");
+
+    // An rmao stage is never written back as a specular stage
+    expectDefinitionDoesNotContain(material, "specularmap");
+
+    material->revertModifications();
+}
+
 TEST_F(MaterialExportTest, MaterialDefDetectionRegex)
 {
     std::smatch matches;

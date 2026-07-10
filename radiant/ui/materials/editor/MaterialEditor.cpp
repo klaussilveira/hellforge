@@ -1378,7 +1378,8 @@ void MaterialEditor::setupMaterialStageProperties()
             layer->setAlphaTestExpressionFromString(value);
         });
 
-    for (const auto& value : { "diffusemap", "bumpmap", "specularmap", "blend", "add", "filter", "modulate", "none" })
+    for (const auto& value : { "diffusemap", "basecolormap", "bumpmap", "normalmap", "specularmap", "rmaomap",
+                               "blend", "add", "filter", "modulate", "none" })
     {
         getControl<wxChoice>("MaterialStageBlendType")->Append(value);
     }
@@ -2235,6 +2236,8 @@ inline std::string getNameForLayer(const IShaderLayer& layer)
         return "bump";
     case IShaderLayer::SPECULAR:
         return "specular";
+    case IShaderLayer::RMAO:
+        return "rmao";
     case IShaderLayer::BLEND:
         return fmt::format("blend {0}", getBlendFuncString(layer.getBlendFuncStrings()));
     }
