@@ -63,6 +63,12 @@ void sealSelectedEntities(const cmd::ArgumentList& args);
 void bridgeSelectedFaces(const cmd::ArgumentList& args);
 
 /**
+ * Carves openings into worldspawn brushes intersecting the selected entities,
+ * extending each entity's bounds through the brush's thinnest horizontal axis.
+ */
+void carveSelectedEntityOpenings(const cmd::ArgumentList& args);
+
+/**
  * Connect the various events to the functions in this namespace
  */
 void registerCommands();

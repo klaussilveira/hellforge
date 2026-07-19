@@ -345,6 +345,12 @@ void OrthoContextMenu::callbackAddModel()
     if (ms.objectKind == ModelSelector::Result::ObjectKind::EntityClass)
     {
         createEntity(ms.name);
+
+        if (ms.carveOpening)
+        {
+            GlobalCommandSystem().execute("CarveEntityOpening");
+        }
+
         return;
     }
 
@@ -367,6 +373,11 @@ void OrthoContextMenu::callbackAddModel()
         if (ms.createClip)
         {
             GlobalCommandSystem().execute("SurroundWithMonsterclip");
+        }
+
+        if (ms.carveOpening)
+        {
+            GlobalCommandSystem().execute("CarveEntityOpening");
         }
     }
     catch (cmd::ExecutionFailure& e)

@@ -4,6 +4,7 @@
 #include "iclipper.h"
 #include "iorthoview.h"
 #include "iselection.h"
+#include "xyview/tools/WallTool.h"
 
 #include <vector>
 #include <string>
@@ -25,6 +26,14 @@ std::vector<std::string> getHintLines()
 {
     // Context hints based on current mode/selection, with all relevant
     // modifier combinations shown upfront so users can discover them.
+    if (WallToolSettings::Instance().active)
+    {
+        return {
+            "Drag: Draw wall | ALT+Click: Chain wall",
+            "CTRL+Click/Drag: Erase walls | ESC: Cancel"
+        };
+    }
+
     if (GlobalOrthoViewManager().polygonMode())
     {
         return {

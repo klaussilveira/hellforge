@@ -408,6 +408,10 @@
     <ClCompile Include="..\..\radiant\xyview\tools\ClipperTool.cpp" />
     <ClCompile Include="..\..\radiant\xyview\tools\MeasurementTool.cpp" />
     <ClCompile Include="..\..\radiant\xyview\tools\PolygonTool.cpp" />
+    <ClCompile Include="..\..\radiant\xyview\tools\WallGeometry.cpp" />
+    <ClCompile Include="..\..\radiant\xyview\tools\WallTool.cpp" />
+    <ClCompile Include="..\..\radiant\ui\walltool\WallCursorPreview.cpp" />
+    <ClCompile Include="..\..\radiant\ui\walltool\WallToolPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\radiant\ApplicationContext.h" />
@@ -687,6 +691,11 @@
     <ClInclude Include="..\..\radiant\xyview\tools\ClipperTool.h" />
     <ClInclude Include="..\..\radiant\xyview\tools\MeasurementTool.h" />
     <ClInclude Include="..\..\radiant\xyview\tools\PolygonTool.h" />
+    <ClInclude Include="..\..\radiant\xyview\tools\WallGeometry.h" />
+    <ClInclude Include="..\..\radiant\xyview\tools\WallTool.h" />
+    <ClInclude Include="..\..\radiant\ui\walltool\WallCursorPreview.h" />
+    <ClInclude Include="..\..\radiant\ui\walltool\WallToolControl.h" />
+    <ClInclude Include="..\..\radiant\ui\walltool\WallToolPanel.h" />
     <ClInclude Include="..\..\radiant\xyview\tools\MoveViewTool.h" />
     <ClInclude Include="..\..\radiant\xyview\tools\XYMouseToolEvent.h" />
     <ClInclude Include="..\..\radiant\xyview\tools\ZoomTool.h" />

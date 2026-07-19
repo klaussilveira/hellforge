@@ -1059,6 +1059,100 @@ void sealSelectedEntities(const cmd::ArgumentList& args)
 	SceneChangeNotify();
 }
 
+void carveSelectedEntityOpenings(const cmd::ArgumentList& args)
+{
+	std::vector<AABB> volumes;
+
+	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+	{
+		if (!Node_isEntity(node)) return;
+
+		const AABB& bounds = node->worldAABB();
+
+		if (bounds.isValid())
+		{
+			volumes.push_back(bounds);
+		}
+	});
+
+	if (volumes.empty())
+	{
+		throw cmd::ExecutionNotPossible(_("Carve: No entities with valid bounds selected."));
+	}
+
+	UndoableCommand undo("carveEntityOpening");
+
+	scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+
+	std::size_t carvedCount = 0;
+
+	for (const AABB& volume : volumes)
+	{
+		BrushPtrVector targets;
+
+		worldspawn->foreachNode([&](const scene::INodePtr& node)
+		{
+			if (Node_isBrush(node) && node->visible() && !Node_isSelected(node) &&
+				node->worldAABB().intersects(volume))
+			{
+				targets.emplace_back(std::dynamic_pointer_cast<BrushNode>(node));
+			}
+
+			return true;
+		});
+
+		for (const BrushNodePtr& target : targets)
+		{
+			scene::INodePtr parent = target->getParent();
+
+			if (!parent) continue;
+
+			const AABB& targetBounds = target->worldAABB();
+			int thinAxis = targetBounds.extents.x() <= targetBounds.extents.y() ? 0 : 1;
+
+			AABB carveBounds = volume;
+			carveBounds.origin[thinAxis] = targetBounds.origin[thinAxis];
+			carveBounds.extents[thinAxis] = targetBounds.extents[thinAxis] + 1;
+
+			scene::INodePtr tempNode = GlobalBrushCreator().createBrush();
+			BrushNodePtr tempBrush = std::dynamic_pointer_cast<BrushNode>(tempNode);
+			tempBrush->getBrush().constructCuboid(carveBounds, texdef_name_default());
+			tempBrush->getBrush().evaluateBRep();
+
+			BrushPtrVector fragments;
+			BrushNodePtr original = std::dynamic_pointer_cast<BrushNode>(target->clone());
+
+			if (!Brush_subtract(original, tempBrush->getBrush(), fragments, true))
+			{
+				continue;
+			}
+
+			for (const BrushNodePtr& fragment : fragments)
+			{
+				fragment->getBrush().removeEmptyFaces();
+
+				if (fragment->getBrush().empty()) continue;
+
+				scene::INodePtr newBrush = GlobalBrushCreator().createBrush();
+
+				parent->addChildNode(newBrush);
+				newBrush->assignToLayers(target->getLayers());
+
+				Node_getBrush(newBrush)->copy(fragment->getBrush());
+				Node_getBrush(newBrush)->updateFaceVisibility();
+			}
+
+			scene::removeNodeFromParent(target);
+			carvedCount++;
+		}
+	}
+
+	rMessage() << "Carve: replaced " << carvedCount << " brush" << (carvedCount == 1 ? "" : "es")
+		<< " with carved fragments." << std::endl;
+
+	SceneChangeNotify();
+}
+
 void bridgeSelectedFaces(const cmd::ArgumentList& args)
 {
     UndoableCommand undo("brushBridge");
@@ -1232,6 +1326,8 @@ void registerCommands()
         [] { return GlobalSelectionSystem().getSelectionInfo().totalCount > 0; });
     GlobalCommandSystem().addWithCheck("CSGBridge", bridgeSelectedFaces,
         [] { return GlobalSelectionSystem().getSelectionInfo().componentCount > 0; });
+    GlobalCommandSystem().addWithCheck("CarveEntityOpening", carveSelectedEntityOpenings,
+        [] { return GlobalSelectionSystem().getSelectionInfo().entityCount > 0; });
 }
 
 } // namespace algorithm

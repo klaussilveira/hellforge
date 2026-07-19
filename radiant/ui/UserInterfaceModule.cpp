@@ -107,6 +107,7 @@
 #include "surfaceinspector/SurfaceInspectorControl.h"
 #include "textool/TextureToolControl.h"
 #include "transform/TransformPanelControl.h"
+#include "walltool/WallToolControl.h"
 
 namespace ui
 {
@@ -300,6 +301,12 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
     registerControl(std::make_shared<SelectionGroupControl>());
     registerControl(std::make_shared<TerrainSculptControl>());
     registerControl(std::make_shared<VertexPaintControl>());
+    registerControl(std::make_shared<WallToolControl>());
+
+    GlobalEventManager().addToggle("ToggleWallMode", [](bool)
+    {
+        GlobalCommandSystem().executeCommand("ToggleWallTool");
+    });
 
     GlobalMainFrame().signal_MainFrameConstructed().connect([&]()
 {
@@ -349,6 +356,9 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
         );
         GlobalMainFrame().addControl(
             UserControl::VertexPaint, ControlSettings::floating(320, 260)
+        );
+        GlobalMainFrame().addControl(
+            UserControl::WallTool, ControlSettings::floating(320, 380)
         );
 
         _viewMenu = std::make_unique<ViewMenu>();

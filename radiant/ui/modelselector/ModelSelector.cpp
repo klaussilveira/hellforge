@@ -204,6 +204,7 @@ void ModelSelector::onRelatedEntityActivated(wxDataViewEvent& ev)
     _result.name = eclass;
     _result.skin = "";
     _result.createClip = false;
+    _result.carveOpening = findNamedObject<wxCheckBox>(this, "ModelSelectorCarveOption")->GetValue();
 
     EndModal(wxID_OK);
     Hide();
@@ -483,6 +484,7 @@ void ModelSelector::onOK(wxCommandEvent& ev)
     _result.name = _treeView->GetSelectedModelPath();
     _result.skin = _treeView->GetSelectedSkin();
     _result.createClip = findNamedObject<wxCheckBox>(this, "ModelSelectorMonsterClipOption")->GetValue();
+    _result.carveOpening = findNamedObject<wxCheckBox>(this, "ModelSelectorCarveOption")->GetValue();
 
     // Remember the last selected model
     registry::setValue(RKEY_LAST_SELECTED_MODEL, _result.name);

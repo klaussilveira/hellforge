@@ -142,6 +142,12 @@ void CamWnd::onPanelDeactivated()
 
 void CamWnd::connectEventHandlers()
 {
+    // Restore the motion handlers removed by disconnectEventHandlers()
+    if (!_freeMoveEnabled)
+    {
+        addHandlersMove();
+    }
+
     // Subscribe to the global scene graph update
     GlobalSceneGraph().addSceneObserver(this);
 
@@ -748,33 +754,38 @@ void CamWnd::drawGrid()
     for (int idx = -halfSteps; idx <= halfSteps; ++idx)
     {
         const double x = idx * step;
-        const bool isMajor = (idx % majorEvery) == 0;
         const float a = alphaFor(std::abs(x));
         const float xf = static_cast<float>(x);
-
-        const float r = isMajor ? 0.60f : 0.55f;
-        const float g = r;
-        const float b = r;
-        const float lineAlpha = isMajor ? 0.45f * a : 0.20f * a;
 
         // Vertical line at this X position
         if (!isSameLine(x, skipVerticalAtX))
         {
             const double worldX = x + origin.x();
+
+            // Anchor major lines to absolute world coordinates
+            const bool isMajor = (std::llround(worldX / step) % majorEvery) == 0;
+            const float r = isMajor ? 0.60f : 0.55f;
+            const float lineAlpha = isMajor ? 0.45f * a : 0.20f * a;
+
             const float aFar0 = lineAlpha * depthAlphaForLine(worldX, origin.y() - GRID_MAX_DIM);
             const float aFar1 = lineAlpha * depthAlphaForLine(worldX, origin.y() + GRID_MAX_DIM);
             gridVertices.insert(gridVertices.end(), { xf, -GRID_MAX_F, 0.0f, xf, GRID_MAX_F, 0.0f });
-            gridColors.insert(gridColors.end(), { r, g, b, aFar0, r, g, b, aFar1 });
+            gridColors.insert(gridColors.end(), { r, r, r, aFar0, r, r, r, aFar1 });
         }
 
         // Horizontal line at this Y position
         if (!isSameLine(x, skipHorizontalAtY))
         {
             const double worldY = x + origin.y();
+
+            const bool isMajor = (std::llround(worldY / step) % majorEvery) == 0;
+            const float r = isMajor ? 0.60f : 0.55f;
+            const float lineAlpha = isMajor ? 0.45f * a : 0.20f * a;
+
             const float aFar0 = lineAlpha * depthAlphaForLine(origin.x() - GRID_MAX_DIM, worldY);
             const float aFar1 = lineAlpha * depthAlphaForLine(origin.x() + GRID_MAX_DIM, worldY);
             gridVertices.insert(gridVertices.end(), { -GRID_MAX_F, xf, 0.0f, GRID_MAX_F, xf, 0.0f });
-            gridColors.insert(gridColors.end(), { r, g, b, aFar0, r, g, b, aFar1 });
+            gridColors.insert(gridColors.end(), { r, r, r, aFar0, r, r, r, aFar1 });
         }
     }
 
@@ -1117,6 +1128,8 @@ void CamWnd::onSceneGraphChange()
 
 void CamWnd::addHandlersMove()
 {
+    // Unbind first to stay idempotent, this is called from multiple paths
+    _wxGLWidget->Unbind(wxEVT_MOTION, &CamWnd::onGLMouseMove, this);
     _wxGLWidget->Bind(wxEVT_MOTION, &CamWnd::onGLMouseMove, this);
 }
 

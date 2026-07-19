@@ -52,6 +52,7 @@ public:
 
         // Model creation options
         bool createClip = false;
+        bool carveOpening = false;
     };
 
 private:

@@ -200,6 +200,9 @@
     <Filter Include="src\ui\console">
       <UniqueIdentifier>{66e30145-e977-405c-9507-fc783318215a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\walltool">
+      <UniqueIdentifier>{5deb04e3-fe0b-438e-bd7f-851ec66e8295}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\decalshooter">
       <UniqueIdentifier>{fe90a752-ef9b-4501-a9c2-e5b3f41c2259}</UniqueIdentifier>
     </Filter>
@@ -426,6 +429,18 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\xyview\tools\ClipperTool.cpp">
       <Filter>src\xyview\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\xyview\tools\WallGeometry.cpp">
+      <Filter>src\xyview\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\xyview\tools\WallTool.cpp">
+      <Filter>src\xyview\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\walltool\WallCursorPreview.cpp">
+      <Filter>src\ui\walltool</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\walltool\WallToolPanel.cpp">
+      <Filter>src\ui\walltool</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\xyview\tools\PolygonTool.cpp">
       <Filter>src\xyview\tools</Filter>
@@ -1079,6 +1094,21 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\xyview\tools\ClipperTool.h">
       <Filter>src\xyview\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\xyview\tools\WallGeometry.h">
+      <Filter>src\xyview\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\xyview\tools\WallTool.h">
+      <Filter>src\xyview\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\walltool\WallCursorPreview.h">
+      <Filter>src\ui\walltool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\walltool\WallToolControl.h">
+      <Filter>src\ui\walltool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\walltool\WallToolPanel.h">
+      <Filter>src\ui\walltool</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\xyview\tools\PolygonTool.h">
       <Filter>src\xyview\tools</Filter>

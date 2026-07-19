@@ -16,6 +16,7 @@
 #include "tools/BrushCreatorTool.h"
 #include "tools/ClipperTool.h"
 #include "tools/PolygonTool.h"
+#include "tools/WallTool.h"
 #include "tools/ZoomTool.h"
 #include "tools/CameraAngleTool.h"
 #include "tools/CameraMoveTool.h"
@@ -599,6 +600,10 @@ void XYWndManager::initialiseModule(const IApplicationContext& ctx)
     IMouseToolGroup& camGroup = GlobalMouseToolManager().getGroup(IMouseToolGroup::Type::CameraView);
     camGroup.registerMouseTool(_polygonTool);
 
+    _wallTool = std::make_shared<WallTool>();
+    toolGroup.registerMouseTool(_wallTool);
+    camGroup.registerMouseTool(_wallTool);
+
     toolGroup.registerMouseTool(std::make_shared<ZoomTool>());
     toolGroup.registerMouseTool(std::make_shared<CameraAngleTool>());
     toolGroup.registerMouseTool(std::make_shared<CameraMoveTool>());
@@ -615,6 +620,7 @@ void XYWndManager::shutdownModule()
 	// Clear all tracked references
     _xyWnds.clear();
     _polygonTool.reset();
+    _wallTool.reset();
 
 	OrthoView::releaseStates();
 }

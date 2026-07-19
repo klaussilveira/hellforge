@@ -11,6 +11,9 @@
       <tool name="CameraMoveTool" button="" modifiers="" />
       <tool name="ClipperTool" button="LMB" modifiers="" />
       <tool name="PolygonTool" button="LMB" modifiers="" />
+      <tool name="WallTool" button="LMB" modifiers="" />
+      <tool name="WallTool" button="LMB" modifiers="ALT" />
+      <tool name="WallTool" button="LMB" modifiers="CONTROL" />
       <tool name="MoveViewTool" button="MMB" modifiers="" />
       <tool name="ZoomTool" button="RMB" modifiers="SHIFT" />
       <tool name="MeasurementTool" button="MMB" modifiers="CONTROL" />
@@ -28,6 +31,9 @@
       <tool name="PasteShaderNameTool" button="MMB" modifiers="ALT+SHIFT" />
       <tool name="ManipulateMouseTool" button="LMB" modifiers="" />
       <tool name="PolygonTool" button="LMB" modifiers="" />
+      <tool name="WallTool" button="LMB" modifiers="" />
+      <tool name="WallTool" button="LMB" modifiers="ALT" />
+      <tool name="WallTool" button="LMB" modifiers="CONTROL" />
       <tool name="CameraBrushCreatorTool" button="LMB" modifiers="" />
       <tool name="BasicSelectionTool" button="LMB" modifiers="SHIFT" />
       <tool name="DragSelectionMouseToolFaceOnly" button="LMB" modifiers="SHIFT+CONTROL" />

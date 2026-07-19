@@ -9,7 +9,7 @@
 
 #include "OrthoView.h"
 
-namespace ui { class PolygonTool; }
+namespace ui { class PolygonTool; class WallTool; }
 
 class wxMouseEvent;
 
@@ -46,6 +46,8 @@ class XYWndManager: public IOrthoViewManager, public IUserControlCreator
 
     // Reference to the polygon tool for command access
     std::shared_ptr<PolygonTool> _polygonTool;
+
+    std::shared_ptr<WallTool> _wallTool;
 
     unsigned int _defaultBlockSize;
     int _fontSize;

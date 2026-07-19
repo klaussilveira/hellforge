@@ -4,6 +4,7 @@
 #include "ifavourites.h"
 #include "icommandsystem.h"
 #include "iorthoview.h"
+#include "igrid.h"
 
 #include "wxutil/Bitmap.h"
 #include <wx/toolbar.h>
@@ -391,7 +392,8 @@ void FavouritesBrowser::onCreateEntity()
     // wrong number of brushes is selected.
     try
     {
-        GlobalEntityModule().createEntityFromSelection(data->fullPath, GlobalOrthoViewManager().getActiveViewOrigin());
+        GlobalEntityModule().createEntityFromSelection(data->fullPath,
+            GlobalOrthoViewManager().getActiveViewOrigin().getSnapped(GlobalGrid().getGridSize()));
     }
     catch (cmd::ExecutionFailure& e)
     {
@@ -432,7 +434,8 @@ void FavouritesBrowser::onCreateSpeaker()
     auto* data = reinterpret_cast<FavouriteItem*>(_listView->GetItemData(selection.front()));
 
     GlobalCommandSystem().executeCommand("CreateSpeaker", {
-        cmd::Argument(data->leafName), cmd::Argument(GlobalOrthoViewManager().getActiveViewOrigin())
+        cmd::Argument(data->leafName),
+        cmd::Argument(GlobalOrthoViewManager().getActiveViewOrigin().getSnapped(GlobalGrid().getGridSize()))
     });
 }
 

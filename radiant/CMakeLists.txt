@@ -208,11 +208,15 @@ add_executable(hellforge
                ui/toolbar/ToolbarManager.cpp
                ui/transform/TransformPanel.cpp
                ui/UserInterfaceModule.cpp
+               ui/walltool/WallCursorPreview.cpp
+               ui/walltool/WallToolPanel.cpp
                xyview/GlobalXYWnd.cpp
                xyview/tools/BrushCreatorTool.cpp
                xyview/tools/ClipperTool.cpp
                xyview/tools/MeasurementTool.cpp
                xyview/tools/PolygonTool.cpp
+               xyview/tools/WallGeometry.cpp
+               xyview/tools/WallTool.cpp
                xyview/OrthoView.cpp)
 target_compile_options(hellforge PRIVATE ${FREETYPE_CFLAGS} ${GLIB_CFLAGS} ${GTK3_CFLAGS})
 target_include_directories(hellforge PRIVATE .)

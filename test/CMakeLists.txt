@@ -73,6 +73,8 @@ add_executable(drtest
                TrimTool.cpp
                UndoRedo.cpp
                VFS.cpp
+               WallGeometry.cpp
+               ${CMAKE_SOURCE_DIR}/radiant/xyview/tools/WallGeometry.cpp
                WorldspawnColour.cpp
                XmlUtil.cpp)
 

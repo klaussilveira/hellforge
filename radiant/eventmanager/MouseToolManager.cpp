@@ -1,5 +1,7 @@
 #include "MouseToolManager.h"
 
+#include <set>
+
 #include <stdexcept>
 #include "iradiant.h"
 #include "iregistry.h"
@@ -81,29 +83,47 @@ void MouseToolManager::loadGroupMapping(MouseToolGroup::Type type)
 {
 	MouseToolGroup& group = getGroup(type);
 
-    // User-defined mapping take precedence, add them first
-    auto mappings = GlobalRegistry().findXPath(getMappingPath(true, type));
-
-    // Append the default mappings at the end of the list
+    // User-defined mappings take precedence over the default ones
+    auto userMappings = GlobalRegistry().findXPath(getMappingPath(true, type));
     auto defaultMappings = GlobalRegistry().findXPath(getMappingPath(false, type));
-    mappings.insert(mappings.end(), defaultMappings.begin(), defaultMappings.end());
 
 	group.clearToolMappings();
 
 	group.foreachMouseTool([&] (const MouseToolPtr& tool)
 	{
-		for (const auto& node : mappings)
+		std::set<unsigned int> mappedStates;
+
+		// A tool can be mapped to multiple button+modifier combinations
+		for (const auto& node : userMappings)
 		{
             if (node.getAttributeValue("name") != tool->getName())
             {
                 continue;
             }
 
-			// Found it, load the modifier+button combination
 			auto state = wxutil::MouseButton::LoadFromNode(node) | wxutil::Modifier::LoadFromNode(node);
-			group.addToolMapping(state, tool);
 
-			break; // done here
+			if (mappedStates.insert(state).second)
+			{
+				group.addToolMapping(state, tool);
+			}
+		}
+
+		// Append default combinations not covered by the user mappings, so
+		// newly introduced default chords reach existing configurations
+		for (const auto& node : defaultMappings)
+		{
+            if (node.getAttributeValue("name") != tool->getName())
+            {
+                continue;
+            }
+
+			auto state = wxutil::MouseButton::LoadFromNode(node) | wxutil::Modifier::LoadFromNode(node);
+
+			if (mappedStates.insert(state).second)
+			{
+				group.addToolMapping(state, tool);
+			}
 		}
 	});
 }

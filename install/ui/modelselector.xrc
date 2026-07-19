@@ -50,6 +50,15 @@
 														<checked>0</checked>
 													</object>
 												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxALL</flag>
+													<border>6</border>
+													<object class="wxCheckBox" name="ModelSelectorCarveOption">
+														<label>Carve opening into intersecting brushes</label>
+														<checked>0</checked>
+													</object>
+												</object>
 											</object>
 										</object>
 									</object>
