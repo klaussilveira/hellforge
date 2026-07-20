@@ -41,6 +41,10 @@ public:
 	// Must be called on the main thread. Returns true on success.
 	bool captureToFile(const std::string& filename, int maxWidth = 0);
 
+	// Render the scene to the back buffer and read it into the given image.
+	// Must be called on the main thread. Returns true on success.
+	bool captureImage(wxImage& image, int maxWidth = 0);
+
 	virtual ~GLWidget();
 
 private:

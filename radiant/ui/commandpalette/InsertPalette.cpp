@@ -421,14 +421,8 @@ void InsertPalette::insertSelected()
 			break;
 
 		case AssetType::Model:
-		{
-			auto node = GlobalEntityModule().createEntityFromSelection("func_static", pos);
-			if (node)
-			{
-				node->getEntity().setKeyValue("model", entry.name);
-			}
+			GlobalEntityModule().createModelEntityFromSelection(entry.name, pos);
 			break;
-		}
 
 		case AssetType::Prefab:
 		{

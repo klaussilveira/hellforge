@@ -87,6 +87,7 @@ struct UserControl
     constexpr static const char* TerrainSculpt = "TerrainSculpt";
     constexpr static const char* VertexPaint = "VertexPaint";
     constexpr static const char* WallTool = "WallTool";
+    constexpr static const char* AssetBrowser = "AssetBrowser";
 };
 
 }

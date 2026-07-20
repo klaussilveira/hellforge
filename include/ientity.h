@@ -209,6 +209,9 @@ public:
      * @throws: cmd::ExecutionFailure if anything goes wrong or the selection is not suitable.
      */
     virtual EntityNodePtr createEntityFromSelection(const std::string& name, const Vector3& origin) = 0;
+
+    virtual EntityNodePtr createModelEntityFromSelection(const std::string& model,
+        const Vector3& origin, const std::string& skin = std::string()) = 0;
 };
 
 inline IEntityModule& GlobalEntityModule()

@@ -245,6 +245,26 @@ EntityNodePtr Doom3EntityModule::createEntityFromSelection(const std::string& na
     return node;
 }
 
+EntityNodePtr Doom3EntityModule::createModelEntityFromSelection(const std::string& model,
+    const Vector3& origin, const std::string& skin)
+{
+    auto modelDef = GlobalEntityClassManager().findModel(model);
+
+    auto node = createEntityFromSelection(modelDef ? "func_animate" : "func_static", origin);
+
+    if (node)
+    {
+        node->getEntity().setKeyValue("model", model);
+
+        if (!skin.empty())
+        {
+            node->getEntity().setKeyValue("skin", skin);
+        }
+    }
+
+    return node;
+}
+
 ITargetManagerPtr Doom3EntityModule::createTargetManager()
 {
     return std::make_shared<TargetManager>();

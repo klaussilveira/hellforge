@@ -36,6 +36,7 @@
 #include "registry/registry.h"
 #include "FloorHeightWalker.h"
 #include "tools/FaceIntersectionFinder.h"
+#include "ui/assetbrowser/AssetDropTarget.h"
 
 #include "debugging/debugging.h"
 #include "debugging/gl.h"
@@ -321,6 +322,12 @@ void CamWnd::constructGUIComponents()
     _wxGLWidget->SetMinClientSize(wxSize(CAMWND_MINSIZE_X, CAMWND_MINSIZE_Y));
     _wxGLWidget->Bind(wxEVT_SIZE, &CamWnd::onGLResize, this);
     _wxGLWidget->Bind(wxEVT_MOUSEWHEEL, &CamWnd::onMouseScroll, this);
+
+    _wxGLWidget->SetDropTarget(new AssetDropTarget(*this,
+        [](int, int, const Vector3& pointOnMouseRay)
+        {
+            return pointOnMouseRay.getSnapped(GlobalGrid().getGridSize());
+        }));
 
     _mainWxWidget->GetSizer()->Add(_wxGLWidget, 1, wxEXPAND);
 }

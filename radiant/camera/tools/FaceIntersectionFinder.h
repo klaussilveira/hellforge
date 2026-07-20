@@ -45,6 +45,16 @@ public:
 
     FaceIntersection getResult() const;
 
+    const Vector3& getRayOrigin() const
+    {
+        return _worldRayOrigin;
+    }
+
+    const Vector3& getRayDirection() const
+    {
+        return _worldRayDirection;
+    }
+
 private:
     static void computeWorldRay(const Matrix4& viewProjection,
                                  Vector3& outOrigin, Vector3& outDirection);

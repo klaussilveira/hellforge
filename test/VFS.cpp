@@ -68,11 +68,13 @@ TEST_F(VfsTest, GetArchiveFileInfo)
     EXPECT_EQ(foundFiles.find(physicalFile)->second.getSize(), os::getFileSize(physicalFilePath.string()));
     EXPECT_EQ(foundFiles.find(physicalFile)->second.getIsPhysicalFile(), true);
     EXPECT_EQ(foundFiles.find(physicalFile)->second.getArchivePath(), _context.getTestProjectPath());
+    EXPECT_EQ(foundFiles.find(physicalFile)->second.getPhysicalPath(), physicalFilePath.string());
 
     EXPECT_EQ(foundFiles.find(fileInPak)->second.getSize(), 1096); // that file should have 1096 bytes
     EXPECT_EQ(foundFiles.find(fileInPak)->second.getIsPhysicalFile(), false);
     // The PK4 file is located right in the test resources folder
     EXPECT_EQ(foundFiles.find(fileInPak)->second.getArchivePath(), pk4Path.string());
+    EXPECT_EQ(foundFiles.find(fileInPak)->second.getPhysicalPath(), pk4Path.string());
 }
 
 TEST_F(VfsTest, VisitMaterialsFolderOnly)

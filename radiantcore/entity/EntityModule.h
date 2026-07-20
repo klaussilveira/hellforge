@@ -26,6 +26,9 @@ public:
 	 */
 	EntityNodePtr createEntityFromSelection(const std::string& name, const Vector3& origin) override;
 
+	EntityNodePtr createModelEntityFromSelection(const std::string& model,
+		const Vector3& origin, const std::string& skin) override;
+
 	// RegisterableModule implementation
 	std::string getName() const override;
 	StringSet getDependencies() const override;

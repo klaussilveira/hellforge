@@ -10,6 +10,7 @@
 #include "os/file.h"
 
 #include "render/VertexHashing.h"
+#include "string/convert.h"
 #include "string/replace.h"
 
 namespace test
@@ -480,6 +481,43 @@ TEST_F(ModelTest, NullModelTransformAfterSceneInsertion)
     auto modelTranslation = nullModelNode->localToWorld().tCol().getVector3();
     EXPECT_TRUE(math::isNear(modelTranslation, entityOrigin, 0.01)) <<
         "Model node should be at the entity's origin, but was at " << modelTranslation;
+}
+
+TEST_F(ModelTest, CreateModelEntityFromSelection)
+{
+    std::string modelPath = "models/ase/testcube.ase";
+    auto origin = Vector3(320, 100, 0);
+
+    auto node = GlobalEntityModule().createModelEntityFromSelection(modelPath, origin);
+
+    EXPECT_TRUE(node) << "No entity node created for the model path";
+    EXPECT_EQ(node->getEntity().getKeyValue("classname"), "func_static");
+    EXPECT_EQ(node->getEntity().getKeyValue("model"), modelPath);
+    EXPECT_TRUE(node->getEntity().getKeyValue("skin").empty());
+
+    auto entityOrigin = string::convert<Vector3>(node->getEntity().getKeyValue("origin"));
+    EXPECT_TRUE(math::isNear(entityOrigin, origin, 0.01)) <<
+        "Entity should be at the given origin, but was at " << entityOrigin;
+
+    EXPECT_TRUE(algorithm::findChildModel(node)) << "Entity should have a child model node";
+}
+
+TEST_F(ModelTest, CreateModelEntityFromSelectionWithSkin)
+{
+    auto node = GlobalEntityModule().createModelEntityFromSelection(
+        "models/ase/testcube.ase", Vector3(0, 0, 0), "test_skin");
+
+    EXPECT_TRUE(node) << "No entity node created for the model path";
+    EXPECT_EQ(node->getEntity().getKeyValue("skin"), "test_skin");
+}
+
+TEST_F(ModelTest, CreateModelEntityFromSelectionForModelDef)
+{
+    auto node = GlobalEntityModule().createModelEntityFromSelection("flag_pirate01", Vector3(50, 30, 10));
+
+    EXPECT_TRUE(node) << "No entity node created for the modelDef";
+    EXPECT_EQ(node->getEntity().getKeyValue("classname"), "func_animate");
+    EXPECT_EQ(node->getEntity().getKeyValue("model"), "flag_pirate01");
 }
 
 inline void performModelNodeTest(const std::string& testProjectPath, const std::string& modelPath, int expectedPolyCount)

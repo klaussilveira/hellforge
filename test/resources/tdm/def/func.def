@@ -12,3 +12,14 @@ entityDef func_emitter
 
     "editor_setKeyValue model"  "-"
 }
+
+entityDef func_animate
+{
+    "inherit"           "func_static"
+
+    "editor_color"      "0 0.5 0.8"
+    "editor_mins"       "-8 -8 -8"
+    "editor_maxs"       "8 8 8"
+
+    "spawnclass"        "idAnimated"
+}

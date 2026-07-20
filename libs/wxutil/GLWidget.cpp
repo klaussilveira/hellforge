@@ -131,7 +131,7 @@ void GLWidget::OnPaint(wxPaintEvent& WXUNUSED(event))
 	}
 }
 
-bool GLWidget::captureToFile(const std::string& filename, int maxWidth)
+bool GLWidget::captureImage(wxImage& image, int maxWidth)
 {
 	if (!IsShownOnScreen()) return false;
 
@@ -165,7 +165,7 @@ bool GLWidget::captureToFile(const std::string& filename, int maxWidth)
 	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
 
 	// GL reads bottom-up, wxImage expects top-down
-	wxImage image(width, height, false);
+	image.Create(width, height, false);
 	auto* dst = image.GetData();
 	int rowBytes = width * 3;
 
@@ -183,6 +183,16 @@ bool GLWidget::captureToFile(const std::string& filename, int maxWidth)
 		if (newHeight > 0)
 			image.Rescale(maxWidth, newHeight, wxIMAGE_QUALITY_HIGH);
 	}
+
+	return true;
+}
+
+bool GLWidget::captureToFile(const std::string& filename, int maxWidth)
+{
+	wxImage image;
+
+	if (!captureImage(image, maxWidth))
+		return false;
 
 	return image.SaveFile(filename, wxBITMAP_TYPE_PNG);
 }

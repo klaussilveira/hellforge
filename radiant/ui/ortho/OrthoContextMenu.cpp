@@ -35,8 +35,6 @@ namespace {
     /* CONSTANTS */
 
     const char* LIGHT_CLASSNAME = "light";
-    const char* MODEL_CLASSNAME_ANIMATED = "func_animate";
-    const char* MODEL_CLASSNAME_STATIC = "func_static";
     const char* PLAYERSTART_CLASSNAME = "info_player_start";
 
     const char* ADD_ENTITY_TEXT = N_("Create Entity...");
@@ -357,17 +355,7 @@ void OrthoContextMenu::callbackAddModel()
     // Create a model
     try
     {
-        auto modelDef = GlobalEntityClassManager().findModel(ms.name);
-
-        auto className = modelDef ? MODEL_CLASSNAME_ANIMATED : MODEL_CLASSNAME_STATIC;
-
-        auto modelNode = GlobalEntityModule().createEntityFromSelection(
-            className, _lastPoint
-        );
-
-        //Node_getTraversable(GlobalSceneGraph().root())->insert(modelNode);
-        modelNode->getEntity().setKeyValue("model", ms.name);
-        modelNode->getEntity().setKeyValue("skin", ms.skin);
+        GlobalEntityModule().createModelEntityFromSelection(ms.name, _lastPoint, ms.skin);
 
         // If 'createClip' is ticked, create a clip brush
         if (ms.createClip)

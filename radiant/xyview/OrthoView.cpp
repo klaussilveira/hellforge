@@ -21,6 +21,7 @@
 #include "camera/CameraSettings.h"
 #include "ui/ortho/OrthoContextMenu.h"
 #include "ui/overlay/Overlay.h"
+#include "ui/assetbrowser/AssetDropTarget.h"
 #include "registry/registry.h"
 #include "selection/Device.h"
 #include "selection/SelectionVolume.h"
@@ -142,6 +143,9 @@ OrthoView::OrthoView(wxWindow* parent, XYWndManager& owner)
     _freezePointer.connectMouseEvents(
         std::bind(&OrthoView::onGLMouseButtonPress, this, std::placeholders::_1),
         std::bind(&OrthoView::onGLMouseButtonRelease, this, std::placeholders::_1));
+
+    _wxGLWidget->SetDropTarget(new AssetDropTarget(*this,
+        [this](int x, int y, const Vector3&) { return mouseToPoint(Vector2i(x, y)); }));
 
     updateProjection();
     updateModelview();

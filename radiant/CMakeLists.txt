@@ -34,6 +34,10 @@ add_executable(hellforge
                ui/aas/RenderableAasFile.cpp
                ui/about/AboutDialog.cpp
                ui/array/ArrayDialog.cpp
+               ui/assetbrowser/AssetBrowserPanel.cpp
+               ui/assetbrowser/AssetDropTarget.cpp
+               ui/assetbrowser/ThumbnailCache.cpp
+               ui/assetbrowser/ThumbnailPreview.cpp
                ui/brush/CreateTrimDialog.cpp
                ui/brush/FindBrush.cpp
                ui/brush/QuerySidesDialog.cpp

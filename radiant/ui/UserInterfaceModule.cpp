@@ -108,6 +108,7 @@
 #include "textool/TextureToolControl.h"
 #include "transform/TransformPanelControl.h"
 #include "walltool/WallToolControl.h"
+#include "assetbrowser/AssetBrowserControl.h"
 
 namespace ui
 {
@@ -302,6 +303,8 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
     registerControl(std::make_shared<TerrainSculptControl>());
     registerControl(std::make_shared<VertexPaintControl>());
     registerControl(std::make_shared<WallToolControl>());
+    registerControl(std::make_shared<AssetBrowserControl>());
+    AssetBrowserPanel::constructPreferences();
 
     GlobalEventManager().addToggle("ToggleWallMode", [](bool)
     {
@@ -359,6 +362,9 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
         );
         GlobalMainFrame().addControl(
             UserControl::WallTool, ControlSettings::floating(320, 380)
+        );
+        GlobalMainFrame().addControl(
+            UserControl::AssetBrowser, ControlSettings{ IMainFrame::Location::PropertyPanel, true }
         );
 
         _viewMenu = std::make_unique<ViewMenu>();

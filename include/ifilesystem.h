@@ -128,6 +128,23 @@ public:
         return _infoProvider ? _infoProvider->getArchivePath(fullPath()) : "";
     }
 
+    std::string getPhysicalPath() const
+    {
+        auto archivePath = getArchivePath();
+
+        if (!getIsPhysicalFile() || archivePath.empty())
+        {
+            return archivePath;
+        }
+
+        if (archivePath.back() != '/')
+        {
+            archivePath += '/';
+        }
+
+        return archivePath + fullPath();
+    }
+
     /// Equality comparison with another FileInfo
     bool operator== (const FileInfo& rhs) const
     {
