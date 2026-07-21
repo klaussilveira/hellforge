@@ -86,6 +86,27 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\test\Basic.cpp" />
     <ClCompile Include="..\..\..\test\Brush.cpp" />
+    <ClCompile Include="..\..\..\test\BuildingGenerator.cpp" />
+    <ClCompile Include="..\..\..\test\DarkmodTxt.cpp" />
+    <ClCompile Include="..\..\..\test\KeyCode.cpp" />
+    <ClCompile Include="..\..\..\test\StairsGenerator.cpp" />
+    <ClCompile Include="..\..\..\test\TrimTool.cpp" />
+    <ClCompile Include="..\..\..\plugins\dm.editing\DarkmodTxt.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\..\plugins\dm.editing\MissionInfoTextFile.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
     <ClCompile Include="..\..\..\test\Camera.cpp" />
     <ClCompile Include="..\..\..\test\Clipboard.cpp" />
     <ClCompile Include="..\..\..\test\CodeTokeniser.cpp" />
@@ -172,7 +193,14 @@
     <ClCompile Include="..\..\..\test\UndoRedo.cpp" />
     <ClCompile Include="..\..\..\test\VFS.cpp" />
     <ClCompile Include="..\..\..\test\WallGeometry.cpp" />
-    <ClCompile Include="..\..\..\radiant\xyview\tools\WallGeometry.cpp" />
+    <ClCompile Include="..\..\..\radiant\xyview\tools\WallGeometry.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
     <ClCompile Include="..\..\..\test\WindingRendering.cpp" />
     <ClCompile Include="..\..\..\test\WorldspawnColour.cpp" />
     <ClCompile Include="..\..\..\test\XmlUtil.cpp" />

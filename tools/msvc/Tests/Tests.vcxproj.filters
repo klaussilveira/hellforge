@@ -38,6 +38,13 @@
     <ClCompile Include="..\..\..\test\Basic.cpp" />
     <ClCompile Include="..\..\..\test\MaterialExport.cpp" />
     <ClCompile Include="..\..\..\test\Brush.cpp" />
+    <ClCompile Include="..\..\..\test\BuildingGenerator.cpp" />
+    <ClCompile Include="..\..\..\test\StairsGenerator.cpp" />
+    <ClCompile Include="..\..\..\test\TrimTool.cpp" />
+    <ClCompile Include="..\..\..\test\KeyCode.cpp" />
+    <ClCompile Include="..\..\..\test\DarkmodTxt.cpp" />
+    <ClCompile Include="..\..\..\plugins\dm.editing\DarkmodTxt.cpp" />
+    <ClCompile Include="..\..\..\plugins\dm.editing\MissionInfoTextFile.cpp" />
     <ClCompile Include="..\..\..\test\Renderer.cpp" />
     <ClCompile Include="..\..\..\test\math\Vector.cpp">
       <Filter>math</Filter>

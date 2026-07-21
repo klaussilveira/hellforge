@@ -110,6 +110,9 @@
     <ClCompile Include="..\..\radiantcore\map\format\primitiveparsers\Patch.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\primitiveparsers\PatchDef2.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\primitiveparsers\PatchDef3.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\primitiveparsers\Quake1BrushDef.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\Quake1MapFormat.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\ValveVmfFormat.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake3MapFormat.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake3MapReader.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake4MapFormat.cpp" />

@@ -20,6 +20,7 @@ add_executable(drtest
                DefTokenisers.cpp
                Entity.cpp
                EntityClass.cpp
+               EntityInspector.cpp
                Favourites.cpp
                FileTypes.cpp
                Filters.cpp
@@ -59,6 +60,7 @@ add_executable(drtest
                Selection.cpp
                SelectionGroup.cpp
                Settings.cpp
+               Skin.cpp
                StairsGenerator.cpp
                SoundManager.cpp
                TerrainGenerator.cpp
@@ -75,6 +77,7 @@ add_executable(drtest
                VFS.cpp
                WallGeometry.cpp
                ${CMAKE_SOURCE_DIR}/radiant/xyview/tools/WallGeometry.cpp
+               WindingRendering.cpp
                WorldspawnColour.cpp
                XmlUtil.cpp)
 

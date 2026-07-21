@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "RadiantTest.h"
+#include "scene/EntityNode.h"
 #include "scenelib.h"
 #include "render/MeshVertex.h"
 #include "render/CompactWindingVertexBuffer.h"

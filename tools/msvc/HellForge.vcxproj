@@ -229,6 +229,10 @@
     <ClCompile Include="..\..\radiant\ui\aas\AasVisualisationPanel.cpp" />
     <ClCompile Include="..\..\radiant\ui\aas\RenderableAasFile.cpp" />
     <ClCompile Include="..\..\radiant\ui\array\ArrayDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\AssetBrowserPanel.cpp" />
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\AssetDropTarget.cpp" />
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailCache.cpp" />
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailPreview.cpp" />
     <ClCompile Include="..\..\radiant\ui\animationpreview\AnimationPreview.cpp" />
     <ClCompile Include="..\..\radiant\ui\animationpreview\MD5AnimationChooser.cpp" />
     <ClCompile Include="..\..\radiant\ui\animationpreview\MD5AnimationViewer.cpp" />
@@ -267,6 +271,7 @@
     <ClCompile Include="..\..\radiant\ui\fx\FxChooser.cpp" />
     <ClCompile Include="..\..\radiant\ui\gl\WxGLWidgetManager.cpp" />
     <ClCompile Include="..\..\radiant\ui\grid\GridUserInterface.cpp" />
+    <ClCompile Include="..\..\radiant\ui\rotation\RotationSnapUserInterface.cpp" />
     <ClCompile Include="..\..\radiant\ui\layers\CreateLayerDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\layers\LayerControlPanel.cpp" />
     <ClCompile Include="..\..\radiant\ui\LongRunningOperationHandler.cpp" />

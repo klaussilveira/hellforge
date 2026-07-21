@@ -119,6 +119,12 @@
     <Filter Include="src\ui\grid">
       <UniqueIdentifier>{26ca745d-bd90-4d70-beb3-89010a45515f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\assetbrowser">
+      <UniqueIdentifier>{7f1c0d24-6b3e-4a58-9c41-2d8e6b05f3a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui\rotation">
+      <UniqueIdentifier>{b3a92e17-58d4-4c6b-8f27-9e14ac37d05e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\modelexport">
       <UniqueIdentifier>{729325bd-525b-47e6-94cb-1abcc9d27ded}</UniqueIdentifier>
     </Filter>
@@ -537,6 +543,21 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\grid\GridUserInterface.cpp">
       <Filter>src\ui\grid</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\rotation\RotationSnapUserInterface.cpp">
+      <Filter>src\ui\rotation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\AssetBrowserPanel.cpp">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\AssetDropTarget.cpp">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailCache.cpp">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailPreview.cpp">
+      <Filter>src\ui\assetbrowser</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\filters\FilterUserInterface.cpp">
       <Filter>src\ui\filters</Filter>
