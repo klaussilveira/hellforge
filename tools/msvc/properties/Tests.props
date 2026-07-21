@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>scenelib.lib;mathlib.lib;xmlutillib.lib;modulelib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>scenelib.lib;mathlib.lib;xmlutillib.lib;wxutillib.lib;modulelib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(HellForgeRoot)\radiant;$(HellForgeRoot)\plugins\dm.editing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
