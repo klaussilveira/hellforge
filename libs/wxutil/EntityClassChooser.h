@@ -23,7 +23,7 @@ public:
     };
 
 private:
-    EntityClassChooser(Purpose purpose);
+    EntityClassChooser(Purpose purpose, wxWindow* parent);
 
     static std::string GetDialogTitle(Purpose purpose);
 
@@ -39,7 +39,7 @@ public:
      * Optional initial class to locate and highlight in the tree after the
      * dialog is shown.
      */
-    static std::string ChooseEntityClass(Purpose purpose, const std::string& preselectEclass = {});
+    static std::string ChooseEntityClass(Purpose purpose, const std::string& preselectEclass = {}, wxWindow* parent = nullptr);
 };
 
 } // namespace

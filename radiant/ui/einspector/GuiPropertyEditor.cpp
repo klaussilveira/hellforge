@@ -19,7 +19,7 @@ GuiPropertyEditor::GuiPropertyEditor(wxWindow* parent, IEntitySelection& entitie
 void GuiPropertyEditor::onBrowseButtonClick()
 {
 	std::string prev = getKeyValueFromSelection(_key->getFullKey());
-	std::string picked = GuiChooser::ChooseGui(prev);
+	std::string picked = GuiChooser::ChooseGui(prev, wxGetTopLevelParent(getWidget()));
 
 	if (!picked.empty() && picked != prev)
 	{

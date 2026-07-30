@@ -37,7 +37,7 @@ class SkinChooserDialogWrapper :
     public IPropertyEditorDialog
 {
 public:
-    std::string runDialog(Entity* entity, const std::string& key) override;
+    std::string runDialog(Entity* entity, const std::string& key, wxWindow* parent) override;
 };
 
 } // namespace

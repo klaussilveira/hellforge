@@ -62,7 +62,7 @@ IPropertyEditor::Ptr AIVocalSetPropertyEditor::CreateNew(wxWindow* parent, IEnti
 void AIVocalSetPropertyEditor::onChooseButton(wxCommandEvent& ev)
 {
 	// Construct a new vocal set chooser dialog
-	AIVocalSetChooserDialog* dialog = new AIVocalSetChooserDialog;
+	AIVocalSetChooserDialog* dialog = new AIVocalSetChooserDialog(wxGetTopLevelParent(getWidget()));
 
 	dialog->setSelectedVocalSet(_entities.getSharedKeyValue(DEF_VOCAL_SET_KEY, true));
 
@@ -82,10 +82,10 @@ void AIVocalSetPropertyEditor::onChooseButton(wxCommandEvent& ev)
 	dialog->Destroy();
 }
 
-std::string AIVocalSetEditorDialogWrapper::runDialog(Entity* entity, const std::string& key)
+std::string AIVocalSetEditorDialogWrapper::runDialog(Entity* entity, const std::string& key, wxWindow* parent)
 {
     // Construct a new vocal set chooser dialog
-    AIVocalSetChooserDialog* dialog = new AIVocalSetChooserDialog;
+    AIVocalSetChooserDialog* dialog = new AIVocalSetChooserDialog(parent);
 
     std::string oldValue = entity->getKeyValue(DEF_VOCAL_SET_KEY);
     dialog->setSelectedVocalSet(oldValue);

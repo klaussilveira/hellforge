@@ -36,8 +36,8 @@ void FxPropertyEditor::_onBrowseButton(wxCommandEvent& ev)
 {
 	auto currentDecl = _entities.getSharedKeyValue(_key->getFullKey(), false);
 
-	// Use the EntityClassChooser dialog to get a selection from the user
-	auto selectedDecl = FxChooser::ChooseDeclaration(currentDecl);
+	// Use the FxChooser dialog to get a selection from the user
+	auto selectedDecl = FxChooser::ChooseDeclaration(currentDecl, wxGetTopLevelParent(getWidget()));
 
 	// Only apply if the classname has actually changed
 	if (!selectedDecl.empty() && selectedDecl != currentDecl)

@@ -23,7 +23,7 @@ private:
 	std::string _selectedHead;
 
 public:
-	AIHeadChooserDialog();
+	AIHeadChooserDialog(wxWindow* parent);
 
 	// Set the selection to a given entityDef
 	void setSelectedHead(const std::string& headDef);

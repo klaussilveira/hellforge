@@ -10,8 +10,8 @@
 namespace ui
 {
 
-ParticleChooserDialog::ParticleChooserDialog(bool showClassnameSelector) :
-    DeclarationSelectorDialog(decl::Type::Particle, _("Choose Particle"), "ParticleChooser"),
+ParticleChooserDialog::ParticleChooserDialog(bool showClassnameSelector, wxWindow* parent) :
+    DeclarationSelectorDialog(decl::Type::Particle, _("Choose Particle"), "ParticleChooser", parent),
     _selector(new ParticleSelector(this)),
     _funcEmitter(nullptr),
     _funcSmoke(nullptr)
@@ -44,21 +44,21 @@ std::string ParticleChooserDialog::getSelectedClassname()
     return _funcEmitter->GetValue() ? "func_emitter" : "func_smoke";
 }
 
-std::string ParticleChooserDialog::ChooseParticle(const std::string& currentParticle)
+std::string ParticleChooserDialog::ChooseParticle(const std::string& currentParticle, wxWindow* parent)
 {
-    return RunDialog(false, currentParticle).selectedParticle;
+    return RunDialog(false, currentParticle, parent).selectedParticle;
 }
 
 ParticleChooserDialog::SelectionResult
-ParticleChooserDialog::ChooseParticleAndEmitter(const std::string& currentParticle)
+ParticleChooserDialog::ChooseParticleAndEmitter(const std::string& currentParticle, wxWindow* parent)
 {
-    return RunDialog(true, currentParticle);
+    return RunDialog(true, currentParticle, parent);
 }
 
 ParticleChooserDialog::SelectionResult
-ParticleChooserDialog::RunDialog(bool showClassnameSelector, std::string currentParticle)
+ParticleChooserDialog::RunDialog(bool showClassnameSelector, std::string currentParticle, wxWindow* parent)
 {
-    auto* dialog = new ParticleChooserDialog(showClassnameSelector);
+    auto* dialog = new ParticleChooserDialog(showClassnameSelector, parent);
 
     if (string::ends_with(currentParticle, ".prt"))
     {

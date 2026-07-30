@@ -35,8 +35,8 @@ protected:
     }
 };
 
-AIHeadChooserDialog::AIHeadChooserDialog() :
-    DialogBase(_(WINDOW_TITLE)),
+AIHeadChooserDialog::AIHeadChooserDialog(wxWindow* parent) :
+    DialogBase(_(WINDOW_TITLE), parent),
 	_headsView(nullptr),
 	_description(nullptr)
 {

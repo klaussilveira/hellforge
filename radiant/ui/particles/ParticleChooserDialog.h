@@ -24,7 +24,7 @@ class ParticleChooserDialog :
 
 private:
     // Constructor creates elements
-    ParticleChooserDialog(bool showClassnameSelector);
+    ParticleChooserDialog(bool showClassnameSelector, wxWindow* parent);
 
     std::string getSelectedClassname();
 
@@ -49,7 +49,7 @@ public:
      * The name of the particle selected by the user, or an empty string if the
      * choice was cancelled or invalid.
      */
-    static std::string ChooseParticle(const std::string& currentParticle = "");
+    static std::string ChooseParticle(const std::string& currentParticle = "", wxWindow* parent = nullptr);
 
     /**
      * Display the dialog and return the name of the selected particle system, or the
@@ -64,10 +64,10 @@ public:
      * The name of the particle selected by the user, or an empty string if the
      * choice was cancelled or invalid.
      */
-    static SelectionResult ChooseParticleAndEmitter(const std::string& currentParticle = "");
+    static SelectionResult ChooseParticleAndEmitter(const std::string& currentParticle = "", wxWindow* parent = nullptr);
 
 private:
-    static SelectionResult RunDialog(bool showClassnameSelector, std::string currentParticle);
+    static SelectionResult RunDialog(bool showClassnameSelector, std::string currentParticle, wxWindow* parent);
 };
 
 }

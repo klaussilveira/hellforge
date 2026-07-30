@@ -13,6 +13,7 @@
 
 #include <wx/sizer.h>
 #include <wx/checkbox.h>
+#include <wx/textctrl.h>
 #include <wx/wupdlock.h>
 
 #include "util/ScopedBoolLock.h"
@@ -25,17 +26,23 @@ namespace
 	const std::string RKEY_ROOT = "user/ui/entityList/";
 	const std::string RKEY_ENTITYLIST_FOCUS_SELECTION = RKEY_ROOT + "focusSelection";
 	const std::string RKEY_ENTITYLIST_VISIBLE_ONLY = RKEY_ROOT + "visibleNodesOnly";
+
+	const int FILTER_DEBOUNCE_MSECS = 100;
 }
 
 EntityList::EntityList(wxWindow* parent) :
     DockablePanel(parent),
-	_callbackActive(false)
+	_callbackActive(false),
+	_refreshTreeModelOnIdle(false),
+	_filterDebounceTimer(this)
 {
 	populateWindow();
 }
     
 EntityList::~EntityList()
 {
+    _filterDebounceTimer.Stop();
+
     _nodesToUpdate.clear();
 
     // In OSX we might receive callbacks during shutdown, so disable any events
@@ -43,6 +50,7 @@ EntityList::~EntityList()
     {
         _treeView->Unbind(wxEVT_DATAVIEW_SELECTION_CHANGED, &EntityList::onSelection, this);
         _treeView->Unbind(wxEVT_DATAVIEW_ITEM_EXPANDED, &EntityList::onRowExpand, this);
+        _treeView->Unbind(wxEVT_CHAR, &EntityList::onTreeViewChar, this);
     }
 
     if (panelIsActive())
@@ -55,20 +63,22 @@ void EntityList::onPanelActivated()
 {
     connectListeners();
 
-    // Repopulate the model before showing the dialog
-    util::ScopedBoolLock lock(_callbackActive);
-    refreshTreeModel();
+    // Avoid repopulatig inside the event handler
+    scheduleTreeModelRefresh();
 }
 
 void EntityList::onPanelDeactivated()
 {
     disconnectListeners();
 
+    _filterDebounceTimer.Stop();
+
     // Unselect everything when hiding the dialog
     util::ScopedBoolLock lock(_callbackActive);
     _treeView->UnselectAll();
 
     cancelCallbacks();
+    _refreshTreeModelOnIdle = false;
     _itemToScrollToWhenIdle.Unset();
     _nodesToUpdate.clear();
 }
@@ -119,11 +129,20 @@ void EntityList::populateWindow()
 	_treeView->AppendTextColumn(_("Name"), _treeModel.getColumns().name.getColumnIndex(),
 		wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxDATAVIEW_COL_SORTABLE);
 
-    // Enable type-ahead searches
-    _treeView->AddSearchColumn(_treeModel.getColumns().name);
+	_treeView->EnableSearchPopup(false);
+	_filterColumns.push_back(_treeModel.getColumns().name);
+	setupTreeModelFilter();
 
 	_treeView->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, &EntityList::onSelection, this);
 	_treeView->Bind(wxEVT_DATAVIEW_ITEM_EXPANDED, &EntityList::onRowExpand, this);
+
+	_filterBox = new wxTextCtrl(this, wxID_ANY);
+	_filterBox->SetHint(_("Type here to filter"));
+	_filterBox->Bind(wxEVT_TEXT, &EntityList::onFilterTextChanged, this);
+	_filterBox->Bind(wxEVT_CHAR_HOOK, &EntityList::onFilterBoxKey, this);
+	_treeView->Bind(wxEVT_CHAR, &EntityList::onTreeViewChar, this);
+
+	Bind(wxEVT_TIMER, &EntityList::onFilterDebounceTimer, this);
 
 	// Update the toggle item status according to the registry
 
@@ -134,6 +153,7 @@ void EntityList::populateWindow()
     registry::bindWidget(_visibleOnly, RKEY_ENTITYLIST_VISIBLE_ONLY);
 
 	vbox->Add(_treeView, 1, wxEXPAND | wxBOTTOM, 6);
+	vbox->Add(_filterBox, 0, wxEXPAND | wxBOTTOM, 6);
 	vbox->Add(_focusSelected, 0, wxBOTTOM, 6);
 	vbox->Add(_visibleOnly, 0);
 
@@ -155,6 +175,12 @@ void EntityList::updateSelectionStatus()
 		std::placeholders::_1, std::placeholders::_2));
 }
 
+void EntityList::scheduleTreeModelRefresh()
+{
+    _refreshTreeModelOnIdle = true;
+    requestIdleCallback();
+}
+
 void EntityList::refreshTreeModel()
 {
     // Refresh the whole tree
@@ -163,11 +189,10 @@ void EntityList::refreshTreeModel()
 
     _treeModel.refresh();
 
-    // If the model changed, associate the newly created model with our
-    // treeview
-    if (_treeModel.getModel().get() != _treeView->GetModel())
+    // If the underlying model was replaced, rewrap it in a fresh filter
+    if (!_treeModelFilter || _treeModelFilter->GetChildModel().get() != _treeModel.getModel().get())
     {
-        _treeView->AssociateModel(_treeModel.getModel().get());
+        setupTreeModelFilter();
     }
 
     expandRootNode();
@@ -198,7 +223,7 @@ void EntityList::onFilterConfigChanged()
 	{
 		// When filters are changed possibly any node could have changed 
         // its visibility, so refresh the whole tree
-        refreshTreeModel();
+        scheduleTreeModelRefresh();
 	}
 }
 
@@ -216,7 +241,89 @@ void EntityList::onVisibleOnlyToggle(wxCommandEvent& ev)
     _treeModel.setConsiderVisibleNodesOnly(_visibleOnly->GetValue());
 
 	// Update the whole tree
-	refreshTreeModel();
+	scheduleTreeModelRefresh();
+}
+
+void EntityList::setupTreeModelFilter()
+{
+	_treeModelFilter.reset(new wxutil::TreeModelFilter(_treeModel.getModel()));
+	_treeModelFilter->SetVisibleFunc(
+		std::bind(&EntityList::treeModelRowIsVisible, this, std::placeholders::_1));
+
+	_treeView->AssociateModel(_treeModelFilter.get());
+}
+
+bool EntityList::treeModelRowIsVisible(wxutil::TreeModel::Row& row)
+{
+	if (_filterText.empty()) return true;
+
+	if (wxutil::TreeModel::RowContainsString(row, _filterText, _filterColumns, true))
+	{
+		return true;
+	}
+
+	wxDataViewItemArray children;
+	_treeModel.getModel()->GetChildren(row.getItem(), children);
+
+	for (const auto& child : children)
+	{
+		wxutil::TreeModel::Row childRow(child, *_treeModel.getModel());
+
+		if (treeModelRowIsVisible(childRow)) return true;
+	}
+
+	return false;
+}
+
+void EntityList::onFilterTextChanged(wxCommandEvent& ev)
+{
+	_filterDebounceTimer.StartOnce(FILTER_DEBOUNCE_MSECS);
+}
+
+void EntityList::onFilterDebounceTimer(wxTimerEvent& ev)
+{
+	applyFilter();
+}
+
+void EntityList::onTreeViewChar(wxKeyEvent& ev)
+{
+	wxChar uc = ev.GetUnicodeKey();
+
+	if (uc != WXK_NONE && uc >= 32)
+	{
+		_filterBox->SetFocus();
+		_filterBox->SetInsertionPointEnd();
+		_filterBox->WriteText(wxString(uc));
+		return;
+	}
+
+	ev.Skip();
+}
+
+void EntityList::onFilterBoxKey(wxKeyEvent& ev)
+{
+	if (ev.GetKeyCode() == WXK_ESCAPE && !_filterBox->GetValue().empty())
+	{
+		_filterDebounceTimer.Stop();
+		_filterBox->ChangeValue(wxEmptyString);
+		applyFilter();
+		_treeView->SetFocus();
+		return;
+	}
+
+	ev.Skip();
+}
+
+void EntityList::applyFilter()
+{
+	_filterText = _filterBox->GetValue().Lower();
+
+	if (!_treeModelFilter) return;
+
+	_treeModelFilter->Cleared();
+
+	expandRootNode();
+	updateSelectionStatus();
 }
 
 void EntityList::expandRootNode()
@@ -231,6 +338,21 @@ void EntityList::expandRootNode()
 
 void EntityList::onIdle()
 {
+    if (_refreshTreeModelOnIdle)
+    {
+        if (wxWindow::GetCapture() != nullptr)
+        {
+            requestIdleCallback();
+            return;
+        }
+
+        _refreshTreeModelOnIdle = false;
+
+        util::ScopedBoolLock lock(_callbackActive);
+        refreshTreeModel();
+        return;
+    }
+
     if (!_nodesToUpdate.empty())
     {
         for (const auto& weakNode : _nodesToUpdate)

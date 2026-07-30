@@ -83,6 +83,8 @@ public:
 
 	void pivotChanged() override;
 
+	void lockPivot() override;
+
   	void pivotChangedSelection(const ISelectable& selectable);
 
 	void addObserver(Observer* observer) override;

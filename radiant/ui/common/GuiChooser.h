@@ -46,7 +46,7 @@ private:
 	std::string _initialSelection;
 
 public:
-	static std::string ChooseGui(const std::string& prevSelection);
+	static std::string ChooseGui(const std::string& prevSelection, wxWindow* parent = nullptr);
 
 	void visit(wxutil::TreeModel& store, wxutil::TreeModel::Row& row,
 		const std::string& path, bool isExplicit) override;
@@ -54,7 +54,7 @@ public:
 	int ShowModal() override;
 
 private:
-	explicit GuiChooser(const std::string& initialSelection);
+	GuiChooser(const std::string& initialSelection, wxWindow* parent);
 
 	void populateWindow();
 	void fillTree();

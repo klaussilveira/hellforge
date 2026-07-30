@@ -30,7 +30,7 @@ private:
 	AIVocalSetPreview* _preview;
 
 public:
-	AIVocalSetChooserDialog();
+	AIVocalSetChooserDialog(wxWindow* parent);
 
 	// Set the selection to a given entityDef
 	void setSelectedVocalSet(const std::string& setName);

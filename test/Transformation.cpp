@@ -73,6 +73,38 @@ TEST_F(TransformationTest, TranslationAfterRotatingGenericEntity)
     EXPECT_EQ(angleAfterTransformation, initialAngle);
 }
 
+// Use case from #5096: Rotating multiple objects made them drift from the center
+TEST_F(TransformationTest, RotateSelectionBackAndForthKeepsPosition)
+{
+    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+
+    auto brush1 = algorithm::createCuboidBrush(worldspawn, AABB(Vector3(-64, 96, 0), Vector3(8, 8, 8)));
+    auto brush2 = algorithm::createCuboidBrush(worldspawn, AABB(Vector3(0, 0, 0), Vector3(8, 8, 8)));
+    auto brush3 = algorithm::createCuboidBrush(worldspawn, AABB(Vector3(96, 96, 0), Vector3(8, 8, 8)));
+
+    Node_setSelected(brush1, true);
+    Node_setSelected(brush2, true);
+    Node_setSelected(brush3, true);
+
+    AABB originalBounds;
+    originalBounds.includeAABB(brush1->worldAABB());
+    originalBounds.includeAABB(brush2->worldAABB());
+    originalBounds.includeAABB(brush3->worldAABB());
+
+    // Rotate left, then right by the same angle (b1k3rdude was testing this in the UI)
+    GlobalCommandSystem().executeCommand("RotateSelectedEulerXYZ", cmd::Argument(Vector3(0, 0, 15)));
+    GlobalCommandSystem().executeCommand("RotateSelectedEulerXYZ", cmd::Argument(Vector3(0, 0, -15)));
+
+    AABB finalBounds;
+    finalBounds.includeAABB(brush1->worldAABB());
+    finalBounds.includeAABB(brush2->worldAABB());
+    finalBounds.includeAABB(brush3->worldAABB());
+
+    EXPECT_TRUE(math::isNear(originalBounds.getOrigin(), finalBounds.getOrigin(), 0.01))
+        << "Selection drifted to " << finalBounds.getOrigin() << " after rotating back and forth, "
+        << "expected " << originalBounds.getOrigin();
+}
+
 scene::INodePtr createAndSelectLight()
 {
     // Create an entity which has editor_mins/editor_maxs defined (GenericEntity)

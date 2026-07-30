@@ -457,6 +457,7 @@ void SurfaceInspector::populateWindow()
     _modifyTex.normalise = new wxButton(this, wxID_ANY, _("Normalise"));
     _modifyTex.normalise->SetToolTip(_("Shift texture coordinates towards the origin"));
     modTextureBox->Add(_modifyTex.normalise, 0, wxEXPAND | wxLEFT, 6);
+    modTextureBox->AddStretchSpacer();
     wxStaticText* defaultScaleLabel = new wxStaticText(this, wxID_ANY, _(LABEL_DEFAULT_SCALE));
     modTextureBox->Add(defaultScaleLabel, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 6);
 
@@ -468,7 +469,7 @@ void SurfaceInspector::populateWindow()
     _defaultTexScale->SetRange(0.0, 1000.0);
     _defaultTexScale->SetIncrement(0.1);
     _defaultTexScale->SetDigits(3);
-    modTextureBox->Add(_defaultTexScale, 1, wxLEFT, 6);
+    modTextureBox->Add(_defaultTexScale, 0, wxLEFT, 6);
 
     _texLockButton = new wxBitmapToggleButton(
         this, wxID_ANY, wxutil::GetLocalBitmap("texture_lock.png")

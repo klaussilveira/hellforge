@@ -39,17 +39,17 @@ void SkinPropertyEditor::onBrowseButtonClick()
 
 	// Display the SkinChooser to get a skin from the user
 	std::string prevSkin = getKeyValueFromSelection(_key->getFullKey());
-	std::string skin = SkinChooser::ChooseSkin(model, prevSkin);
+	std::string skin = SkinChooser::ChooseSkin(model, prevSkin, wxGetTopLevelParent(getWidget()));
 
 	// Apply the key to the entity
     setKeyValueOnSelection(_key->getFullKey(), skin);
 }
 
-std::string SkinChooserDialogWrapper::runDialog(Entity* entity, const std::string& key)
+std::string SkinChooserDialogWrapper::runDialog(Entity* entity, const std::string& key, wxWindow* parent)
 {
     std::string modelName = entity->getKeyValue("model");
     std::string prevSkin = entity->getKeyValue(key);
-    std::string skin = SkinChooser::ChooseSkin(modelName, prevSkin);
+    std::string skin = SkinChooser::ChooseSkin(modelName, prevSkin, parent);
 
     // return the new value
     return skin;

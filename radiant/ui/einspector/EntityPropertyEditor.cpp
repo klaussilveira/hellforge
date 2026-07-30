@@ -29,7 +29,7 @@ void EntityPropertyEditor::onBrowseButtonClick()
 {
 	// Use a new dialog window to get a selection from the user
     auto previousValue = _entities.getSharedKeyValue(_key->getFullKey(), false);
-	std::string selection = EntityChooser::ChooseEntity(previousValue);
+	std::string selection = EntityChooser::ChooseEntity(previousValue, wxGetTopLevelParent(getWidget()));
 
 	// Only apply non-empty selections if the value has actually changed
 	if (!selection.empty() && selection != previousValue)

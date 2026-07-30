@@ -849,6 +849,48 @@ TEST_F(TextureManipulationTest, PatchRotationPreservesTexelScale)
     EXPECT_NEAR(boundsAfter.extents.y() * 2, 2, 0.01) << "Patch UV bounds should be 0.5x2 after rotating";
 }
 
+TEST_F(TextureManipulationTest, PatchFitTexture)
+{
+    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+    auto patchNode = algorithm::createPatchFromBounds(worldspawn, AABB(Vector3(4, 50, 60), Vector3(64, 128, 256)), "textures/a_1024x512");
+    auto patch = Node_getIPatch(patchNode);
+
+    patch->fitTexture(2, 3);
+
+    auto width = patch->getWidth();
+    auto height = patch->getHeight();
+
+    EXPECT_LT((patch->ctrlAt(0, 0).texcoord - Vector2(0, 0)).getLength(), 0.01);
+    EXPECT_LT((patch->ctrlAt(0, width - 1).texcoord - Vector2(2, 0)).getLength(), 0.01);
+    EXPECT_LT((patch->ctrlAt(height - 1, 0).texcoord - Vector2(0, 3)).getLength(), 0.01);
+    EXPECT_LT((patch->ctrlAt(height - 1, width - 1).texcoord - Vector2(2, 3)).getLength(), 0.01);
+}
+
+// #5798: Fitting a texture on a patch discards the texture rotation
+TEST_F(TextureManipulationTest, PatchFitTexturePreservesRotation)
+{
+    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+    auto patchNode = algorithm::createPatchFromBounds(worldspawn, AABB(Vector3(4, 50, 60), Vector3(64, 128, 256)), "textures/a_1024x512");
+    auto patch = Node_getIPatch(patchNode);
+
+    patch->fitTexture(1, 1);
+    patch->rotateTexture(90);
+    patch->fitTexture(1, 1);
+
+    auto bounds = algorithm::getTextureSpaceBounds(*patch);
+
+    EXPECT_NEAR(bounds.extents.x() * 2, 1, 0.01) << "Patch UV bounds should be 1x1 after fitting";
+    EXPECT_NEAR(bounds.extents.y() * 2, 1, 0.01) << "Patch UV bounds should be 1x1 after fitting";
+
+    auto uvAlongWidth = patch->ctrlAt(0, patch->getWidth() - 1).texcoord - patch->ctrlAt(0, 0).texcoord;
+    auto uvAlongHeight = patch->ctrlAt(patch->getHeight() - 1, 0).texcoord - patch->ctrlAt(0, 0).texcoord;
+
+    EXPECT_NEAR(uvAlongWidth.x(), 0, 0.01) << "Fit should keep the S axis running along the patch height";
+    EXPECT_NEAR(std::abs(uvAlongWidth.y()), 1, 0.01) << "Fit should keep the S axis running along the patch height";
+    EXPECT_NEAR(std::abs(uvAlongHeight.x()), 1, 0.01) << "Fit should keep the T axis running along the patch width";
+    EXPECT_NEAR(uvAlongHeight.y(), 0, 0.01) << "Fit should keep the T axis running along the patch width";
+}
+
 TEST_F(TextureManipulationTest, FaceGetShiftScaleRotation)
 {
     // These materials have an editor image with 2:1 aspect ratio

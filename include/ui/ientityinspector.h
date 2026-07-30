@@ -25,7 +25,7 @@ public:
 	/**
 	 * greebo: Run the dialog, returning the new value for the named property.
 	 */
-	virtual std::string runDialog(Entity* entity, const std::string& key) = 0;
+	virtual std::string runDialog(Entity* entity, const std::string& key, wxWindow* parent) = 0;
 };
 
 /**

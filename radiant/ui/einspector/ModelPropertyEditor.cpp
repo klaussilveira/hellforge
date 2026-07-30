@@ -102,7 +102,7 @@ void ModelPropertyEditor::_onParticleButton(wxCommandEvent& ev)
 {
 	// Invoke ParticlesChooser
     std::string currentSelection = getKeyValueFromSelection(_key->getFullKey());
-	std::string particle = ParticleChooserDialog::ChooseParticle(currentSelection);
+	std::string particle = ParticleChooserDialog::ChooseParticle(currentSelection, wxGetTopLevelParent(getWidget()));
 
 	if (!particle.empty())
 	{
@@ -133,7 +133,7 @@ void ModelPropertyEditor::_onSkinButton(wxCommandEvent& ev)
     skinKey->setAffectedKey("skin");
 
 	std::string prevSkin = getKeyValueFromSelection(skinKey->getFullKey());
-	std::string skin = SkinChooser::ChooseSkin(model, prevSkin);
+	std::string skin = SkinChooser::ChooseSkin(model, prevSkin, wxGetTopLevelParent(getWidget()));
 
 	if (skin != prevSkin)
 	{

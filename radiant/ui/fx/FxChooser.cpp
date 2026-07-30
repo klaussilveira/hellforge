@@ -33,9 +33,9 @@ FxChooser::FxChooser(wxWindow* parent) :
     SetSelector(new FxSelector(this));
 }
 
-std::string FxChooser::ChooseDeclaration(const std::string& preselected)
+std::string FxChooser::ChooseDeclaration(const std::string& preselected, wxWindow* parent)
 {
-    FxChooser instance;
+    FxChooser instance(parent);
 
     if (!preselected.empty())
     {

@@ -50,7 +50,7 @@ void ClassnamePropertyEditor::_onBrowseButton(wxCommandEvent& ev)
 
 	// Use the EntityClassChooser dialog to get a selection from the user
 	auto selectedEclass = wxutil::EntityClassChooser::ChooseEntityClass(
-        wxutil::EntityClassChooser::Purpose::SelectClassname, currentEclass);
+        wxutil::EntityClassChooser::Purpose::SelectClassname, currentEclass, wxGetTopLevelParent(getWidget()));
 
 	// Only apply if the classname has actually changed
 	if (!selectedEclass.empty() && selectedEclass != currentEclass)

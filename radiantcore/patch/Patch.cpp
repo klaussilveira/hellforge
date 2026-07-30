@@ -769,33 +769,44 @@ void Patch::fitTexture(float s, float t)
     // Save the current patch state to the undoMemento
     undoSave();
 
-    /* greebo: Calculate the texture width and height increment per control point.
-     * If we have a 4x4 patch and want to tile it 3x3, the distance
-     * from one control point to the next one has to cover 3/4 of a full texture,
-     * hence texture_x_repeat/patch_width and texture_y_repeat/patch_height.*/
-    float sIncr = s / static_cast<float>(_width - 1);
-    float tIncr = t / static_cast<float>(_height - 1);
+    Vector2 sDir(0, 0);
 
-    // Set the pointer to the first control point
-    PatchControlIter pDest = _ctrl.begin();
-
-    float tc = 0;
-
-    // Cycle through the patch matrix (row per row)
-    // Increment the <tc> counter by <tIncr> increment
-    for (std::size_t h=0; h < _height; h++, tc += tIncr)
+    for (std::size_t h = 0; h < _height; h++)
     {
-        float sc = 0;
+        sDir += ctrlAt(h, _width - 1).texcoord - ctrlAt(h, 0).texcoord;
+    }
 
-        // Cycle through the row points: reset sc to zero
-        // and increment it by sIncr at each step.
-        for (std::size_t w = 0; w < _width; w++, sc += sIncr)
+    Vector2 uAxis(1, 0);
+
+    if (sDir.getLengthSquared() > 0)
+    {
+        uAxis = sDir.getNormalised();
+    }
+
+    Vector2 vAxis(-uAxis.y(), uAxis.x());
+
+    Vector2 corners[] = { uAxis, vAxis, uAxis + vAxis };
+    Vector2 boundsMin(0, 0);
+    Vector2 boundsMax(0, 0);
+
+    for (const auto& corner : corners)
+    {
+        boundsMin.x() = std::min(boundsMin.x(), corner.x());
+        boundsMin.y() = std::min(boundsMin.y(), corner.y());
+        boundsMax.x() = std::max(boundsMax.x(), corner.x());
+        boundsMax.y() = std::max(boundsMax.y(), corner.y());
+    }
+
+    for (std::size_t h = 0; h < _height; h++)
+    {
+        for (std::size_t w = 0; w < _width; w++)
         {
-            // Set the texture coordinates
-            pDest->texcoord[0] = sc;
-            pDest->texcoord[1] = tc;
-            // Set the pointer to the next control point
-            pDest++;
+            Vector2 uv = uAxis * (w / static_cast<double>(_width - 1)) +
+                         vAxis * (h / static_cast<double>(_height - 1));
+
+            ctrlAt(h, w).texcoord = Vector2(
+                (uv.x() - boundsMin.x()) / (boundsMax.x() - boundsMin.x()) * s,
+                (uv.y() - boundsMin.y()) / (boundsMax.y() - boundsMin.y()) * t);
         }
     }
 

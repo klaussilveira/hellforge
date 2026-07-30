@@ -232,8 +232,8 @@ private:
     }
 };
 
-SkinChooser::SkinChooser(const std::string& model) :
-    DeclarationSelectorDialog(decl::Type::Skin, _(WINDOW_TITLE), "SkinChooser"),
+SkinChooser::SkinChooser(const std::string& model, wxWindow* parent) :
+    DeclarationSelectorDialog(decl::Type::Skin, _(WINDOW_TITLE), "SkinChooser", parent),
     _model(model)
 {
     SetSelector(new SkinSelector(this, _model));
@@ -247,9 +247,9 @@ int SkinChooser::ShowModal()
 	return DeclarationSelectorDialog::ShowModal();
 }
 
-std::string SkinChooser::ChooseSkin(const std::string& model, const std::string& prev)
+std::string SkinChooser::ChooseSkin(const std::string& model, const std::string& prev, wxWindow* parent)
 {
-    auto dialog = new SkinChooser(model);
+    auto dialog = new SkinChooser(model, parent);
 
     // We return the previous skin, unless the dialog returns OK
     auto selectedSkin = prev;

@@ -27,8 +27,8 @@ namespace
 	const std::string GUI_EXT = "gui";
 }
 
-GuiChooser::GuiChooser(const std::string& initialSelection) :
-	DialogBase(_(WINDOW_TITLE), "GuiChooser"),
+GuiChooser::GuiChooser(const std::string& initialSelection, wxWindow* parent) :
+	DialogBase(_(WINDOW_TITLE), parent, "GuiChooser"),
 	_store(new wxutil::TreeModel(_columns)),
 	_treeView(nullptr),
 	_preview(nullptr),
@@ -199,9 +199,9 @@ void GuiChooser::onItemActivated(wxDataViewEvent&)
 	}
 }
 
-std::string GuiChooser::ChooseGui(const std::string& prevSelection)
+std::string GuiChooser::ChooseGui(const std::string& prevSelection, wxWindow* parent)
 {
-	auto* dialog = new GuiChooser(prevSelection);
+	auto* dialog = new GuiChooser(prevSelection, parent);
 
 	std::string result = prevSelection;
 

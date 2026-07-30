@@ -28,7 +28,7 @@ private:
 
 	std::string _selectedEntityName;
 
-	EntityChooser();
+	EntityChooser(wxWindow* parent);
 
 public:
 	std::string getSelectedEntity() const;
@@ -41,7 +41,7 @@ public:
 	 * @preSelectedEntity: The entity name which should be selected by default.
 	 * @returns: The name of the entity or an empty string if the user cancelled the dialog.
 	 */
-	static std::string ChooseEntity(const std::string& preSelectedEntity);
+	static std::string ChooseEntity(const std::string& preSelectedEntity, wxWindow* parent = nullptr);
 
 protected:
 	void populateEntityList();

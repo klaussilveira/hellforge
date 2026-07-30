@@ -219,8 +219,8 @@ public:
     }
 };
 
-EntityClassChooser::EntityClassChooser(Purpose purpose) :
-    DeclarationSelectorDialog(decl::Type::EntityDef, GetDialogTitle(purpose), "EntityClassChooser")
+EntityClassChooser::EntityClassChooser(Purpose purpose, wxWindow* parent) :
+    DeclarationSelectorDialog(decl::Type::EntityDef, GetDialogTitle(purpose), "EntityClassChooser", parent)
 {
     auto affirmativeButton = GetAffirmativeButton();
 
@@ -242,9 +242,9 @@ EntityClassChooser::EntityClassChooser(Purpose purpose) :
     SetSelector(new EntityClassSelector(this));
 }
 
-std::string EntityClassChooser::ChooseEntityClass(Purpose purpose, const std::string& eclassToSelect)
+std::string EntityClassChooser::ChooseEntityClass(Purpose purpose, const std::string& eclassToSelect, wxWindow* parent)
 {
-    EntityClassChooser instance{ purpose };
+    EntityClassChooser instance{ purpose, parent };
 
     // We'll fall back to the value saved in the registry if eclassToSelect is empty
     if (!eclassToSelect.empty())

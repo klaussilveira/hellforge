@@ -17,7 +17,7 @@ private:
 	std::string _model;
 
 private:
-	SkinChooser(const std::string& model);
+	SkinChooser(const std::string& model, wxWindow* parent);
 
 public:
 	int ShowModal() override;
@@ -34,7 +34,8 @@ public:
 	 * if the dialog is cancelled.
 	 */
 	static std::string ChooseSkin(const std::string& model,
-								  const std::string& prevSkin);
+								  const std::string& prevSkin,
+								  wxWindow* parent = nullptr);
 };
 
 }

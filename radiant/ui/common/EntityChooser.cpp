@@ -12,8 +12,8 @@
 namespace ui
 {
 
-EntityChooser::EntityChooser() :
-	DialogBase(_("Select Entity")),
+EntityChooser::EntityChooser(wxWindow* parent) :
+	DialogBase(_("Select Entity"), parent),
 	_entityStore(new wxutil::TreeModel(_listColumns, true)),
 	_entityView(NULL)
 {
@@ -66,11 +66,11 @@ void EntityChooser::setSelectedEntity(const std::string& name)
 	}
 }
 
-std::string EntityChooser::ChooseEntity(const std::string& preSelectedEntity)
+std::string EntityChooser::ChooseEntity(const std::string& preSelectedEntity, wxWindow* parent)
 {
 	std::string returnValue;
 
-	EntityChooser* chooser = new EntityChooser;
+	EntityChooser* chooser = new EntityChooser(parent);
 
 	chooser->setSelectedEntity(preSelectedEntity);
 

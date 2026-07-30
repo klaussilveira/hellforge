@@ -38,8 +38,8 @@ protected:
     }
 };
 
-AIVocalSetChooserDialog::AIVocalSetChooserDialog() :
-	DialogBase(_(WINDOW_TITLE)),
+AIVocalSetChooserDialog::AIVocalSetChooserDialog(wxWindow* parent) :
+	DialogBase(_(WINDOW_TITLE), parent),
 	_preview(nullptr)
 {
 	SetSizer(new wxBoxSizer(wxVERTICAL));

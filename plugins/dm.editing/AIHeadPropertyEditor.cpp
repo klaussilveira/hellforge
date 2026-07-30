@@ -62,7 +62,7 @@ IPropertyEditor::Ptr AIHeadPropertyEditor::CreateNew(wxWindow* parent, IEntitySe
 void AIHeadPropertyEditor::onChooseButton(wxCommandEvent& ev)
 {
 	// Construct a new head chooser dialog
-	AIHeadChooserDialog* dialog = new AIHeadChooserDialog;
+	AIHeadChooserDialog* dialog = new AIHeadChooserDialog(wxGetTopLevelParent(getWidget()));
 
 	dialog->setSelectedHead(_entities.getSharedKeyValue(DEF_HEAD_KEY, true));
 
@@ -82,10 +82,10 @@ void AIHeadPropertyEditor::onChooseButton(wxCommandEvent& ev)
 	dialog->Destroy();
 }
 
-std::string AIHeadEditorDialogWrapper::runDialog(Entity* entity, const std::string& key)
+std::string AIHeadEditorDialogWrapper::runDialog(Entity* entity, const std::string& key, wxWindow* parent)
 {
     // Construct a new head chooser dialog
-    AIHeadChooserDialog* dialog = new AIHeadChooserDialog;
+    AIHeadChooserDialog* dialog = new AIHeadChooserDialog(parent);
 
     std::string prevHead = entity->getKeyValue(key);
     dialog->setSelectedHead(prevHead);

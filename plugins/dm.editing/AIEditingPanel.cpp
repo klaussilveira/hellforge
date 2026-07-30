@@ -410,7 +410,7 @@ void AIEditingPanel::onBrowseButton(wxCommandEvent& ev, const std::string& key)
 	if (dialog)
 	{
 		std::string oldValue = _entity->getKeyValue(key);
-		std::string newValue = dialog->runDialog(_entity, key);
+		std::string newValue = dialog->runDialog(_entity, key, wxGetTopLevelParent(this));
 
 		if (newValue != oldValue)
 		{
