@@ -10,7 +10,7 @@
       <AdditionalDependencies>scenelib.lib;mathlib.lib;xmlutillib.lib;wxutillib.lib;modulelib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(HellForgeRoot)\radiant;$(HellForgeRoot)\plugins\dm.editing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(HellForgeRoot)\radiant;$(HellForgeRoot)\radiantcore;$(HellForgeRoot)\plugins\dm.editing;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
