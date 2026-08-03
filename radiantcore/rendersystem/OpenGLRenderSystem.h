@@ -45,6 +45,8 @@ class OpenGLRenderSystem final
     // Current shader program in use
     ShaderProgram _currentShaderProgram;
 
+    bool _programPreviewEnabled = false;
+
 	// Map of OpenGLState references, with access functions.
 	OpenGLStates _state_sorted;
 
@@ -99,6 +101,9 @@ public:
 
     ShaderProgram getCurrentShaderProgram() const override;
     void setShaderProgram(ShaderProgram prog) override;
+
+    bool getProgramPreviewEnabled() const override;
+    void setProgramPreviewEnabled(bool enabled) override;
 
 	void extensionsInitialised() override;
 	sigc::signal<void> signal_extensionsInitialised() override;

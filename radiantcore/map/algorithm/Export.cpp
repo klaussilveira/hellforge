@@ -4,11 +4,14 @@
 #include "i18n.h"
 #include "ieclass.h"
 #include "ifilesystem.h"
+#include "igame.h"
+#include "imap.h"
 #include "imodelcache.h"
 #include "scene/EntityNode.h"
 #include "iundo.h"
 #include "itextstream.h"
 
+#include "os/fs.h"
 #include "os/path.h"
 
 #include "selectionlib.h"
@@ -29,6 +32,46 @@ namespace map
 
 namespace algorithm
 {
+
+namespace
+{
+
+// Picks the first free models/<map>/<map>_N.<ext> slot below the mod path
+std::string generateModelOutputPath(const std::string& extension)
+{
+	std::string modPath = GlobalGameManager().getModPath();
+
+	if (modPath.empty())
+	{
+		modPath = GlobalGameManager().getUserEnginePath();
+	}
+
+	if (modPath.empty())
+	{
+		throw cmd::ExecutionFailure(_("Cannot determine the mod path to store the model in."));
+	}
+
+	auto baseName = os::removeExtension(os::getFilename(GlobalMapModule().getMapName()));
+
+	if (baseName.empty())
+	{
+		baseName = "unnamed";
+	}
+
+	fs::path folder = fs::path(modPath) / "models" / baseName;
+
+	for (int i = 1; ; ++i)
+	{
+		auto candidate = folder / fmt::format("{0}_{1}.{2}", baseName, i, extension);
+
+		if (!fs::exists(candidate))
+		{
+			return candidate.string();
+		}
+	}
+}
+
+}
 
 // Returns the union set of layer IDs of the current selection
 scene::LayerList getAllLayersOfSelection()
@@ -246,6 +289,31 @@ void exportSelectedAsModelCmd(const cmd::ArgumentList& args)
 	}
 
     // Forward the call, leak any ExecutionFailure exceptions
+	exportSelectedAsModel(options);
+}
+
+void convertPatchToModelCmd(const cmd::ArgumentList& args)
+{
+	if (args.size() > 1)
+	{
+		rMessage() << "Usage: ConvertPatchToModel [<Format>]" << std::endl;
+		rMessage() << "   [<Format>] one of the available formats, e.g. ase or lwo. Defaults to ase" << std::endl;
+		rMessage() << "   Use ExportSelectedAsModel to pick the output path yourself" << std::endl;
+		return;
+	}
+
+	model::ModelExportOptions options;
+
+	options.outputFormat = !args.empty() && !args[0].getString().empty() ?
+		string::to_lower_copy(args[0].getString()) : "ase";
+	options.outputFilename = generateModelOutputPath(options.outputFormat);
+	options.exportOrigin = model::ModelExportOrigin::SelectionCenter;
+	options.entityName = std::string();
+	options.customExportOrigin = Vector3(0, 0, 0);
+	options.skipCaulk = false;
+	options.replaceSelectionWithModel = true;
+	options.exportLightsAsObjects = false;
+
 	exportSelectedAsModel(options);
 }
 

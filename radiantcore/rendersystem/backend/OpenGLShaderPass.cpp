@@ -82,7 +82,7 @@ void OpenGLShaderPass::addRenderable(const OpenGLRenderable& renderable,
 
 void OpenGLShaderPass::submitSurfaces(const VolumeTest& view)
 {
-    _owner.drawSurfaces(view);
+    _owner.drawSurfaces(view, _glState);
 }
 
 void OpenGLShaderPass::submitRenderables(OpenGLState& current)

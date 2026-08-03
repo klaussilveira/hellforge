@@ -128,6 +128,8 @@ VertexPaintPanel::~VertexPaintPanel()
 
     applyPreviewModeToScene(model::PaintablePreviewMode::Material);
 
+    GlobalRenderSystem().setProgramPreviewEnabled(false);
+
     auto& s = VertexPaintSettings::Instance();
     s.panelActive = false;
     s.hoverValid = false;
@@ -150,11 +152,11 @@ void VertexPaintPanel::populateWindow()
     _channelChoice->Append(_("Blue"));
     grid->Add(_channelChoice, 1, wxEXPAND);
 
-    grid->Add(new wxStaticText(this, wxID_ANY, _("View:")),
+    grid->Add(new wxStaticText(this, wxID_ANY, _("Show:")),
               0, wxALIGN_CENTER_VERTICAL);
     _previewModeChoice = new wxChoice(this, wxID_ANY);
     _previewModeChoice->Append(_("Material"));
-    _previewModeChoice->Append(_("Vertex colours"));
+    _previewModeChoice->Append(_("Vertex Colors"));
     grid->Add(_previewModeChoice, 1, wxEXPAND);
 
     grid->Add(new wxStaticText(this, wxID_ANY, _("Radius:")),
@@ -203,7 +205,7 @@ void VertexPaintPanel::populateWindow()
     fillRow->Add(_clearButton, 1, wxEXPAND);
     main->Add(fillRow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
 
-    _saveButton = new wxButton(this, wxID_ANY, _("Save to .ase"));
+    _saveButton = new wxButton(this, wxID_ANY, _("Save Painting"));
     main->Add(_saveButton, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 8);
 
     auto* shortcuts = new wxFlexGridSizer(2, 4, 8);
@@ -342,13 +344,12 @@ void VertexPaintPanel::onSaveClicked(wxCommandEvent&)
         return;
     }
 
-    auto exporter = GlobalModelFormatManager().getExporter("ASE");
+    auto exporter = GlobalModelFormatManager().getExporter(os::getExtension(absolute));
     if (!exporter)
     {
-        wxutil::Messagebox::ShowError(_("No ASE exporter available."), this);
+        wxutil::Messagebox::ShowError(_("No exporter available for this model format."), this);
         return;
     }
-    exporter = exporter->clone();
 
     std::size_t count = paintable->getPaintableSurfaceCount();
     for (std::size_t i = 0; i < count; ++i)
@@ -388,6 +389,9 @@ void VertexPaintPanel::onPanelActivated()
         _previewAttached = true;
     }
 
+    // Show the blend without switching the camera to lighting mode
+    GlobalRenderSystem().setProgramPreviewEnabled(true);
+
     auto& s = VertexPaintSettings::Instance();
     s.panelActive = true;
     applyPreviewModeToScene(s.previewMode);
@@ -403,6 +407,8 @@ void VertexPaintPanel::onPanelDeactivated()
     }
 
     applyPreviewModeToScene(model::PaintablePreviewMode::Material);
+
+    GlobalRenderSystem().setProgramPreviewEnabled(false);
 
     auto& s = VertexPaintSettings::Instance();
     s.panelActive = false;

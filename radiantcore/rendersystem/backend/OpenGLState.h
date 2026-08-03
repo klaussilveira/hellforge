@@ -594,8 +594,8 @@ private:
                 SetTextureState(current.texture2, texture2, GL_TEXTURE2, textureMode);
                 setupTextureMatrix(GL_TEXTURE2, stage2);
 
-                SetTextureState(current.texture3, texture2, GL_TEXTURE2, textureMode);
-                SetTextureState(current.texture4, texture2, GL_TEXTURE2, textureMode);
+                SetTextureState(current.texture3, texture3, GL_TEXTURE3, textureMode);
+                SetTextureState(current.texture4, texture4, GL_TEXTURE4, textureMode);
 
                 glActiveTexture(GL_TEXTURE0);
                 glClientActiveTexture(GL_TEXTURE0);

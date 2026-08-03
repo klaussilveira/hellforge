@@ -241,12 +241,16 @@ void OpenGLRenderSystem::unrealise()
         shader->unrealise();
     }
 
-	if (GlobalOpenGLContext().getSharedContext() &&
-        shaderProgramsAvailable() &&
-        getCurrentShaderProgram() != SHADER_PROGRAM_NONE)
+	if (GlobalOpenGLContext().getSharedContext())
     {
-        // Unrealise the GLPrograms
-        _glProgramFactory->unrealise();
+        // Edited .vfp files get picked up on the next realise
+        _glProgramFactory->clearGamePrograms();
+
+        if (shaderProgramsAvailable() && getCurrentShaderProgram() != SHADER_PROGRAM_NONE)
+        {
+            // Unrealise the GLPrograms
+            _glProgramFactory->unrealise();
+        }
     }
 }
 
@@ -285,6 +289,21 @@ void OpenGLRenderSystem::setShaderProgram(RenderSystem::ShaderProgram newProg)
     {
         realise();
     }
+}
+
+bool OpenGLRenderSystem::getProgramPreviewEnabled() const
+{
+    return _programPreviewEnabled;
+}
+
+void OpenGLRenderSystem::setProgramPreviewEnabled(bool enabled)
+{
+    if (_programPreviewEnabled == enabled) return;
+
+    // Passes are built once per material, rebuild them to pick this up
+    unrealise();
+    _programPreviewEnabled = enabled;
+    realise();
 }
 
 void OpenGLRenderSystem::extensionsInitialised()

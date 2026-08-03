@@ -8,6 +8,7 @@
 #include "OpenGLState.h"
 #include "glprogram/CubeMapProgram.h"
 #include "glprogram/DepthFillAlphaProgram.h"
+#include "glprogram/GenericVFPProgram.h"
 #include "glprogram/InteractionProgram.h"
 #include "glprogram/RegularStageProgram.h"
 
@@ -454,8 +455,33 @@ void LightingModeRenderer::drawNonInteractionPasses(OpenGLState& current, Render
                     static_cast<CubeMapProgram*>(current.glProgram)->setViewer(view.getViewer());
                 }
 
+                // ARB programs need their parameters and the object transform set up here
+                auto vfp = dynamic_cast<GenericVFPProgram*>(current.glProgram);
+
+                if (vfp != nullptr)
+                {
+                    if (const auto& stage = pass.state().stage0; stage)
+                    {
+                        for (int parm = 0; parm < stage->getNumVertexParms(); ++parm)
+                        {
+                            if (stage->getVertexParm(parm).index < 0) continue;
+
+                            vfp->setLocalParameter(parm, stage->getVertexParmValue(parm));
+                        }
+                    }
+
+                    glMatrixMode(GL_MODELVIEW);
+                    glPushMatrix();
+                    glMultMatrixd(object->getObjectTransform());
+                }
+
                 _objectRenderer.submitGeometry(object->getStorageLocation(), GL_TRIANGLES);
                 _result->nonInteractionDrawCalls++;
+
+                if (vfp != nullptr)
+                {
+                    glPopMatrix();
+                }
             });
         });
     }

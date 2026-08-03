@@ -2,6 +2,7 @@
 
 #include "OpenGLShaderPass.h"
 #include "OpenGLShader.h"
+#include "glprogram/GenericVFPProgram.h"
 
 namespace render
 {
@@ -61,7 +62,21 @@ IRenderResult::Ptr FullBrightRenderer::render(RenderStateFlags globalstate, cons
         {
             // Apply our state to the current state object
             pass->evaluateStagesAndApplyState(current, globalstate, time, nullptr);
-            
+
+            // vertexParms are defined per stage, uploading once per pass is enough
+            if (auto vfp = dynamic_cast<GenericVFPProgram*>(current.glProgram); vfp != nullptr)
+            {
+                if (const auto& stage = pass->state().stage0; stage)
+                {
+                    for (int parm = 0; parm < stage->getNumVertexParms(); ++parm)
+                    {
+                        if (stage->getVertexParm(parm).index < 0) continue;
+
+                        vfp->setLocalParameter(parm, stage->getVertexParmValue(parm));
+                    }
+                }
+            }
+
             if (!pass->hasRenderables())
             {
                 // All regular geometry like patches, brushes, meshes, single vertices

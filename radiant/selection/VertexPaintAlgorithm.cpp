@@ -1,6 +1,7 @@
 #include "VertexPaintTool.h"
 
 #include "imodelsurface.h"
+#include "string/case_conv.h"
 
 #include <algorithm>
 #include <cmath>
@@ -9,6 +10,12 @@ namespace ui
 {
 namespace vertexPaint
 {
+
+bool isPaintableExtension(const std::string& extension)
+{
+    auto lower = string::to_lower_copy(extension);
+    return lower == "ase" || lower == "lwo";
+}
 
 double computeBrushWeight(double distNorm, float falloff, VertexBrushFalloff type)
 {

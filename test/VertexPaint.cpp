@@ -294,4 +294,18 @@ TEST(VertexPaintFill, PreservesAlphaChannel)
     }
 }
 
+TEST(VertexPaintTarget, AcceptsFormatsCarryingVertexColours)
+{
+    EXPECT_TRUE(ui::vertexPaint::isPaintableExtension("ase"));
+    EXPECT_TRUE(ui::vertexPaint::isPaintableExtension("lwo"));
+    EXPECT_TRUE(ui::vertexPaint::isPaintableExtension("LWO")) << "Extension check should be case insensitive";
+}
+
+TEST(VertexPaintTarget, RejectsFormatsWithoutVertexColours)
+{
+    EXPECT_FALSE(ui::vertexPaint::isPaintableExtension("obj"));
+    EXPECT_FALSE(ui::vertexPaint::isPaintableExtension("md5mesh"));
+    EXPECT_FALSE(ui::vertexPaint::isPaintableExtension(""));
+}
+
 } // namespace test

@@ -52,6 +52,9 @@ public:
     GLProgram* getProgram(const std::string& vertexProgramFilename,
                           const std::string& fragmentProgramFilename);
 
+    /// Drop all cached game programs, they get recompiled on next use
+    void clearGamePrograms();
+
     /// Construct and initialise the GLPrograms
     void realise();
 

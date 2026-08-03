@@ -4,6 +4,7 @@
 #include "imodelcache.h"
 #include "imap.h"
 #include "ieclass.h"
+#include "igame.h"
 #include "scene/Entity.h"
 #include "ModelExportOptions.h"
 #include "algorithm/Primitives.h"
@@ -12,6 +13,7 @@
 #include "os/file.h"
 #include "os/path.h"
 #include "string/case_conv.h"
+#include "string/convert.h"
 
 namespace test
 {
@@ -704,6 +706,103 @@ TEST_F(ModelExportTest, ExportSelectedAsCollisionModelCreatesFolder)
 
     // Remove the folder after the test is done
     fs::remove_all(os::getDirectory(expectedPhysicalPath));
+}
+
+namespace
+{
+
+// Resolves a mod-relative path the way the converter does
+fs::path resolveConvertedModelPath(const std::string& modelPath)
+{
+    auto modPath = GlobalGameManager().getModPath();
+
+    if (modPath.empty())
+    {
+        modPath = GlobalGameManager().getUserEnginePath();
+    }
+
+    return fs::path(modPath) / modelPath;
+}
+
+scene::INodePtr selectTerrainPatch()
+{
+    auto patchNode = algorithm::findFirstPatchWithMaterial(GlobalMapModule().findOrInsertWorldspawn(),
+        "textures/darkmod/wood/boards/ship_hull_medium");
+
+    Node_setSelected(patchNode, true);
+
+    return patchNode;
+}
+
+}
+
+TEST_F(ModelExportTest, ConvertPatchToModelKeepsPosition)
+{
+    loadMap("modelexport_patch.map");
+
+    auto patchNode = selectTerrainPatch();
+    EXPECT_TRUE(patchNode);
+
+    auto patchOrigin = patchNode->worldAABB().getOrigin();
+
+    GlobalCommandSystem().executeCommand("ConvertPatchToModel");
+
+    EXPECT_FALSE(patchNode->getParent()) << "Patch should have been removed from the scene";
+    EXPECT_EQ(GlobalSelectionSystem().countSelected(), 1) << "The new model should be left selected";
+
+    auto newEntity = GlobalSelectionSystem().ultimateSelected();
+    auto modelPath = newEntity->tryGetEntity()->getKeyValue("model");
+
+    // The replacement entity must sit exactly where the patch was
+    auto newOrigin = string::convert<Vector3>(newEntity->tryGetEntity()->getKeyValue("origin"));
+    EXPECT_TRUE(math::isNear(newOrigin, patchOrigin, 0.01)) << "Converted model didn't stay in place";
+
+    auto model = GlobalModelCache().getModel(modelPath);
+    EXPECT_TRUE(model);
+    EXPECT_GT(model->getVertexCount(), 0) << "Converted model has no geometry";
+
+    fs::remove_all(resolveConvertedModelPath(modelPath).parent_path());
+}
+
+TEST_F(ModelExportTest, ConvertPatchToModelDerivesOutputPath)
+{
+    loadMap("modelexport_patch.map");
+
+    EXPECT_TRUE(selectTerrainPatch());
+
+    GlobalCommandSystem().executeCommand("ConvertPatchToModel");
+
+    auto modelPath = GlobalSelectionSystem().ultimateSelected()->tryGetEntity()->getKeyValue("model");
+
+    EXPECT_EQ(modelPath.substr(0, 7), "models/") << "Derived path should live below models/";
+    EXPECT_EQ(string::to_lower_copy(os::getExtension(modelPath)), "ase") << "Should default to the ASE format";
+
+    auto written = resolveConvertedModelPath(modelPath);
+    EXPECT_TRUE(fs::exists(written)) << "Converter didn't write " << written;
+
+    fs::remove_all(written.parent_path());
+}
+
+TEST_F(ModelExportTest, ConvertPatchToModelHonoursFormatArgument)
+{
+    loadMap("modelexport_patch.map");
+
+    EXPECT_TRUE(selectTerrainPatch());
+
+    GlobalCommandSystem().executeCommand("ConvertPatchToModel", std::string("lwo"));
+
+    auto modelPath = GlobalSelectionSystem().ultimateSelected()->tryGetEntity()->getKeyValue("model");
+
+    EXPECT_EQ(string::to_lower_copy(os::getExtension(modelPath)), "lwo") << "Should honour the requested format";
+
+    auto written = resolveConvertedModelPath(modelPath);
+    EXPECT_TRUE(fs::exists(written)) << "Converter didn't write " << written;
+
+    auto model = GlobalModelCache().getModel(modelPath);
+    EXPECT_TRUE(model);
+    EXPECT_GT(model->getVertexCount(), 0) << "Converted model has no geometry";
+
+    fs::remove_all(written.parent_path());
 }
 
 }

@@ -387,7 +387,7 @@ bool BuiltInShader::supportsVertexColours() const
     return _type != BuiltInShaderType::WireframeInactive;
 }
 
-bool BuiltInShader::surfacesUseVertexColours() const
+bool BuiltInShader::surfacesUseVertexColours(const OpenGLState&) const
 {
     return _type == BuiltInShaderType::VertexColourPreview;
 }

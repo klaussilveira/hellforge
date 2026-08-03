@@ -9,7 +9,6 @@
 #include "math/Matrix4.h"
 #include "math/Vector4.h"
 #include "os/path.h"
-#include "string/case_conv.h"
 
 #include <algorithm>
 #include <limits>
@@ -64,14 +63,15 @@ namespace
         return traceable->getIntersection(ray, point);
     }
 
-    bool isAsePaintable(const scene::INodePtr& node)
+    bool isPaintable(const scene::INodePtr& node)
     {
         auto* paintable = Node_getVertexPaintable(node);
         if (!paintable) return false;
-        return string::to_lower_copy(os::getExtension(paintable->getPaintableModelFilename())) == "ase";
+
+        return vertexPaint::isPaintableExtension(os::getExtension(paintable->getPaintableModelFilename()));
     }
 
-    class AsePaintablePicker : public scene::NodeVisitor
+    class PaintablePicker : public scene::NodeVisitor
     {
     public:
         Ray ray;
@@ -81,7 +81,7 @@ namespace
 
         bool pre(const scene::INodePtr& node) override
         {
-            if (!isAsePaintable(node)) return true;
+            if (!isPaintable(node)) return true;
 
             Vector3 point;
             if (!raycastTarget(ray, node, point)) return true;
@@ -102,7 +102,7 @@ namespace
         auto root = GlobalSceneGraph().root();
         if (!root) return {};
 
-        AsePaintablePicker picker;
+        PaintablePicker picker;
         picker.ray = ray;
         root->traverse(picker);
 

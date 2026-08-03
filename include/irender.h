@@ -684,6 +684,9 @@ public:
     /// Set the shader program to use.
     virtual void setShaderProgram(ShaderProgram prog) = 0;
 
+    virtual bool getProgramPreviewEnabled() const = 0;
+    virtual void setProgramPreviewEnabled(bool enabled) = 0;
+
     virtual void attachRenderable(Renderable& renderable) = 0;
     virtual void detachRenderable(Renderable& renderable) = 0;
     virtual void forEachRenderable(const RenderableCallback& callback) const = 0;

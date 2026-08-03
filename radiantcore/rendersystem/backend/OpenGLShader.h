@@ -65,6 +65,9 @@ private:
 
     bool _mergeModeActive;
 
+    // Set while rendering the material ARB programs
+    bool _programPreviewActive = false;
+
 private:
 
     void constructFromMaterial(const MaterialPtr& material);
@@ -72,9 +75,15 @@ private:
     // Shader pass construction helpers
     void appendBlendLayer(const IShaderLayer::Ptr& layer);
 
+    // Fragment map helpers for program-driven stages
+    static TexturePtr getFirstFragmentMapTexture(const IShaderLayer::Ptr& layer);
+    static void bindFragmentMaps(OpenGLState& state, const IShaderLayer::Ptr& layer);
+    GLProgram* getVertexFragmentProgram(const IShaderLayer::Ptr& layer);
+
     OpenGLState& appendInteractionPass(std::vector<IShaderLayer::Ptr>& stages);
 
     void constructLightingPassesFromMaterial();
+    bool constructProgramPreviewPassesFromMaterial();
     void determineBlendModeForEditorPass(OpenGLState& pass, const IShaderLayer::Ptr& diffuseLayer);
     void constructEditorPreviewPassFromMaterial();
     void applyAlphaTestToPass(OpenGLState& pass, double alphaTest);
@@ -99,7 +108,7 @@ public:
 					   const Matrix4& modelview) override;
 
     bool hasSurfaces() const;
-    void drawSurfaces(const VolumeTest& view);
+    void drawSurfaces(const VolumeTest& view, const OpenGLState& state);
     void prepareForRendering();
 
     IGeometryRenderer::Slot addGeometry(GeometryType indexType,
@@ -168,13 +177,14 @@ protected:
     // Test if we can render using lighting mode
     bool canUseLightingMode() const;
 
-    // Whether IRenderableSurface instances rendered through this shader
+    // Whether IRenderableSurface instances rendered through the given pass
     // should pass per-vertex colours to OpenGL. Disabled by default so
     // model surfaces inherit their parent entity colour. Override to true
     // when the shader's purpose is to visualise vertex colours.
-    virtual bool surfacesUseVertexColours() const
+    // Only the program pass consumes the painted colours, not the lighting pass.
+    virtual bool surfacesUseVertexColours(const OpenGLState& state) const
     {
-        return false;
+        return _programPreviewActive && state.testRenderFlag(RENDER_VERTEX_COLOUR);
     }
 
     // Whether any surfaces or geometries should submit colours

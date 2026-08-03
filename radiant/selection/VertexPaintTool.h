@@ -50,6 +50,7 @@ struct VertexPaintSettings
 
 namespace vertexPaint
 {
+    bool isPaintableExtension(const std::string& extension);
     double computeBrushWeight(double distNorm, float falloff, VertexBrushFalloff type);
     bool applyPaint(model::IIndexedModelSurface& surface, const Vector3& localCenter,
                     VertexPaintChannel channel, const VertexPaintSettings& s);

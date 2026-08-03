@@ -4,14 +4,17 @@
 #include "../OpenGLRenderSystem.h"
 #include "DepthFillPass.h"
 #include "InteractionPass.h"
+#include "glprogram/GenericVFPProgram.h"
 
 #include "icolourscheme.h"
+#include "itextstream.h"
 #include "ishaders.h"
 #include "ifilter.h"
 #include "irender.h"
 #include "texturelib.h"
 #include "registry/registry.h"
 
+#include <algorithm>
 #include <functional>
 
 namespace render
@@ -96,7 +99,7 @@ void OpenGLShader::addRenderable(const OpenGLRenderable& renderable,
     }
 }
 
-void OpenGLShader::drawSurfaces(const VolumeTest& view)
+void OpenGLShader::drawSurfaces(const VolumeTest& view, const OpenGLState& state)
 {
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -120,13 +123,15 @@ void OpenGLShader::drawSurfaces(const VolumeTest& view)
 
         // Surfaces normally inherit their parent entity's colour; opt-in
         // shaders (vertex paint preview) can request per-vertex colours.
-        if (surfacesUseVertexColours())
+        if (surfacesUseVertexColours(state))
         {
             glEnableClientState(GL_COLOR_ARRAY);
         }
         else
         {
+            // The colour array leaves the current colour undefined, restore it
             glDisableClientState(GL_COLOR_ARRAY);
+            glColor4fv(state.getColour().data());
         }
         _surfaceRenderer.render(view);
     }
@@ -558,6 +563,73 @@ void OpenGLShader::determineBlendModeForEditorPass(OpenGLState& pass, const ISha
     }
 }
 
+// Runs ARB programs of the materils
+bool OpenGLShader::constructProgramPreviewPassesFromMaterial()
+{
+    IShaderLayer::Ptr programLayer;
+
+    _material->foreachLayer([&](const IShaderLayer::Ptr& layer)
+    {
+        if (!programLayer && layer->isEnabled() && getVertexFragmentProgram(layer) != nullptr)
+        {
+            programLayer = layer;
+        }
+
+        return true;
+    });
+
+    if (!programLayer) return false;
+
+    programLayer->evaluateExpressions(0);
+
+    OpenGLState& programPass = appendDefaultPass();
+    bindFragmentMaps(programPass, programLayer);
+
+    programPass.stage0 = programLayer;
+    programPass.glProgram = getVertexFragmentProgram(programLayer);
+
+    // The program reads the painted colours out of the vertex array
+    _programPreviewActive = true;
+
+    programPass.setRenderFlag(RENDER_FILL);
+    programPass.setRenderFlag(RENDER_TEXTURE_2D);
+    programPass.setRenderFlag(RENDER_PROGRAM);
+    programPass.setRenderFlag(RENDER_DEPTHTEST);
+    programPass.setRenderFlag(RENDER_DEPTHWRITE);
+    programPass.setRenderFlag(RENDER_VERTEX_COLOUR);
+    programPass.setRenderFlag(RENDER_SMOOTH);
+    programPass.m_blend_src = GL_ONE;
+    programPass.m_blend_dst = GL_ZERO;
+    programPass.setColour(Colour4::WHITE());
+    programPass.ignoreStageColour = true;
+    programPass.setSortPosition(OpenGLState::SORT_FULLBRIGHT);
+    programPass.polygonOffset = _material->getPolygonOffset();
+
+    // The program writes an unlit colour, multiply the headlight over it
+    OpenGLState& lightingPass = appendDefaultPass();
+
+    lightingPass.setRenderFlag(RENDER_FILL);
+    lightingPass.setRenderFlag(RENDER_DEPTHTEST);
+    lightingPass.setRenderFlag(RENDER_LIGHTING);
+    lightingPass.setRenderFlag(RENDER_SMOOTH);
+    lightingPass.setRenderFlag(RENDER_BLEND);
+    lightingPass.setDepthFunc(GL_LEQUAL);
+    lightingPass.m_blend_src = GL_DST_COLOR;
+    lightingPass.m_blend_dst = GL_ZERO;
+    lightingPass.setColour(Colour4::WHITE());
+    lightingPass.ignoreStageColour = true;
+    lightingPass.setSortPosition(OpenGLState::SORT_TRANSLUCENT);
+    lightingPass.polygonOffset = _material->getPolygonOffset();
+
+    if (_material->getCullType() != Material::CULL_NONE)
+    {
+        programPass.setRenderFlag(RENDER_CULLFACE);
+        lightingPass.setRenderFlag(RENDER_CULLFACE);
+    }
+
+    return true;
+}
+
 // Construct editor-image-only render passes
 void OpenGLShader::constructEditorPreviewPassFromMaterial()
 {
@@ -634,10 +706,73 @@ void OpenGLShader::constructEditorPreviewPassFromMaterial()
     }
 }
 
+// Materials can leave gaps in their fragment map units
+TexturePtr OpenGLShader::getFirstFragmentMapTexture(const IShaderLayer::Ptr& layer)
+{
+    for (std::size_t i = 0; i < layer->getNumFragmentMaps(); ++i)
+    {
+        if (layer->getFragmentMap(static_cast<int>(i)).index < 0) continue;
+
+        if (auto texture = layer->getFragmentMapTexture(static_cast<int>(i)); texture)
+        {
+            return texture;
+        }
+    }
+
+    return TexturePtr();
+}
+
+void OpenGLShader::bindFragmentMaps(OpenGLState& state, const IShaderLayer::Ptr& layer)
+{
+    GLuint* units[] = { &state.texture0, &state.texture1, &state.texture2, &state.texture3, &state.texture4 };
+    constexpr std::size_t numUnits = sizeof(units) / sizeof(units[0]);
+
+    auto count = std::min(layer->getNumFragmentMaps(), numUnits);
+
+    if (layer->getNumFragmentMaps() > numUnits)
+    {
+        rWarning() << "Material stage uses " << layer->getNumFragmentMaps()
+            << " fragment maps, only the first " << numUnits << " can be previewed" << std::endl;
+    }
+
+    for (std::size_t i = 0; i < count; ++i)
+    {
+        // Leave the units the material skipped alone
+        if (layer->getFragmentMap(static_cast<int>(i)).index < 0) continue;
+
+        if (auto texture = layer->getFragmentMapTexture(static_cast<int>(i)); texture)
+        {
+            *units[i] = texture->getGLTexNum();
+        }
+    }
+}
+
+GLProgram* OpenGLShader::getVertexFragmentProgram(const IShaderLayer::Ptr& layer)
+{
+    const auto& vertexProgram = layer->getVertexProgram();
+    const auto& fragmentProgram = layer->getFragmentProgram();
+
+    if (vertexProgram.empty() || fragmentProgram.empty()) return nullptr;
+
+    if (!GenericVFPProgram::isSupported()) return nullptr;
+
+    auto program = _renderSystem.getGLProgramFactory().getProgram(vertexProgram, fragmentProgram);
+    auto vfp = dynamic_cast<GenericVFPProgram*>(program);
+
+    // Programs that failed to load or compile fall back to the regular stage
+    return vfp && vfp->isValid() ? program : nullptr;
+}
+
 // Append a blend (non-interaction) layer
 void OpenGLShader::appendBlendLayer(const IShaderLayer::Ptr& layer)
 {
     TexturePtr layerTex = layer->getTexture();
+
+    // Program stages carry their images in fragment maps, not in a map keyword
+    if (!layerTex && layer->getNumFragmentMaps() > 0)
+    {
+        layerTex = getFirstFragmentMapTexture(layer);
+    }
 
     if (!layerTex) return;
 
@@ -691,6 +826,16 @@ void OpenGLShader::appendBlendLayer(const IShaderLayer::Ptr& layer)
         state.glProgram = _renderSystem.getGLProgramFactory().getBuiltInProgram(ShaderProgram::BlendLight);
         state.setRenderFlag(RENDER_TEXTURE_2D);
         state.setRenderFlag(RENDER_PROGRAM);
+    }
+    else if (auto vfp = getVertexFragmentProgram(layer); vfp != nullptr)
+    {
+        // Bind the fragment maps to the units the material assigned them to
+        bindFragmentMaps(state, layer);
+
+        state.glProgram = vfp;
+        state.setRenderFlag(RENDER_TEXTURE_2D);
+        state.setRenderFlag(RENDER_PROGRAM);
+        state.setRenderFlag(RENDER_VERTEX_COLOUR);
     }
     else
     {
@@ -756,6 +901,8 @@ void OpenGLShader::constructFromMaterial(const MaterialPtr& material)
     _materialChanged = _material->sig_materialChanged().connect(
         sigc::mem_fun(this, &OpenGLShader::onMaterialChanged));
 
+    _programPreviewActive = false;
+
     // Determine whether we can render this shader in lighting/bump-map mode,
     // and construct the appropriate shader passes
     if (canUseLightingMode())
@@ -763,7 +910,7 @@ void OpenGLShader::constructFromMaterial(const MaterialPtr& material)
         // Full lighting, DBS and blend modes
         constructLightingPassesFromMaterial();
     }
-    else
+    else if (!_renderSystem.getProgramPreviewEnabled() || !constructProgramPreviewPassesFromMaterial())
     {
         // Editor image rendering only
         constructEditorPreviewPassFromMaterial();

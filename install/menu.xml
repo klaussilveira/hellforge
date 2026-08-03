@@ -346,6 +346,8 @@
         <menuItem name="bulgePatch" caption="Bulge Patch..." command="BulgePatchDialog" />
         <menuItem name="weldPatches" caption="Weld/Merge Patches" command="WeldSelectedPatches" />
         <menuItem name="sewPatches" caption="Sew Patches" command="SewSelectedPatches" />
+        <menuSeparator />
+        <menuItem name="convertPatchToModel" caption="Convert to Model" command="ConvertPatchToModel" />
 	</subMenu>
 
 	<subMenu name="curve" caption="&amp;Curve">

@@ -21,6 +21,12 @@ void exportSelectedAsModel(const model::ModelExportOptions& options);
  */
 void exportSelectedAsModelCmd(const cmd::ArgumentList& args);
 
+/**
+ * Exports the selection to models/ and replaces it in place with an entity
+ * referencing it. Takes an optional format argument, defaulting to ase.
+ */
+void convertPatchToModelCmd(const cmd::ArgumentList& args);
+
 }
 
 }

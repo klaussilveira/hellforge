@@ -164,6 +164,7 @@ inline const std::unordered_map<std::string, CommandInfo>& getCommandMetadata()
 		{"PatchDeleteRowBeginning",     {"Delete First Row",                "Remove the first row of control points", CmdCategory::Patch}},
 		{"PatchDeleteColumnEnd",        {"Delete Last Column",              "Remove the last column of control points", CmdCategory::Patch}},
 		{"PatchDeleteColumnBeginning",  {"Delete First Column",             "Remove the first column of control points", CmdCategory::Patch}},
+		{"ConvertPatchToModel",         {"Convert to Model",                "Export the selection to a model and put it back in place", CmdCategory::Patch}},
 
 		// Transformation
 		{"RotateSelectionX",            {"Rotate X",                        "Rotate selection around the X axis", CmdCategory::Transform}},

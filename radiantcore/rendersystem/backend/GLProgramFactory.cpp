@@ -79,6 +79,11 @@ void GLProgramFactory::unrealise()
     _builtInPrograms.clear();
 }
 
+void GLProgramFactory::clearGamePrograms()
+{
+    _gamePrograms.clear();
+}
+
 namespace
 {
 

@@ -24,6 +24,7 @@
 #include "registry/registry.h"
 #include "entitylib.h"
 #include "gamelib.h"
+#include "selectionlib.h"
 #include "os/path.h"
 #include "os/file.h"
 #include "time/ScopeTimer.h"
@@ -1229,6 +1230,10 @@ void Map::registerCommands()
           cmd::ARGTYPE_INT | cmd::ARGTYPE_OPTIONAL, // skip caulk
           cmd::ARGTYPE_INT | cmd::ARGTYPE_OPTIONAL, // replace selection with model
           cmd::ARGTYPE_INT | cmd::ARGTYPE_OPTIONAL }); // export lights as objects
+
+    GlobalCommandSystem().addWithCheck("ConvertPatchToModel", algorithm::convertPatchToModelCmd,
+        selection::pred::havePatch,
+        { cmd::ARGTYPE_STRING | cmd::ARGTYPE_OPTIONAL }); // export format
 
     // Add undo commands
     GlobalCommandSystem().addCommand("Undo", std::bind(&Map::undoCmd, this, std::placeholders::_1));

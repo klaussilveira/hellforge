@@ -54,6 +54,8 @@
     <ClCompile Include="..\..\..\radiant\selection\TerrainSculptAlgorithm.cpp" />
     <ClCompile Include="..\..\..\test\VertexPaint.cpp" />
     <ClCompile Include="..\..\..\radiant\selection\VertexPaintAlgorithm.cpp" />
+    <ClCompile Include="..\..\..\test\VertexFragmentProgram.cpp" />
+    <ClCompile Include="..\..\..\radiantcore\rendersystem\backend\glprogram\GenericVFPProgram.cpp" />
     <ClCompile Include="..\..\..\test\Transformation.cpp" />
     <ClCompile Include="..\..\..\test\MapMerging.cpp" />
     <ClCompile Include="..\..\..\test\PointTrace.cpp" />

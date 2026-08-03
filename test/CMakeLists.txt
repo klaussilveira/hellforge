@@ -68,6 +68,8 @@ add_executable(drtest
                ${CMAKE_SOURCE_DIR}/radiant/selection/TerrainSculptAlgorithm.cpp
                VertexPaint.cpp
                ${CMAKE_SOURCE_DIR}/radiant/selection/VertexPaintAlgorithm.cpp
+               VertexFragmentProgram.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/rendersystem/backend/glprogram/GenericVFPProgram.cpp
                TextureManipulation.cpp
                TestOrthoViewManager.cpp
                TextureTool.cpp
@@ -90,6 +92,7 @@ add_compile_definitions(TEST_BASE_PATH="${TEST_BASE_PATH}")
 
 target_include_directories(drtest PRIVATE ../plugins/dm.editing)
 target_include_directories(drtest PRIVATE ${CMAKE_SOURCE_DIR}/radiant)
+target_include_directories(drtest PRIVATE ${CMAKE_SOURCE_DIR}/radiantcore)
 
 target_link_libraries(drtest PUBLIC
                       math xmlutil scene module wxutil
