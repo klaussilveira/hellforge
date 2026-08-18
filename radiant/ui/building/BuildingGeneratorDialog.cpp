@@ -3,9 +3,10 @@
 
 #include "i18n.h"
 #include "ui/imainframe.h"
+#include "ui/common/GeneratorSpawn.h"
 #include "imap.h"
+#include "iscenegraph.h"
 #include "iselection.h"
-#include "icameraview.h"
 #include "ishaderclipboard.h"
 #include "iundo.h"
 
@@ -40,15 +41,6 @@ inline std::string getSelectedShader()
     return selectedShader;
 }
 
-Vector3 getSpawnPosition()
-{
-    try
-    {
-        return GlobalCameraManager().getActiveView().getCameraOrigin();
-    }
-    catch (const std::runtime_error&) {}
-    return Vector3(0, 0, 0);
-}
 
 template<typename T>
 T gameDefault(const std::string& key, T fallback)
@@ -61,7 +53,9 @@ T gameDefault(const std::string& key, T fallback)
 namespace ui
 {
 
-BuildingGeneratorDialog::BuildingGeneratorDialog(bool hasBrushSelection, double defaultFloorHeight)
+BuildingGeneratorDialog::BuildingGeneratorDialog(bool hasBrushSelection, double defaultFloorHeight,
+                                                 const AABB& brushBounds,
+                                                 const scene::INodePtr& parent)
     : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
       _dimensionsPanel(nullptr),
       _floorHeightPanel(nullptr),
@@ -70,7 +64,9 @@ BuildingGeneratorDialog::BuildingGeneratorDialog(bool hasBrushSelection, double 
       _cornerExtrudePanel(nullptr),
       _roofHeightPanel(nullptr),
       _roofBorderPanel(nullptr),
-      _hasBrushSelection(hasBrushSelection)
+      _hasBrushSelection(hasBrushSelection),
+      _brushBounds(brushBounds),
+      _parent(parent)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "BuildingGeneratorMainPanel"), 1, wxEXPAND | wxALL, 12);
@@ -138,6 +134,87 @@ BuildingGeneratorDialog::BuildingGeneratorDialog(bool hasBrushSelection, double 
         ->SetValue(string::to_string(fh));
 
     updateControlVisibility();
+
+    bindParameterEvents(_dialog, this, &BuildingGeneratorDialog::onParameterChanged);
+
+    regenerate();
+}
+
+GeneratorPreview& BuildingGeneratorDialog::getPreview()
+{
+    return _preview;
+}
+
+void BuildingGeneratorDialog::onParameterChanged(wxCommandEvent& ev)
+{
+    regenerate();
+}
+
+void BuildingGeneratorDialog::generateInto()
+{
+    building::BuildingParams params;
+    params.floorCount = getFloorCount();
+    params.floorHeight = (getFloorHeightMode() == 1) ? getFloorHeight() : 0;
+    params.wallThickness = getWallThickness();
+    params.trimHeight = getTrimHeight();
+
+    int winMode = getWindowMode();
+    if (winMode == 0)
+        params.windowsPerFloor = -1;
+    else if (winMode == 1)
+        params.windowsPerFloor = 0;
+    else
+        params.windowsPerFloor = getWindowsPerFloor();
+
+    params.cornerColumns = getCornerColumns();
+    params.cornerExtrude = getCornerExtrude();
+    params.windowWidth = getWindowWidth();
+    params.windowHeight = getWindowHeight();
+    params.sillHeight = getSillHeight();
+    params.roofType = getRoofType();
+    params.roofHeight = getRoofHeight();
+    params.roofBorderHeight = getRoofBorderHeight();
+    params.doorWidth = gameDefault<double>("doorWidth", params.doorWidth);
+    params.doorHeight = gameDefault<double>("doorHeight", params.doorHeight);
+    params.wallMaterial = getWallMaterial();
+    params.trimMaterial = getTrimMaterial();
+
+    Vector3 mins, maxs;
+
+    if (_hasBrushSelection)
+    {
+        mins = _brushBounds.getOrigin() - _brushBounds.getExtents();
+        maxs = _brushBounds.getOrigin() + _brushBounds.getExtents();
+    }
+    else
+    {
+        double w = getBuildingWidth();
+        double d = getBuildingDepth();
+        double h = getBuildingHeight();
+
+        Vector3 spawnPos = getGeneratorSpawnPosition(std::max(256.0, std::max(w, d)));
+
+        mins = Vector3(spawnPos.x() - w / 2, spawnPos.y() - d / 2, spawnPos.z());
+        maxs = Vector3(spawnPos.x() + w / 2, spawnPos.y() + d / 2, spawnPos.z() + h);
+    }
+
+    if (params.floorCount < 1 || maxs.x() - mins.x() < 1 ||
+        maxs.y() - mins.y() < 1 || maxs.z() - mins.z() < 1)
+    {
+        return;
+    }
+
+    building::generateBuilding(mins, maxs, params, _parent);
+}
+
+void BuildingGeneratorDialog::regenerate()
+{
+    _preview.update(_parent, [this]() { generateInto(); });
+}
+
+void BuildingGeneratorDialog::commitToMap()
+{
+    _preview.commit(_parent, "buildingGeneratorCreate", [this]() { generateInto(); });
 }
 
 void BuildingGeneratorDialog::onFloorHeightModeChanged(wxCommandEvent& ev)
@@ -145,6 +222,7 @@ void BuildingGeneratorDialog::onFloorHeightModeChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void BuildingGeneratorDialog::onWindowModeChanged(wxCommandEvent& ev)
@@ -152,6 +230,7 @@ void BuildingGeneratorDialog::onWindowModeChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void BuildingGeneratorDialog::onRoofTypeChanged(wxCommandEvent& ev)
@@ -159,6 +238,7 @@ void BuildingGeneratorDialog::onRoofTypeChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void BuildingGeneratorDialog::onCornerColumnsChanged(wxCommandEvent& ev)
@@ -166,6 +246,7 @@ void BuildingGeneratorDialog::onCornerColumnsChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void BuildingGeneratorDialog::onBrowseWallMaterial(wxCommandEvent& ev)
@@ -323,6 +404,8 @@ void BuildingGeneratorDialog::Show(const cmd::ArgumentList& args)
     auto& sel = GlobalSelectionSystem();
     bool hasBrush = false;
     AABB brushBounds;
+    scene::INodePtr sourceNode;
+    scene::INodePtr sourceParent;
 
     if (sel.countSelected() == 1)
     {
@@ -331,7 +414,11 @@ void BuildingGeneratorDialog::Show(const cmd::ArgumentList& args)
         {
             brushBounds = node->worldAABB();
             if (brushBounds.isValid())
+            {
                 hasBrush = true;
+                sourceNode = node;
+                sourceParent = node->getParent();
+            }
         }
     }
 
@@ -344,69 +431,40 @@ void BuildingGeneratorDialog::Show(const cmd::ArgumentList& args)
         ? (totalHeight / cfgFloors)
         : gameDefault<double>("floorHeight", totalHeight / cfgFloors);
 
-    BuildingGeneratorDialog dialog(hasBrush, defaultFloorHeight);
-
-    if (dialog.run() != IDialog::RESULT_OK)
-        return;
-
-    building::BuildingParams params;
-    params.floorCount = dialog.getFloorCount();
-    params.floorHeight = (dialog.getFloorHeightMode() == 1) ? dialog.getFloorHeight() : 0;
-    params.wallThickness = dialog.getWallThickness();
-    params.trimHeight = dialog.getTrimHeight();
-
-    int winMode = dialog.getWindowMode();
-    if (winMode == 0)
-        params.windowsPerFloor = -1;
-    else if (winMode == 1)
-        params.windowsPerFloor = 0;
-    else
-        params.windowsPerFloor = dialog.getWindowsPerFloor();
-
-    params.cornerColumns = dialog.getCornerColumns();
-    params.cornerExtrude = dialog.getCornerExtrude();
-    params.windowWidth = dialog.getWindowWidth();
-    params.windowHeight = dialog.getWindowHeight();
-    params.sillHeight = dialog.getSillHeight();
-    params.roofType = dialog.getRoofType();
-    params.roofHeight = dialog.getRoofHeight();
-    params.roofBorderHeight = dialog.getRoofBorderHeight();
-    params.doorWidth = gameDefault<double>("doorWidth", params.doorWidth);
-    params.doorHeight = gameDefault<double>("doorHeight", params.doorHeight);
-    params.wallMaterial = dialog.getWallMaterial();
-    params.trimMaterial = dialog.getTrimMaterial();
-
-    Vector3 mins, maxs;
-
-    if (hasBrush)
-    {
-        mins = brushBounds.getOrigin() - brushBounds.getExtents();
-        maxs = brushBounds.getOrigin() + brushBounds.getExtents();
-    }
-    else
-    {
-        Vector3 origin = getSpawnPosition();
-        double w = dialog.getBuildingWidth();
-        double d = dialog.getBuildingDepth();
-        double h = dialog.getBuildingHeight();
-        mins = Vector3(origin.x() - w / 2, origin.y() - d / 2, origin.z());
-        maxs = Vector3(origin.x() + w / 2, origin.y() + d / 2, origin.z() + h);
-    }
-
-    UndoableCommand undo("buildingGeneratorCreate");
-
-    if (hasBrush)
-    {
-        scene::INodePtr selectedNode = sel.ultimateSelected();
-        scene::INodePtr parent = selectedNode->getParent();
-        if (parent)
-            scene::removeNodeFromParent(selectedNode);
-    }
-
-    GlobalSelectionSystem().setSelectedAll(false);
-
     scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
-    building::generateBuilding(mins, maxs, params, worldspawn);
+
+    if (sourceNode && sourceParent)
+    {
+        scene::removeNodeFromParent(sourceNode);
+    }
+
+    BuildingGeneratorDialog dialog(hasBrush, defaultFloorHeight, brushBounds, worldspawn);
+
+    auto result = dialog.run();
+
+    dialog.getPreview().clear();
+
+    if (sourceNode && sourceParent)
+    {
+        scene::addNodeToContainer(sourceNode, sourceParent);
+    }
+
+    if (result == IDialog::RESULT_OK)
+    {
+        UndoableCommand undo("buildingGeneratorCreate");
+
+        if (sourceNode && sourceParent)
+        {
+            scene::removeNodeFromParent(sourceNode);
+        }
+
+        dialog.commitToMap();
+    }
+    else if (sourceNode)
+    {
+        Node_setSelected(sourceNode, true);
+        SceneChangeNotify();
+    }
 }
 
 } // namespace ui

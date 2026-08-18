@@ -1,6 +1,8 @@
 #pragma once
 
 #include "icommandsystem.h"
+#include "inode.h"
+#include "ui/common/GeneratorPreview.h"
 #include "wxutil/dialog/Dialog.h"
 #include "wxutil/XmlResourceBasedWidget.h"
 
@@ -13,9 +15,14 @@ private:
     wxWindow* _spiralPanel;
     wxWindow* _turnPanel;
     wxWindow* _landingPanel;
+    scene::INodePtr _parent;
+    GeneratorPreview _preview;
 
 public:
-    StairsGeneratorDialog();
+    StairsGeneratorDialog(const scene::INodePtr& parent);
+
+    GeneratorPreview& getPreview();
+    void commitToMap();
 
     int getStepCount();
     float getStepHeight();
@@ -41,6 +48,9 @@ public:
 private:
     void onTypeChanged(wxCommandEvent& ev);
     void onBrowseMaterial(wxCommandEvent& ev);
+    void onParameterChanged(wxCommandEvent& ev);
+    void generateInto();
+    void regenerate();
     void updateControlVisibility();
 };
 

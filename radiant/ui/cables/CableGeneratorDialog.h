@@ -1,6 +1,8 @@
 #pragma once
 
 #include "icommandsystem.h"
+#include "inode.h"
+#include "ui/common/GeneratorPreview.h"
 #include "wxutil/dialog/Dialog.h"
 #include "wxutil/XmlResourceBasedWidget.h"
 #include "CableGeometry.h"
@@ -26,8 +28,18 @@ private:
     };
     std::vector<Preset> _presets;
 
+    std::vector<Vector3> _waypoints;
+    bool _curveMode;
+    scene::INodePtr _parent;
+    GeneratorPreview _preview;
+    bool _updating;
+
 public:
-    CableGeneratorDialog();
+    CableGeneratorDialog(const std::vector<Vector3>& waypoints, bool curveMode,
+                         const scene::INodePtr& parent);
+
+    GeneratorPreview& getPreview();
+    void commitToMap();
 
     int getCount();
     float getDensity();
@@ -67,6 +79,9 @@ private:
     void onFixedSubdivisionsChanged(wxCommandEvent& ev);
     void onBrowseMaterial(wxCommandEvent& ev);
     void onRandomizeSeed(wxCommandEvent& ev);
+    void onParameterChanged(wxCommandEvent& ev);
+    void generateInto();
+    void regenerate();
     void updateControlVisibility();
 };
 

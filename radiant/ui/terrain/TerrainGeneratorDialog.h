@@ -1,9 +1,12 @@
 #pragma once
 
 #include "icommandsystem.h"
+#include "inode.h"
+#include "math/Vector3.h"
+#include "ui/common/GeneratorPreview.h"
 #include "wxutil/dialog/Dialog.h"
 #include "wxutil/XmlResourceBasedWidget.h"
-#include "noise/Noise.h"
+#include "noise/TerrainGenerator.h"
 
 namespace ui
 {
@@ -17,9 +20,14 @@ private:
     wxWindow* _fractalSizer;
     wxWindow* _offsetLabel;
     wxWindow* _offsetCtrl;
+    scene::INodePtr _parent;
+    GeneratorPreview _preview;
 
 public:
-    TerrainGeneratorDialog();
+    TerrainGeneratorDialog(const scene::INodePtr& parent);
+
+    GeneratorPreview& getPreview();
+    void commitToMap();
 
     // Get selected noise algorithm
     noise::Algorithm getAlgorithm();
@@ -51,6 +59,9 @@ private:
     void onAlgorithmChanged(wxCommandEvent& ev);
     void onRandomizeSeed(wxCommandEvent& ev);
     void onBrowseMaterial(wxCommandEvent& ev);
+    void onParameterChanged(wxCommandEvent& ev);
+    void generateInto();
+    void regenerate();
     void updateControlVisibility();
 };
 

@@ -2,9 +2,10 @@
 
 #include "i18n.h"
 #include "ui/imainframe.h"
+#include "ui/common/GeneratorSpawn.h"
+#include "noise/TerrainGenerator.h"
 #include "icommandsystem.h"
-#include "iselection.h"
-#include "icameraview.h"
+#include "iscenegraph.h"
 #include "ishaderclipboard.h"
 
 #include "string/convert.h"
@@ -39,37 +40,14 @@ inline std::string getSelectedShader()
     return selectedShader;
 }
 
-// Get spawn position from selection center or camera
-Vector3 getSpawnPosition()
-{
-    if (GlobalSelectionSystem().countSelected() > 0)
-    {
-        AABB bounds = GlobalSelectionSystem().getWorkZone().bounds;
-        if (bounds.isValid())
-        {
-            return bounds.getOrigin();
-        }
-    }
-
-    try
-    {
-        return GlobalCameraManager().getActiveView().getCameraOrigin();
-    }
-    catch (const std::runtime_error&)
-    {
-        // No active camera
-    }
-
-    return Vector3(0, 0, 0);
-}
 } // namespace
 
 namespace ui
 {
 
-TerrainGeneratorDialog::TerrainGeneratorDialog()
+TerrainGeneratorDialog::TerrainGeneratorDialog(const scene::INodePtr& parent)
     : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()), _fractalSizer(nullptr),
-      _offsetLabel(nullptr), _offsetCtrl(nullptr)
+      _offsetLabel(nullptr), _offsetCtrl(nullptr), _parent(parent)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "TerrainGeneratorMainPanel"), 1, wxEXPAND | wxALL, 12);
@@ -98,6 +76,60 @@ TerrainGeneratorDialog::TerrainGeneratorDialog()
     findNamedObject<wxTextCtrl>(_dialog, "TerrainGeneratorMaterial")->SetValue(getSelectedShader());
 
     updateControlVisibility();
+
+    bindParameterEvents(_dialog, this, &TerrainGeneratorDialog::onParameterChanged);
+
+    regenerate();
+}
+
+GeneratorPreview& TerrainGeneratorDialog::getPreview()
+{
+    return _preview;
+}
+
+void TerrainGeneratorDialog::onParameterChanged(wxCommandEvent& ev)
+{
+    regenerate();
+}
+
+void TerrainGeneratorDialog::generateInto()
+{
+    std::size_t columns = getColumns();
+    std::size_t rows = getRows();
+
+    if (columns < 2 || rows < 2 || getPhysicalWidth() <= 0 || getPhysicalHeight() <= 0)
+    {
+        return;
+    }
+
+    float physicalWidth = getPhysicalWidth();
+    float physicalHeight = getPhysicalHeight();
+
+    Vector3 spawnPos = getGeneratorSpawnPosition(
+        std::max(256.0, static_cast<double>(std::max(physicalWidth, physicalHeight))));
+
+    noise::NoiseParameters params;
+    params.algorithm = getAlgorithm();
+    params.seed = getSeed();
+    params.frequency = getFrequency();
+    params.amplitude = getAmplitude();
+    params.octaves = getOctaves();
+    params.persistence = getPersistence();
+    params.lacunarity = getLacunarity();
+    params.offset = getOffset();
+
+    noise::generateTerrainPatch(params, columns, rows, physicalWidth, physicalHeight,
+        spawnPos, getMaterial(), _parent);
+}
+
+void TerrainGeneratorDialog::regenerate()
+{
+    _preview.update(_parent, [this]() { generateInto(); });
+}
+
+void TerrainGeneratorDialog::commitToMap()
+{
+    _preview.commit(_parent, "terrainGeneratorCreate", [this]() { generateInto(); });
 }
 
 void TerrainGeneratorDialog::onAlgorithmChanged(wxCommandEvent& ev)
@@ -105,12 +137,14 @@ void TerrainGeneratorDialog::onAlgorithmChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void TerrainGeneratorDialog::onRandomizeSeed(wxCommandEvent& ev)
 {
     std::random_device rd;
     findNamedObject<wxSpinCtrl>(_dialog, "TerrainGeneratorSeed")->SetValue(rd() % 1000000000);
+    regenerate();
 }
 
 void TerrainGeneratorDialog::onBrowseMaterial(wxCommandEvent& ev)
@@ -235,32 +269,18 @@ std::string TerrainGeneratorDialog::getMaterial()
 
 void TerrainGeneratorDialog::Show(const cmd::ArgumentList& args)
 {
-    TerrainGeneratorDialog dialog;
+    scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
 
-    if (dialog.run() != IDialog::RESULT_OK)
+    TerrainGeneratorDialog dialog(worldspawn);
+
+    if (dialog.run() == IDialog::RESULT_OK)
     {
-        return;
+        dialog.commitToMap();
     }
-
-    Vector3 spawnPos = getSpawnPosition();
-
-    GlobalCommandSystem().executeCommand("GenerateTerrain",
-        { cmd::Argument(static_cast<int>(dialog.getAlgorithm())),
-          cmd::Argument(static_cast<int>(dialog.getSeed())),
-          cmd::Argument(static_cast<double>(dialog.getFrequency())),
-          cmd::Argument(static_cast<double>(dialog.getAmplitude())),
-          cmd::Argument(dialog.getOctaves()),
-          cmd::Argument(static_cast<double>(dialog.getPersistence())),
-          cmd::Argument(static_cast<double>(dialog.getLacunarity())),
-          cmd::Argument(static_cast<double>(dialog.getOffset())),
-          cmd::Argument(static_cast<int>(dialog.getColumns())),
-          cmd::Argument(static_cast<int>(dialog.getRows())),
-          cmd::Argument(static_cast<double>(dialog.getPhysicalWidth())),
-          cmd::Argument(static_cast<double>(dialog.getPhysicalHeight())),
-          cmd::Argument(spawnPos.x()),
-          cmd::Argument(spawnPos.y()),
-          cmd::Argument(spawnPos.z()),
-          cmd::Argument(dialog.getMaterial()) });
+    else
+    {
+        dialog.getPreview().clear();
+    }
 }
 
 } // namespace ui

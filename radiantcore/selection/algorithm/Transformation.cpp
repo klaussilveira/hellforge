@@ -28,7 +28,7 @@
 #include "math/Ray.h"
 #include "ipatch.h"
 
-#include "noise/Noise.h"
+#include "noise/TerrainGenerator.h"
 
 #include "scenelib.h"
 #include "selectionlib.h"
@@ -1989,48 +1989,13 @@ void generateTerrainCmd(const cmd::ArgumentList& args)
 
 	GlobalSelectionSystem().setSelectedAll(false);
 
-	scene::INodePtr node = GlobalPatchModule().createPatch(patch::PatchDefType::Def2);
+	auto node = noise::generateTerrainPatch(params, columns, rows, physicalWidth, physicalHeight,
+		spawnPos, material, GlobalMapModule().findOrInsertWorldspawn());
 
-	GlobalMapModule().findOrInsertWorldspawn()->addChildNode(node);
-
-	IPatch* patch = Node_getIPatch(node);
-	if (!patch)
+	if (node)
 	{
-		return;
+		Node_setSelected(node, true);
 	}
-
-	patch->setDims(columns, rows);
-
-	noise::NoiseGenerator noiseGen(params);
-	float spacingX = physicalWidth / static_cast<float>(columns - 1);
-	float spacingY = physicalHeight / static_cast<float>(rows - 1);
-	float offsetX = static_cast<float>(spawnPos.x()) - physicalWidth / 2.0f;
-	float offsetY = static_cast<float>(spawnPos.y()) - physicalHeight / 2.0f;
-	float baseZ = static_cast<float>(spawnPos.z());
-
-	for (std::size_t row = 0; row < rows; ++row)
-	{
-		for (std::size_t col = 0; col < columns; ++col)
-		{
-			PatchControl& ctrl = patch->ctrlAt(row, col);
-
-			float worldX = offsetX + col * spacingX;
-			float worldY = offsetY + row * spacingY;
-			float noiseValue = static_cast<float>(noiseGen.sample(worldX, worldY));
-
-			ctrl.vertex.x() = worldX;
-			ctrl.vertex.y() = worldY;
-			ctrl.vertex.z() = baseZ + noiseValue;
-			ctrl.texcoord.x() = static_cast<float>(col) / static_cast<float>(columns - 1);
-			ctrl.texcoord.y() = static_cast<float>(row) / static_cast<float>(rows - 1);
-		}
-	}
-
-	patch->controlPointsChanged();
-	patch->setShader(material);
-	patch->scaleTextureNaturally();
-
-	Node_setSelected(node, true);
 }
 
 } // namespace algorithm

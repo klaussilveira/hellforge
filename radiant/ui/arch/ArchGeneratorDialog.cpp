@@ -3,9 +3,9 @@
 
 #include "i18n.h"
 #include "ui/imainframe.h"
+#include "ui/common/GeneratorSpawn.h"
 #include "imap.h"
-#include "iselection.h"
-#include "icameraview.h"
+#include "iscenegraph.h"
 #include "ishaderclipboard.h"
 #include "iundo.h"
 #include "igrid.h"
@@ -37,31 +37,17 @@ inline std::string getSelectedShader()
     return selectedShader;
 }
 
-Vector3 getSpawnPosition()
-{
-    if (GlobalSelectionSystem().countSelected() > 0)
-    {
-        AABB bounds = GlobalSelectionSystem().getWorkZone().bounds;
-        if (bounds.isValid())
-            return bounds.getOrigin();
-    }
-
-    try
-    {
-        return GlobalCameraManager().getActiveView().getCameraOrigin();
-    }
-    catch (const std::runtime_error&) {}
-
-    return Vector3(0, 0, 0);
-}
 
 } // anonymous namespace
 
 namespace ui
 {
 
-ArchGeneratorDialog::ArchGeneratorDialog()
-    : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow())
+ArchGeneratorDialog::ArchGeneratorDialog(const arch::BridgeEndpoints& endpoints,
+                                         const Vector3& spawnPos, double gridSize,
+                                         const scene::INodePtr& parent)
+    : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
+      _endpoints(endpoints), _spawnPos(spawnPos), _gridSize(gridSize), _parent(parent)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "ArchGeneratorMainPanel"), 1, wxEXPAND | wxALL, 12);
@@ -74,6 +60,68 @@ ArchGeneratorDialog::ArchGeneratorDialog()
 
     findNamedObject<wxTextCtrl>(_dialog, "ArchGeneratorMaterial")
         ->SetValue(getSelectedShader());
+
+    bindParameterEvents(_dialog, this, &ArchGeneratorDialog::onParameterChanged);
+
+    regenerate();
+}
+
+GeneratorPreview& ArchGeneratorDialog::getPreview()
+{
+    return _preview;
+}
+
+void ArchGeneratorDialog::onParameterChanged(wxCommandEvent& ev)
+{
+    regenerate();
+}
+
+void ArchGeneratorDialog::generateInto()
+{
+    int segments = getSegments();
+    float innerRadius = getInnerRadius();
+    float wallThickness = getWallThickness();
+    float depth = getDepth();
+    float length = getLength();
+    float arcDegrees = getArcDegrees();
+    float startAngle = getStartAngle();
+    std::string material = getMaterial();
+
+    if (length > 0 && arcDegrees > 0)
+    {
+        double halfArc = (arcDegrees / 2.0) * arch::DEG2RAD;
+        double sinHalf = std::sin(halfArc);
+        if (sinHalf > 1e-6)
+            innerRadius = static_cast<float>((length / 2.0) / sinHalf);
+    }
+
+    if (segments < 1 || arcDegrees <= 0 || wallThickness <= 0 ||
+        (!_endpoints.valid && (innerRadius <= 0 || depth <= 0)))
+    {
+        return;
+    }
+
+    if (_endpoints.valid)
+    {
+        double bridgeDepth = _endpoints.hasFaceDimensions ? _endpoints.faceDepth : depth;
+        arch::generateBridgeArch(_endpoints, segments, wallThickness, bridgeDepth,
+            arcDegrees, material, _parent);
+    }
+    else
+    {
+        arch::generateArch(_spawnPos, segments, innerRadius, wallThickness,
+            depth, arcDegrees, startAngle, _gridSize, material, _parent);
+    }
+}
+
+void ArchGeneratorDialog::regenerate()
+{
+    _preview.update(_parent, [this]() { generateInto(); });
+}
+
+void ArchGeneratorDialog::commitToMap()
+{
+    _preview.commit(_parent, "archGeneratorCreate", [this]() { generateInto(); });
 }
 
 void ArchGeneratorDialog::onBrowseMaterial(wxCommandEvent& ev)
@@ -131,50 +179,25 @@ std::string ArchGeneratorDialog::getMaterial()
 
 void ArchGeneratorDialog::Show(const cmd::ArgumentList& args)
 {
-    ArchGeneratorDialog dialog;
-
-    if (dialog.run() != IDialog::RESULT_OK)
-        return;
-
-    int segments = dialog.getSegments();
-    float innerRadius = dialog.getInnerRadius();
-    float wallThickness = dialog.getWallThickness();
-    float depth = dialog.getDepth();
-    float length = dialog.getLength();
-    float arcDegrees = dialog.getArcDegrees();
-    float startAngle = dialog.getStartAngle();
-    std::string material = dialog.getMaterial();
+    auto endpoints = arch::detectBridgeEndpoints();
     double gridSize = GlobalGrid().getGridSize();
 
-    if (length > 0 && arcDegrees > 0)
-    {
-        double halfArc = (arcDegrees / 2.0) * arch::DEG2RAD;
-        double sinHalf = std::sin(halfArc);
-        if (sinHalf > 1e-6)
-            innerRadius = static_cast<float>((length / 2.0) / sinHalf);
-    }
-
-    auto endpoints = arch::detectBridgeEndpoints();
-
-    UndoableCommand undo("archGeneratorCreate");
-    GlobalSelectionSystem().setSelectedAll(false);
+    Vector3 spawnPos = getGeneratorSpawnPosition();
+    spawnPos.x() = float_snapped(spawnPos.x(), gridSize);
+    spawnPos.y() = float_snapped(spawnPos.y(), gridSize);
+    spawnPos.z() = float_snapped(spawnPos.z(), gridSize);
 
     scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
-    if (endpoints.valid)
+
+    ArchGeneratorDialog dialog(endpoints, spawnPos, gridSize, worldspawn);
+
+    if (dialog.run() == IDialog::RESULT_OK)
     {
-        double bridgeDepth = endpoints.hasFaceDimensions ? endpoints.faceDepth : depth;
-        arch::generateBridgeArch(endpoints,
-            segments, wallThickness, bridgeDepth, arcDegrees,
-            material, worldspawn);
+        dialog.commitToMap();
     }
     else
     {
-        Vector3 spawnPos = getSpawnPosition();
-        spawnPos.x() = float_snapped(spawnPos.x(), gridSize);
-        spawnPos.y() = float_snapped(spawnPos.y(), gridSize);
-        spawnPos.z() = float_snapped(spawnPos.z(), gridSize);
-        arch::generateArch(spawnPos, segments, innerRadius, wallThickness,
-            depth, arcDegrees, startAngle, gridSize, material, worldspawn);
+        dialog.getPreview().clear();
     }
 }
 

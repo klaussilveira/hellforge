@@ -653,6 +653,8 @@
     <ClInclude Include="..\..\radiant\ui\cables\CableGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchDialog.h" />
     <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchGeometry.h" />
+    <ClInclude Include="..\..\radiant\ui\common\GeneratorPreview.h" />
+    <ClInclude Include="..\..\radiant\ui\common\GeneratorSpawn.h" />
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeneratorDialog.h" />
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.h" />

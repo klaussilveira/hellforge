@@ -7,9 +7,9 @@
 
 #include "i18n.h"
 #include "ui/imainframe.h"
+#include "ui/common/GeneratorSpawn.h"
 #include "imap.h"
 #include "iselection.h"
-#include "icameraview.h"
 #include "ishaderclipboard.h"
 #include "iundo.h"
 #include "iscenegraph.h"
@@ -65,23 +65,6 @@ T buildingDefault(const std::string& key, T fallback)
     return game::current::getValue<T>("/generators/building/" + key, fallback);
 }
 
-inline Vector3 getSpawnPosition()
-{
-    if (GlobalSelectionSystem().countSelected() > 0)
-    {
-        AABB bounds = GlobalSelectionSystem().getWorkZone().bounds;
-        if (bounds.isValid())
-            return bounds.getOrigin();
-    }
-
-    try
-    {
-        return GlobalCameraManager().getActiveView().getCameraOrigin();
-    }
-    catch (const std::runtime_error&) {}
-
-    return Vector3(0, 0, 0);
-}
 
 wxColour cellColour(cityplanner::CellType t)
 {
@@ -797,7 +780,8 @@ void CityPlannerDialog::Show(const cmd::ArgumentList&)
     float wallHeight = dialog.getWallHeight();
     bool heightVariation = dialog.getHeightVariation();
 
-    Vector3 spawnPos = getSpawnPosition();
+    Vector3 spawnPos = getGeneratorSpawnPosition(std::max(256.0,
+        static_cast<double>(std::max(cols * tileW, rows * tileH))));
 
     UndoableCommand undo("cityPlannerGenerate");
     GlobalSelectionSystem().setSelectedAll(false);

@@ -4,6 +4,7 @@
 #include "i18n.h"
 #include "ui/imainframe.h"
 #include "imap.h"
+#include "iscenegraph.h"
 #include "iselection.h"
 #include "iundo.h"
 
@@ -75,19 +76,62 @@ InputData detectInput()
 namespace ui
 {
 
-SweepDialog::SweepDialog()
-    : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow())
+SweepDialog::SweepDialog(const std::vector<sweep::SourceBrushData>& sources,
+                         const AABB& sourceBounds, int sweepAxis,
+                         const std::vector<Vector3>& curvePoints,
+                         const scene::INodePtr& parent)
+    : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
+      _sources(sources), _sourceBounds(sourceBounds), _sweepAxis(sweepAxis),
+      _curvePoints(curvePoints), _parent(parent)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "SweepMainPanel"), 1, wxEXPAND | wxALL, 12);
 
     wxStaticText* topLabel = findNamedObject<wxStaticText>(_dialog, "SweepTopLabel");
     topLabel->SetFont(topLabel->GetFont().Bold());
+
+    bindParameterEvents(_dialog, this, &SweepDialog::onParameterChanged);
+
+    regenerate();
 }
 
 int SweepDialog::getSegments()
 {
     return findNamedObject<wxSpinCtrl>(_dialog, "SweepSegments")->GetValue();
+}
+
+GeneratorPreview& SweepDialog::getPreview()
+{
+    return _preview;
+}
+
+void SweepDialog::onParameterChanged(wxCommandEvent& ev)
+{
+    regenerate();
+}
+
+void SweepDialog::generateInto()
+{
+    sweep::SweepParams params;
+    params.segments = getSegments();
+
+    if (params.segments < 1)
+    {
+        return;
+    }
+
+    sweep::sweepBrushesAlongPath(_sources, _sourceBounds, _sweepAxis,
+        _curvePoints, params, _parent);
+}
+
+void SweepDialog::regenerate()
+{
+    _preview.update(_parent, [this]() { generateInto(); });
+}
+
+void SweepDialog::commitToMap()
+{
+    _preview.commit(_parent, "sweepBrushesAlongCurve", [this]() { generateInto(); });
 }
 
 void SweepDialog::Show(const cmd::ArgumentList& args)
@@ -102,28 +146,24 @@ void SweepDialog::Show(const cmd::ArgumentList& args)
         return;
     }
 
-    SweepDialog dialog;
-
-    if (dialog.run() != IDialog::RESULT_OK)
-        return;
-
-    sweep::SweepParams params;
-    params.segments = dialog.getSegments();
-
     AABB sourceBounds;
     auto sources = sweep::extractSourceBrushes(input.brushNodes, sourceBounds);
     if (sources.empty()) return;
 
     int sweepAxis = sweep::detectSweepAxis(input.brushNodes, sourceBounds);
 
-    UndoableCommand undo("sweepBrushesAlongCurve");
-    GlobalSelectionSystem().setSelectedAll(false);
-    GlobalSelectionSystem().setSelectedAllComponents(false);
-
     scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
-    sweep::sweepBrushesAlongPath(
-        sources, sourceBounds, sweepAxis,
-        input.curvePoints, params, worldspawn);
+
+    SweepDialog dialog(sources, sourceBounds, sweepAxis, input.curvePoints, worldspawn);
+
+    if (dialog.run() == IDialog::RESULT_OK)
+    {
+        dialog.commitToMap();
+    }
+    else
+    {
+        dialog.getPreview().clear();
+    }
 }
 
 } // namespace ui

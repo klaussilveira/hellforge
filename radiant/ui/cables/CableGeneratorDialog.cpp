@@ -3,6 +3,7 @@
 #include "i18n.h"
 #include "ui/imainframe.h"
 #include "imap.h"
+#include "iscenegraph.h"
 #include "iselection.h"
 #include "icurve.h"
 #include "ishaderclipboard.h"
@@ -225,10 +226,15 @@ cables::CableParams readPresetFromNode(const xml::Node& node)
 namespace ui
 {
 
-CableGeneratorDialog::CableGeneratorDialog()
+CableGeneratorDialog::CableGeneratorDialog(const std::vector<Vector3>& waypoints,
+                                           bool curveMode, const scene::INodePtr& parent)
     : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
       _gravityPanel(nullptr),
-      _presetChoice(nullptr)
+      _presetChoice(nullptr),
+      _waypoints(waypoints),
+      _curveMode(curveMode),
+      _parent(parent),
+      _updating(false)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "CableGeneratorMainPanel"), 1, wxEXPAND | wxALL, 12);
@@ -268,6 +274,47 @@ CableGeneratorDialog::CableGeneratorDialog()
     loadPresets();
     populatePresetChoice();
     updateControlVisibility();
+
+    bindParameterEvents(_dialog, this, &CableGeneratorDialog::onParameterChanged);
+
+    regenerate();
+}
+
+GeneratorPreview& CableGeneratorDialog::getPreview()
+{
+    return _preview;
+}
+
+void CableGeneratorDialog::onParameterChanged(wxCommandEvent& ev)
+{
+    regenerate();
+}
+
+void CableGeneratorDialog::generateInto()
+{
+    if (_updating) return;
+
+    cables::CableParams params = readParamsFromControls();
+
+    if (_curveMode)
+    {
+        cables::generateCablesAlongPath(_waypoints, params, _parent);
+    }
+    else
+    {
+        for (size_t i = 0; i + 1 < _waypoints.size(); ++i)
+            cables::generateCablesBetweenPoints(_waypoints[i], _waypoints[i + 1], params, _parent);
+    }
+}
+
+void CableGeneratorDialog::regenerate()
+{
+    _preview.update(_parent, [this]() { generateInto(); });
+}
+
+void CableGeneratorDialog::commitToMap()
+{
+    _preview.commit(_parent, "cableGeneratorCreate", [this]() { generateInto(); });
 }
 
 void CableGeneratorDialog::loadPresets()
@@ -330,6 +377,8 @@ void CableGeneratorDialog::applyPreset(const Preset& preset)
 {
     const auto& p = preset.params;
 
+    _updating = true;
+
     findNamedObject<wxSpinCtrl>(_dialog, "CableGeneratorCount")->SetValue(p.count);
     findNamedObject<wxTextCtrl>(_dialog, "CableGeneratorDensity")->SetValue(string::to_string(p.density));
     findNamedObject<wxTextCtrl>(_dialog, "CableGeneratorSpacing")->SetValue(string::to_string(p.spacing));
@@ -353,9 +402,12 @@ void CableGeneratorDialog::applyPreset(const Preset& preset)
     findNamedObject<wxSpinCtrl>(_dialog, "CableGeneratorGravitySeed")->SetValue(p.gravitySeed);
     findNamedObject<wxTextCtrl>(_dialog, "CableGeneratorGravityMultiplier")->SetValue(string::to_string(p.gravityMultiplier));
 
+    _updating = false;
+
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 cables::CableParams CableGeneratorDialog::readParamsFromControls()
@@ -486,6 +538,7 @@ void CableGeneratorDialog::onSimTypeChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void CableGeneratorDialog::onFixedSubdivisionsChanged(wxCommandEvent& ev)
@@ -493,6 +546,7 @@ void CableGeneratorDialog::onFixedSubdivisionsChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void CableGeneratorDialog::onRandomizeSeed(wxCommandEvent& ev)
@@ -507,6 +561,8 @@ void CableGeneratorDialog::onRandomizeSeed(wxCommandEvent& ev)
         findNamedObject<wxSpinCtrl>(_dialog, "CableGeneratorSpacingSeed")->SetValue(seed);
     else if (name == "CableGeneratorRandomizeGravitySeed")
         findNamedObject<wxSpinCtrl>(_dialog, "CableGeneratorGravitySeed")->SetValue(seed);
+
+    regenerate();
 }
 
 void CableGeneratorDialog::onBrowseMaterial(wxCommandEvent& ev)
@@ -657,27 +713,17 @@ void CableGeneratorDialog::Show(const cmd::ArgumentList& args)
         return;
     }
 
-    CableGeneratorDialog dialog;
-
-    if (dialog.run() != IDialog::RESULT_OK)
-        return;
-
-    cables::CableParams params = dialog.readParamsFromControls();
-
-    UndoableCommand undo("cableGeneratorCreate");
-    GlobalSelectionSystem().setSelectedAll(false);
-    GlobalSelectionSystem().setSelectedAllComponents(false);
-
     scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
 
-    if (input.mode == InputMode::Curve)
+    CableGeneratorDialog dialog(input.waypoints, input.mode == InputMode::Curve, worldspawn);
+
+    if (dialog.run() == IDialog::RESULT_OK)
     {
-        cables::generateCablesAlongPath(input.waypoints, params, worldspawn);
+        dialog.commitToMap();
     }
     else
     {
-        for (size_t i = 0; i + 1 < input.waypoints.size(); ++i)
-            cables::generateCablesBetweenPoints(input.waypoints[i], input.waypoints[i + 1], params, worldspawn);
+        dialog.getPreview().clear();
     }
 }
 

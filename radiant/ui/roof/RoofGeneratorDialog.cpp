@@ -119,10 +119,8 @@ double RoofGeneratorDialog::getNumericValue(const std::string& widgetName, doubl
     return value < minimum ? minimum : value;
 }
 
-void RoofGeneratorDialog::regenerate()
+void RoofGeneratorDialog::generateInto()
 {
-    removeGenerated();
-
     roof::RoofParams params;
     params.type = findNamedObject<wxChoice>(_dialog, "RoofGeneratorType")->GetSelection();
     params.ridgeAxis = findNamedObject<wxChoice>(_dialog, "RoofGeneratorRidge")->GetSelection();
@@ -133,30 +131,22 @@ void RoofGeneratorDialog::regenerate()
     params.material =
         findNamedObject<wxTextCtrl>(_dialog, "RoofGeneratorMaterial")->GetValue().ToStdString();
 
-    _generated = roof::generateRoof(_walls, _footprint, params, _parent);
-
-    SceneChangeNotify();
-    GlobalMainFrame().updateAllWindows();
+    roof::generateRoof(_walls, _footprint, params, _parent);
 }
 
-void RoofGeneratorDialog::removeGenerated()
+void RoofGeneratorDialog::regenerate()
 {
-    for (const scene::INodePtr& node : _generated)
-    {
-        scene::removeNodeFromParent(node);
-    }
-
-    _generated.clear();
+    _preview.update(_parent, [this]() { generateInto(); });
 }
 
-void RoofGeneratorDialog::selectGenerated()
+GeneratorPreview& RoofGeneratorDialog::getPreview()
 {
-    GlobalSelectionSystem().setSelectedAll(false);
+    return _preview;
+}
 
-    for (const scene::INodePtr& node : _generated)
-    {
-        Node_setSelected(node, true);
-    }
+void RoofGeneratorDialog::commitToMap()
+{
+    _preview.commit(_parent, "roofGenerate", [this]() { generateInto(); });
 }
 
 void RoofGeneratorDialog::Show(const cmd::ArgumentList& args)
@@ -193,20 +183,15 @@ void RoofGeneratorDialog::Show(const cmd::ArgumentList& args)
         parent = GlobalMapModule().findOrInsertWorldspawn();
     }
 
-    GlobalUndoSystem().start();
-
     RoofGeneratorDialog dialog(walls, footprint, parent);
 
     if (dialog.run() == IDialog::RESULT_OK)
     {
-        dialog.selectGenerated();
-        GlobalUndoSystem().finish("roofGenerate");
+        dialog.commitToMap();
     }
     else
     {
-        dialog.removeGenerated();
-        GlobalUndoSystem().cancel();
-        SceneChangeNotify();
+        dialog.getPreview().clear();
     }
 }
 

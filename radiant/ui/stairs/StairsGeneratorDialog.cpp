@@ -3,9 +3,9 @@
 
 #include "i18n.h"
 #include "ui/imainframe.h"
+#include "ui/common/GeneratorSpawn.h"
 #include "imap.h"
-#include "iselection.h"
-#include "icameraview.h"
+#include "iscenegraph.h"
 #include "ishaderclipboard.h"
 #include "iundo.h"
 
@@ -39,32 +39,15 @@ inline std::string getSelectedShader()
     return selectedShader;
 }
 
-Vector3 getSpawnPosition()
-{
-    if (GlobalSelectionSystem().countSelected() > 0)
-    {
-        AABB bounds = GlobalSelectionSystem().getWorkZone().bounds;
-        if (bounds.isValid())
-            return bounds.getOrigin();
-    }
-
-    try
-    {
-        return GlobalCameraManager().getActiveView().getCameraOrigin();
-    }
-    catch (const std::runtime_error&) {}
-
-    return Vector3(0, 0, 0);
-}
 
 } // anonymous namespace
 
 namespace ui
 {
 
-StairsGeneratorDialog::StairsGeneratorDialog()
+StairsGeneratorDialog::StairsGeneratorDialog(const scene::INodePtr& parent)
     : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
-      _spiralPanel(nullptr), _turnPanel(nullptr), _landingPanel(nullptr)
+      _spiralPanel(nullptr), _turnPanel(nullptr), _landingPanel(nullptr), _parent(parent)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "StairsGeneratorMainPanel"), 1, wxEXPAND | wxALL, 12);
@@ -105,6 +88,71 @@ StairsGeneratorDialog::StairsGeneratorDialog()
         game::current::getValue<int>("/generators/stairs/stepCount", stepCountCtrl->GetValue()));
 
     updateControlVisibility();
+
+    bindParameterEvents(_dialog, this, &StairsGeneratorDialog::onParameterChanged);
+
+    regenerate();
+}
+
+GeneratorPreview& StairsGeneratorDialog::getPreview()
+{
+    return _preview;
+}
+
+void StairsGeneratorDialog::onParameterChanged(wxCommandEvent& ev)
+{
+    regenerate();
+}
+
+void StairsGeneratorDialog::generateInto()
+{
+    int stepCount = getStepCount();
+    float stepH = getStepHeight();
+    float stepD = getStepDepth();
+    float width = getWidth();
+
+    if (stepCount < 1 || stepH <= 0 || stepD <= 0 || width <= 0)
+    {
+        return;
+    }
+
+    int type = getType();
+    bool solid = getSolid();
+    std::string material = getMaterial();
+    double dirDeg = getDirection() * 90.0;
+
+    double reach = std::max(256.0, static_cast<double>(stepCount) * stepD);
+    Vector3 spawnPos = getGeneratorSpawnPosition(reach);
+
+    switch (type)
+    {
+    case 0:
+        stairs::generateStraightStairs(spawnPos, stepCount, stepH, stepD, width, dirDeg,
+            solid, material, _parent);
+        break;
+    case 1:
+        stairs::generateLShapeStairs(spawnPos, stepCount, stepH, stepD, width, dirDeg, solid,
+            getTurnAt(), getTurnDirection(), material, _parent);
+        break;
+    case 2:
+        stairs::generateUShapeStairs(spawnPos, stepCount, stepH, stepD, width, dirDeg, solid,
+            getTurnAt(), getTurnDirection(), getLandingDepth(), material, _parent);
+        break;
+    case 3:
+        stairs::generateSpiralStairs(spawnPos, stepCount, stepH, dirDeg, solid,
+            getInnerRadius(), getOuterRadius(), getTotalAngle(), material, _parent);
+        break;
+    }
+}
+
+void StairsGeneratorDialog::regenerate()
+{
+    _preview.update(_parent, [this]() { generateInto(); });
+}
+
+void StairsGeneratorDialog::commitToMap()
+{
+    _preview.commit(_parent, "stairsGeneratorCreate", [this]() { generateInto(); });
 }
 
 void StairsGeneratorDialog::onTypeChanged(wxCommandEvent& ev)
@@ -112,6 +160,7 @@ void StairsGeneratorDialog::onTypeChanged(wxCommandEvent& ev)
     updateControlVisibility();
     _dialog->Layout();
     _dialog->Fit();
+    regenerate();
 }
 
 void StairsGeneratorDialog::onBrowseMaterial(wxCommandEvent& ev)
@@ -212,48 +261,17 @@ float StairsGeneratorDialog::getLandingDepth()
 
 void StairsGeneratorDialog::Show(const cmd::ArgumentList& args)
 {
-    StairsGeneratorDialog dialog;
-
-    if (dialog.run() != IDialog::RESULT_OK)
-        return;
-
-    int type = dialog.getType();
-    int stepCount = dialog.getStepCount();
-    float stepH = dialog.getStepHeight();
-    float stepD = dialog.getStepDepth();
-    float width = dialog.getWidth();
-    bool solid = dialog.getSolid();
-    std::string material = dialog.getMaterial();
-
-    // Direction: 0=East(0), 1=North(90), 2=West(180), 3=South(270)
-    double dirDeg = dialog.getDirection() * 90.0;
-
-    Vector3 spawnPos = getSpawnPosition();
-
-    UndoableCommand undo("stairsGeneratorCreate");
-    GlobalSelectionSystem().setSelectedAll(false);
-
     scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
 
-    switch (type)
+    StairsGeneratorDialog dialog(worldspawn);
+
+    if (dialog.run() == IDialog::RESULT_OK)
     {
-    case 0: // Straight
-        stairs::generateStraightStairs(spawnPos, stepCount, stepH, stepD, width, dirDeg, solid, material, worldspawn);
-        break;
-    case 1: // L-Shape
-        stairs::generateLShapeStairs(spawnPos, stepCount, stepH, stepD, width, dirDeg, solid,
-            dialog.getTurnAt(), dialog.getTurnDirection(), material, worldspawn);
-        break;
-    case 2: // U-Shape
-        stairs::generateUShapeStairs(spawnPos, stepCount, stepH, stepD, width, dirDeg, solid,
-            dialog.getTurnAt(), dialog.getTurnDirection(), dialog.getLandingDepth(),
-            material, worldspawn);
-        break;
-    case 3: // Spiral
-        stairs::generateSpiralStairs(spawnPos, stepCount, stepH, dirDeg, solid,
-            dialog.getInnerRadius(), dialog.getOuterRadius(), dialog.getTotalAngle(),
-            material, worldspawn);
-        break;
+        dialog.commitToMap();
+    }
+    else
+    {
+        dialog.getPreview().clear();
     }
 }
 

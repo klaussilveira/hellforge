@@ -1755,6 +1755,12 @@
     <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchGeometry.h">
       <Filter>src\ui\cornerpatch</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\common\GeneratorPreview.h">
+      <Filter>src\ui\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\common\GeneratorSpawn.h">
+      <Filter>src\ui\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeneratorDialog.h">
       <Filter>src\ui\roof</Filter>
     </ClInclude>

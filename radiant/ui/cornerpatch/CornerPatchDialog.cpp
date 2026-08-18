@@ -4,7 +4,7 @@
 #include "i18n.h"
 #include "ui/imainframe.h"
 #include "imap.h"
-#include "iselection.h"
+#include "iscenegraph.h"
 #include "iundo.h"
 
 #include "string/convert.h"
@@ -23,20 +23,23 @@ const char* const WINDOW_TITLE = N_("Corner Patch");
 namespace ui
 {
 
-CornerPatchDialog::CornerPatchDialog()
-    : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow())
+CornerPatchDialog::CornerPatchDialog(const cornerpatch::CornerDetection& detection,
+                                     int defaultRadius, const scene::INodePtr& parent)
+    : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()),
+      _detection(detection), _parent(parent)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "CornerPatchMainPanel"), 1, wxEXPAND | wxALL, 12);
 
     wxStaticText* topLabel = findNamedObject<wxStaticText>(_dialog, "CornerPatchTopLabel");
     topLabel->SetFont(topLabel->GetFont().Bold());
-}
 
-void CornerPatchDialog::setRadius(int value)
-{
     findNamedObject<wxTextCtrl>(_dialog, "CornerPatchRadius")
-        ->SetValue(std::to_string(value));
+        ->SetValue(std::to_string(defaultRadius));
+
+    bindParameterEvents(_dialog, this, &CornerPatchDialog::onParameterChanged);
+
+    regenerate();
 }
 
 int CornerPatchDialog::getSegments()
@@ -61,6 +64,42 @@ bool CornerPatchDialog::getInvert()
     return findNamedObject<wxCheckBox>(_dialog, "CornerPatchInvert")->GetValue();
 }
 
+GeneratorPreview& CornerPatchDialog::getPreview()
+{
+    return _preview;
+}
+
+void CornerPatchDialog::onParameterChanged(wxCommandEvent& ev)
+{
+    regenerate();
+}
+
+void CornerPatchDialog::generateInto()
+{
+    int segments = getSegments();
+    float radius = getRadius();
+    float arcDegrees = getArcDegrees();
+    bool invert = getInvert();
+
+    if (radius <= 0 || arcDegrees <= 0)
+    {
+        return;
+    }
+
+    cornerpatch::generateCornerPatch(_detection, segments, radius, arcDegrees,
+                                     invert, _parent);
+}
+
+void CornerPatchDialog::regenerate()
+{
+    _preview.update(_parent, [this]() { generateInto(); });
+}
+
+void CornerPatchDialog::commitToMap()
+{
+    _preview.commit(_parent, "cornerPatchCreate", [this]() { generateInto(); });
+}
+
 void CornerPatchDialog::Show(const cmd::ArgumentList& args)
 {
     auto detection = cornerpatch::detectCornerFromSelection();
@@ -72,25 +111,20 @@ void CornerPatchDialog::Show(const cmd::ArgumentList& args)
         return;
     }
 
-    CornerPatchDialog dialog;
-
     int defaultRadius = static_cast<int>(std::min(detection.radius1, detection.radius2));
-    dialog.setRadius(defaultRadius);
-
-    if (dialog.run() != IDialog::RESULT_OK)
-        return;
-
-    int segments = dialog.getSegments();
-    float radius = dialog.getRadius();
-    float arcDegrees = dialog.getArcDegrees();
-    bool invert = dialog.getInvert();
-
-    UndoableCommand undo("cornerPatchCreate");
-    GlobalSelectionSystem().setSelectedAll(false);
 
     scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
-    cornerpatch::generateCornerPatch(detection, segments, radius, arcDegrees,
-                                     invert, worldspawn);
+
+    CornerPatchDialog dialog(detection, defaultRadius, worldspawn);
+
+    if (dialog.run() == IDialog::RESULT_OK)
+    {
+        dialog.commitToMap();
+    }
+    else
+    {
+        dialog.getPreview().clear();
+    }
 }
 
 } // namespace ui

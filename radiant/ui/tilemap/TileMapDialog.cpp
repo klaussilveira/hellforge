@@ -4,9 +4,9 @@
 
 #include "i18n.h"
 #include "ui/imainframe.h"
+#include "ui/common/GeneratorSpawn.h"
 #include "imap.h"
 #include "iselection.h"
-#include "icameraview.h"
 #include "ishaderclipboard.h"
 #include "iundo.h"
 #include "igrid.h"
@@ -56,23 +56,6 @@ inline std::string getDefaultShader()
     return s;
 }
 
-inline Vector3 getSpawnPosition()
-{
-    if (GlobalSelectionSystem().countSelected() > 0)
-    {
-        AABB bounds = GlobalSelectionSystem().getWorkZone().bounds;
-        if (bounds.isValid())
-            return bounds.getOrigin();
-    }
-
-    try
-    {
-        return GlobalCameraManager().getActiveView().getCameraOrigin();
-    }
-    catch (const std::runtime_error&) {}
-
-    return Vector3(0, 0, 0);
-}
 
 wxColour tileColour(const tilemap::Tile& tile)
 {
@@ -688,7 +671,8 @@ void TileMapDialog::Show(const cmd::ArgumentList& args)
     int roomStyle = dialog.getRoomStyle();
     int wallThickness = dialog.getWallThickness();
 
-    Vector3 spawnPos = getSpawnPosition();
+    Vector3 spawnPos = getGeneratorSpawnPosition(std::max(256.0,
+        static_cast<double>(std::max(cols * tileW, rows * tileH))));
 
     {
         UndoableCommand undo("tileMapGenerate");
