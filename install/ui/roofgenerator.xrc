@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+  <object class="wxPanel" name="RoofGeneratorMainPanel">
+    <style>wxTAB_TRAVERSAL</style>
+    <object class="wxBoxSizer" name="">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALL</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticText" name="RoofGeneratorTopLabel">
+          <label>Generate Roof Geometry</label>
+          <wrap>-1</wrap>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Shape</label>
+          <object class="sizeritem">
+            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <vgap>6</vgap>
+              <hgap>12</hgap>
+              <growablerows></growablerows>
+              <growablecols>1</growablecols>
+              <rows>2</rows>
+              <cols>2</cols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Type:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxChoice" name="RoofGeneratorType">
+                  <selection>0</selection>
+                  <content>
+                    <item>Gable (A-frame)</item>
+                    <item>Hip</item>
+                  </content>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Ridge:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxChoice" name="RoofGeneratorRidge">
+                  <selection>0</selection>
+                  <content>
+                    <item>Auto (longest side)</item>
+                    <item>Along X</item>
+                    <item>Along Y</item>
+                  </content>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Dimensions</label>
+          <object class="sizeritem">
+            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <vgap>6</vgap>
+              <hgap>12</hgap>
+              <growablerows></growablerows>
+              <growablecols>1,3</growablecols>
+              <rows>2</rows>
+              <cols>4</cols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Ridge Height:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="RoofGeneratorHeight">
+                  <value>96</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Slab Thickness:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="RoofGeneratorSlab">
+                  <value>8</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Eave Overhang:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="RoofGeneratorEave">
+                  <value>16</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Rake Overhang:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="RoofGeneratorRake">
+                  <value>8</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxFlexGridSizer" name="">
+          <vgap>6</vgap>
+          <hgap>6</hgap>
+          <growablerows></growablerows>
+          <growablecols>1</growablecols>
+          <rows>1</rows>
+          <cols>3</cols>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL</flag>
+            <border>0</border>
+            <option>0</option>
+            <object class="wxStaticText" name="">
+              <label>Material:</label>
+              <wrap>0</wrap>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND</flag>
+            <border>0</border>
+            <option>1</option>
+            <object class="wxTextCtrl" name="RoofGeneratorMaterial">
+              <value>textures/common/caulk</value>
+              <maxlength>0</maxlength>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxLEFT</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxButton" name="RoofGeneratorBrowseMaterial">
+              <size>30,-1</size>
+              <label>...</label>
+              <default>0</default>
+              <auth_needed>0</auth_needed>
+              <markup>0</markup>
+              <bitmap/>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

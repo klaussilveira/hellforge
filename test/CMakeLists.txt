@@ -61,6 +61,7 @@ add_executable(drtest
                SelectionGroup.cpp
                Settings.cpp
                Skin.cpp
+               RoofGenerator.cpp
                StairsGenerator.cpp
                SoundManager.cpp
                TerrainGenerator.cpp

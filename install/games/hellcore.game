@@ -145,6 +145,12 @@
 			<floorGap value="0" />
 			<ceilingHeight value="160" />
 		</tilemap>
+		<roof>
+			<height value="120" />
+			<slabThickness value="10" />
+			<eave value="20" />
+			<rake value="10" />
+		</roof>
 		<stairs>
 			<stepCount value="10" />
 			<stepHeight value="16" />

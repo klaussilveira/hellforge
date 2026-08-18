@@ -71,6 +71,7 @@
 #include "ui/cables/CableGeneratorDialog.h"
 #include "ui/cornerpatch/CornerPatchDialog.h"
 #include "ui/scatter/ScatterDialog.h"
+#include "ui/roof/RoofGeneratorDialog.h"
 #include "ui/stairs/StairsGeneratorDialog.h"
 #include "ui/terrain/TerrainGeneratorDialog.h"
 #include "ui/terrain/TerrainSculptControl.h"
@@ -635,6 +636,10 @@ void UserInterfaceModule::registerUICommands()
 
     // Arch generator dialog for creating arch geometry
     GlobalCommandSystem().addCommand("ArchGeneratorDialog", ArchGeneratorDialog::Show);
+
+    // Roof generator dialog for topping selected wall brushes with a roof
+    GlobalCommandSystem().addWithCheck("RoofGeneratorDialog", RoofGeneratorDialog::Show,
+        selection::pred::haveBrush);
 
     // Corner patch generator for creating curved patches at brush corners
     GlobalCommandSystem().addCommand("CornerPatchDialog", CornerPatchDialog::Show);
