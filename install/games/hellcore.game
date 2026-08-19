@@ -145,6 +145,12 @@
 			<floorGap value="0" />
 			<ceilingHeight value="160" />
 		</tilemap>
+		<facade>
+			<wallThickness value="20" />
+			<floorCount value="3" />
+			<doorWidth value="60" />
+			<doorHeight value="100" />
+		</facade>
 		<roof>
 			<height value="120" />
 			<slabThickness value="10" />

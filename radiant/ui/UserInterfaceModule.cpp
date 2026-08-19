@@ -72,6 +72,7 @@
 #include "ui/cornerpatch/CornerPatchDialog.h"
 #include "ui/scatter/ScatterDialog.h"
 #include "ui/roof/RoofGeneratorDialog.h"
+#include "ui/facade/FacadeGeneratorDialog.h"
 #include "ui/stairs/StairsGeneratorDialog.h"
 #include "ui/terrain/TerrainGeneratorDialog.h"
 #include "ui/terrain/TerrainSculptControl.h"
@@ -640,6 +641,10 @@ void UserInterfaceModule::registerUICommands()
     // Roof generator dialog for topping selected wall brushes with a roof
     GlobalCommandSystem().addWithCheck("RoofGeneratorDialog", RoofGeneratorDialog::Show,
         selection::pred::haveBrush);
+
+    // Facade generator dialog for turning a blockout brush or patch into a building front
+    GlobalCommandSystem().addWithCheck("FacadeGeneratorDialog", FacadeGeneratorDialog::Show,
+        [] { return selection::pred::haveBrush() || selection::pred::havePatch(); });
 
     // Corner patch generator for creating curved patches at brush corners
     GlobalCommandSystem().addCommand("CornerPatchDialog", CornerPatchDialog::Show);

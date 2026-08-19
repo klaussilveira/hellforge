@@ -375,6 +375,7 @@
     <ClCompile Include="..\..\radiant\ui\skin\SkinEditorTreeView.cpp" />
     <ClCompile Include="..\..\radiant\ui\cables\CableGeneratorDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\cornerpatch\CornerPatchDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\facade\FacadeGeneratorDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\roof\RoofGeneratorDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\statusbar\CommandStatus.cpp" />
@@ -655,6 +656,8 @@
     <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\common\GeneratorPreview.h" />
     <ClInclude Include="..\..\radiant\ui\common\GeneratorSpawn.h" />
+    <ClInclude Include="..\..\radiant\ui\facade\FacadeGeneratorDialog.h" />
+    <ClInclude Include="..\..\radiant\ui\facade\FacadeGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeneratorDialog.h" />
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.h" />

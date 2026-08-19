@@ -178,6 +178,7 @@ add_executable(hellforge
                ui/building/BuildingGeneratorDialog.cpp
                ui/cables/CableGeneratorDialog.cpp
                ui/cornerpatch/CornerPatchDialog.cpp
+               ui/facade/FacadeGeneratorDialog.cpp
                ui/scatter/ScatterDialog.cpp
                ui/roof/RoofGeneratorDialog.cpp
                ui/stairs/StairsGeneratorDialog.cpp

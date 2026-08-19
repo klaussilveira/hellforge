@@ -240,6 +240,7 @@
 		<menuItem name="cornerPatch" caption="Corner Patch..." command="CornerPatchDialog" />
 		<menuItem name="roofGenerator" caption="Roof..." command="RoofGeneratorDialog" />
 		<menuItem name="buildingGenerator" caption="Building..." command="BuildingGeneratorDialog" />
+		<menuItem name="facadeGenerator" caption="Facade..." command="FacadeGeneratorDialog" />
 		<menuItem name="tileMap" caption="Tile Map..." command="TileMapDialog" />
 		<menuItem name="cityPlanner" caption="City Plan..." command="CityPlannerDialog" />
 	</subMenu>

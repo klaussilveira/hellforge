@@ -230,6 +230,9 @@
     <Filter Include="src\ui\roof">
       <UniqueIdentifier>{c3d4e5f6-a7b8-9012-cdef-123456789012}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\facade">
+      <UniqueIdentifier>{5a1c9b73-2e64-4d18-9a0f-7c6b2d4e8f31}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\array">
       <UniqueIdentifier>{43eee746-f4e6-481b-8fd5-a5fadfd55788}</UniqueIdentifier>
     </Filter>
@@ -873,6 +876,9 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\cornerpatch\CornerPatchDialog.cpp">
       <Filter>src\ui\cornerpatch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\facade\FacadeGeneratorDialog.cpp">
+      <Filter>src\ui\facade</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\roof\RoofGeneratorDialog.cpp">
       <Filter>src\ui\roof</Filter>
@@ -1760,6 +1766,12 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\common\GeneratorSpawn.h">
       <Filter>src\ui\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\facade\FacadeGeneratorDialog.h">
+      <Filter>src\ui\facade</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\facade\FacadeGeometry.h">
+      <Filter>src\ui\facade</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeneratorDialog.h">
       <Filter>src\ui\roof</Filter>
