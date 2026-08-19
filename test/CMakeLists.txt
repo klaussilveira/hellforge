@@ -64,6 +64,8 @@ add_executable(drtest
                FacadeGenerator.cpp
                RoofGenerator.cpp
                StairsGenerator.cpp
+               StrokeGeometry.cpp
+               ${CMAKE_SOURCE_DIR}/radiant/xyview/tools/StrokeGeometry.cpp
                SoundManager.cpp
                TerrainGenerator.cpp
                TerrainSculpt.cpp

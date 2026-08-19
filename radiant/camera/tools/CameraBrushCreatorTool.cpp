@@ -14,6 +14,7 @@
 #include "FaceIntersectionFinder.h"
 #include "iorthoview.h"
 #include "xyview/tools/WallTool.h"
+#include "xyview/tools/PencilTool.h"
 #include "ui/texturebrowser/TextureBrowserPanel.h"
 #include "ui/texturebrowser/TextureBrowserManager.h"
 #include "selection/SelectionVolume.h"
@@ -271,9 +272,10 @@ MouseTool::Result CameraBrushCreatorTool::onMouseDown(Event& ev)
     try
     {
         if (GlobalClipper().clipMode() || GlobalMapModule().getEditMode() == IMap::EditMode::Merge ||
-            GlobalOrthoViewManager().polygonMode() || WallToolSettings::Instance().active)
+            GlobalOrthoViewManager().polygonMode() || WallToolSettings::Instance().active ||
+            PencilToolSettings::Instance().active)
         {
-            return Result::Ignored; // no brush creation in clip, merge, polygon or wall mode
+            return Result::Ignored; // no brush creation in clip, merge, polygon, wall or pencil mode
         }
 
         // We only operate on camera view events

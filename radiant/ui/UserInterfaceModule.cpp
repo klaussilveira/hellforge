@@ -110,6 +110,8 @@
 #include "textool/TextureToolControl.h"
 #include "transform/TransformPanelControl.h"
 #include "walltool/WallToolControl.h"
+#include "penciltool/PencilToolControl.h"
+#include "xyview/tools/PencilTool.h"
 #include "assetbrowser/AssetBrowserControl.h"
 
 namespace ui
@@ -305,12 +307,18 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
     registerControl(std::make_shared<TerrainSculptControl>());
     registerControl(std::make_shared<VertexPaintControl>());
     registerControl(std::make_shared<WallToolControl>());
+    registerControl(std::make_shared<PencilToolControl>());
     registerControl(std::make_shared<AssetBrowserControl>());
     AssetBrowserPanel::constructPreferences();
 
     GlobalEventManager().addToggle("ToggleWallMode", [](bool)
     {
         GlobalCommandSystem().executeCommand("ToggleWallTool");
+    });
+
+    GlobalEventManager().addToggle("TogglePencilMode", [](bool)
+    {
+        GlobalCommandSystem().executeCommand("TogglePencilTool");
     });
 
     GlobalMainFrame().signal_MainFrameConstructed().connect([&]()
@@ -364,6 +372,9 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
         );
         GlobalMainFrame().addControl(
             UserControl::WallTool, ControlSettings::floating(320, 380)
+        );
+        GlobalMainFrame().addControl(
+            UserControl::PencilTool, ControlSettings::floating(320, 260)
         );
         GlobalMainFrame().addControl(
             UserControl::AssetBrowser, ControlSettings{ IMainFrame::Location::PropertyPanel, true }
@@ -693,6 +704,13 @@ void UserInterfaceModule::registerUICommands()
         [adjustStrength](const cmd::ArgumentList&) { adjustStrength(+0.5f, +0.05f); });
     GlobalCommandSystem().addCommand("TerrainSculptStrengthDown",
         [adjustStrength](const cmd::ArgumentList&) { adjustStrength(-0.5f, -0.05f); });
+
+    GlobalCommandSystem().addCommand("PencilToggleSmoothing", [](const cmd::ArgumentList&)
+    {
+        auto& settings = PencilToolSettings::Instance();
+        settings.smooth = !settings.smooth;
+        settings.signal_settingsChanged.emit();
+    });
 
     // Tile map editor for quick 2D block-based level design
     GlobalCommandSystem().addCommand("TileMapDialog", TileMapDialog::Show);

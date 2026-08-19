@@ -209,6 +209,9 @@
     <Filter Include="src\ui\walltool">
       <UniqueIdentifier>{5deb04e3-fe0b-438e-bd7f-851ec66e8295}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\penciltool">
+      <UniqueIdentifier>{9c1f2a74-6b30-4f52-9a1e-3f6d8c4b21ad}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\decalshooter">
       <UniqueIdentifier>{fe90a752-ef9b-4501-a9c2-e5b3f41c2259}</UniqueIdentifier>
     </Filter>
@@ -456,6 +459,15 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\xyview\tools\PolygonTool.cpp">
       <Filter>src\xyview\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\xyview\tools\PencilTool.cpp">
+      <Filter>src\xyview\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\xyview\tools\StrokeGeometry.cpp">
+      <Filter>src\xyview\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\penciltool\PencilToolPanel.cpp">
+      <Filter>src\ui\penciltool</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\mousetool\ToolMappingDialog.cpp">
       <Filter>src\ui\mousetool</Filter>
@@ -1145,6 +1157,18 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\xyview\tools\PolygonTool.h">
       <Filter>src\xyview\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\xyview\tools\PencilTool.h">
+      <Filter>src\xyview\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\xyview\tools\StrokeGeometry.h">
+      <Filter>src\xyview\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\penciltool\PencilToolControl.h">
+      <Filter>src\ui\penciltool</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\penciltool\PencilToolPanel.h">
+      <Filter>src\ui\penciltool</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\xyview\tools\ZoomTool.h">
       <Filter>src\xyview\tools</Filter>

@@ -10,6 +10,7 @@
 #include "command/ExecutionNotPossible.h"
 #include "XYMouseToolEvent.h"
 #include "WallTool.h"
+#include "PencilTool.h"
 #include "ui/texturebrowser/TextureBrowserPanel.h"
 #include "ui/texturebrowser/TextureBrowserManager.h"
 #include "../GlobalXYWnd.h"
@@ -34,9 +35,10 @@ MouseTool::Result BrushCreatorTool::onMouseDown(Event& ev)
     try
     {
         if (GlobalClipper().clipMode() || GlobalMapModule().getEditMode() == IMap::EditMode::Merge ||
-            GlobalXYWnd().polygonMode() || WallToolSettings::Instance().active)
+            GlobalXYWnd().polygonMode() || WallToolSettings::Instance().active ||
+            PencilToolSettings::Instance().active)
         {
-            return Result::Ignored; // no brush creation in clip, merge, polygon or wall mode
+            return Result::Ignored; // no brush creation in clip, merge, polygon, wall or pencil mode
         }
 
         // We only operate on XY view events, so attempt to cast
