@@ -212,13 +212,16 @@ add_executable(hellforge
                ui/toolbar/ToolbarManager.cpp
                ui/transform/TransformPanel.cpp
                ui/UserInterfaceModule.cpp
+               ui/penciltool/PencilToolPanel.cpp
                ui/walltool/WallCursorPreview.cpp
                ui/walltool/WallToolPanel.cpp
                xyview/GlobalXYWnd.cpp
                xyview/tools/BrushCreatorTool.cpp
                xyview/tools/ClipperTool.cpp
                xyview/tools/MeasurementTool.cpp
+               xyview/tools/PencilTool.cpp
                xyview/tools/PolygonTool.cpp
+               xyview/tools/StrokeGeometry.cpp
                xyview/tools/WallGeometry.cpp
                xyview/tools/WallTool.cpp
                xyview/OrthoView.cpp)

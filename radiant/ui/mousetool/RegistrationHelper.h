@@ -5,6 +5,7 @@
 #include "selection/SceneManipulateMouseTool.h"
 #include "selection/TerrainSculptTool.h"
 #include "selection/VertexPaintTool.h"
+#include "xyview/tools/PencilTool.h"
 #include "xyview/tools/MoveViewTool.h"
 #include "xyview/tools/ZoomTool.h"
 #include "textool/tools/TextureToolSelectionTool.h"
@@ -23,9 +24,12 @@ public:
         // Orthoview: manipulate and all the non-face selection tools
         auto& orthoGroup = GlobalMouseToolManager().getGroup(IMouseToolGroup::Type::OrthoView);
 
+        auto pencilTool = std::make_shared<PencilTool>();
+
         orthoGroup.registerMouseTool(std::make_shared<SceneManipulateMouseTool>());
         orthoGroup.registerMouseTool(std::make_shared<BasicSelectionTool>());
         orthoGroup.registerMouseTool(std::make_shared<CycleSelectionMouseTool>());
+        orthoGroup.registerMouseTool(pencilTool);
 
         // Camera: manipulation plus all selection tools, including the face-only tools
         auto& camGroup = GlobalMouseToolManager().getGroup(IMouseToolGroup::Type::CameraView);
@@ -38,6 +42,7 @@ public:
         camGroup.registerMouseTool(std::make_shared<CycleSelectionMouseToolFaceOnly>());
         camGroup.registerMouseTool(std::make_shared<TerrainSculptTool>());
         camGroup.registerMouseTool(std::make_shared<VertexPaintTool>());
+        camGroup.registerMouseTool(pencilTool);
 
         auto& texToolGroup = GlobalMouseToolManager().getGroup(IMouseToolGroup::Type::TextureTool);
 

@@ -275,6 +275,7 @@
       <toggletoolbutton name="clipper" action="ToggleClipper" tooltip="Clip or divide brushes" icon="view_clipper.png"/>
       <toggletoolbutton name="polygon" action="TogglePolygonMode" tooltip="Draw polygon brushes" icon="polygon_tool.png"/>
       <toggletoolbutton name="walltool" action="ToggleWallMode" tooltip="Draw walls" icon="wall.png"/>
+      <toggletoolbutton name="penciltool" action="TogglePencilMode" tooltip="Draw curves freehand" icon="sketching.png"/>
       <separator/>
       <toolbutton name="csgsubstract" action="CSGSubtract" tooltip="CSG Subtract" icon="selection_csgsubtract.png"/>
       <toolbutton name="csgmerge" action="CSGMerge" tooltip="CSG Merge" icon="selection_csgmerge.png"/>

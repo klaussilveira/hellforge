@@ -205,6 +205,15 @@
     <ClCompile Include="..\..\..\test\Transformation.cpp" />
     <ClCompile Include="..\..\..\test\UndoRedo.cpp" />
     <ClCompile Include="..\..\..\test\VFS.cpp" />
+    <ClCompile Include="..\..\..\test\StrokeGeometry.cpp" />
+    <ClCompile Include="..\..\..\radiant\xyview\tools\StrokeGeometry.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
     <ClCompile Include="..\..\..\test\WallGeometry.cpp" />
     <ClCompile Include="..\..\..\radiant\xyview\tools\WallGeometry.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
