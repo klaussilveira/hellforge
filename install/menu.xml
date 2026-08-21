@@ -270,6 +270,7 @@
 			<menuItem name="clipSelection" caption="Clip Selection" command="ClipSelected" />
 			<menuItem name="splitSelection" caption="Split Selection" command="SplitSelected" />
 			<menuItem name="flipClipOrientation" caption="Flip Clip Orientation" command="FlipClip" />
+			<menuItem name="ruleCut" caption="Rule Cut..." command="CutBrushDialog" />
 		</subMenu>
 		<menuItem name="togglePolygonMode" caption="Polygon Mode" command="TogglePolygonMode" />
 

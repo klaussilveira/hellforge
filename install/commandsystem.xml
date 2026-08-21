@@ -10,6 +10,10 @@
 		<bind name="Brush7Sided" value="BrushMakeSided 7" readonly="1" />
 		<bind name="Brush8Sided" value="BrushMakeSided 8" readonly="1" />
 		<bind name="Brush9Sided" value="BrushMakeSided 9" readonly="1" />
+		<!-- Rule Cut presets -->
+		<bind name="CutBrushHalf" value="CutBrush 2" readonly="1" />
+		<bind name="CutBrushThirds" value="CutBrush 3" readonly="1" />
+		<bind name="CutBrushQuarters" value="CutBrush 4" readonly="1" />
 		<!-- Brush Prefab commands -->
 		<bind name="BrushCuboid" value="BrushMakePrefab 0" readonly="1" />
 		<bind name="BrushPrism" value="QueryBrushPrefabSidesDialog 1" readonly="1" />

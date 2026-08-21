@@ -14,6 +14,9 @@
 #include "transformlib.h"
 #include "RenderableBrushVertices.h"
 
+#include <memory>
+#include <vector>
+
 class BrushNode final :
 	public scene::SelectableNode,
 	public scene::Cloneable,
@@ -44,6 +47,7 @@ class BrushNode final :
 
 	mutable AABB _aabb_component;
 	BrushClipPlane _clipPlane;
+	std::vector<std::unique_ptr<BrushClipPlane>> _cutPlanes;
 
 	ShaderPtr _pointShader;
     ShaderPtr _inactiveWireShader;
@@ -72,6 +76,8 @@ public:
 	// IBrushNode implementation
 	Brush& getBrush() override;
 	IBrush& getIBrush() override;
+
+	void setCutPlanes(const std::vector<Plane3>& planes) override;
 
 	std::string name() const  override
     {

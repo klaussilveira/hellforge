@@ -227,6 +227,9 @@
     <Filter Include="src\ui\cornerpatch">
       <UniqueIdentifier>{d4e5f6a7-b890-1234-cdef-567890abcdef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\cut">
+      <UniqueIdentifier>{e5f6a7b8-c901-2345-def0-67890abcdef1}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\stairs">
       <UniqueIdentifier>{b2c3d4e5-f6a7-8901-bcde-f12345678901}</UniqueIdentifier>
     </Filter>
@@ -885,6 +888,9 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\cables\CableGeneratorDialog.cpp">
       <Filter>src\ui\cables</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\cut\CutToolDialog.cpp">
+      <Filter>src\ui\cut</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\cornerpatch\CornerPatchDialog.cpp">
       <Filter>src\ui\cornerpatch</Filter>
@@ -1784,6 +1790,15 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\cornerpatch\CornerPatchGeometry.h">
       <Filter>src\ui\cornerpatch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cut\CutToolDialog.h">
+      <Filter>src\ui\cut</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cut\CutGeometry.h">
+      <Filter>src\ui\cut</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\cut\CutRules.h">
+      <Filter>src\ui\cut</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\common\GeneratorPreview.h">
       <Filter>src\ui\common</Filter>

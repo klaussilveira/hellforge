@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+  <object class="wxPanel" name="CutToolMainPanel">
+    <style>wxTAB_TRAVERSAL</style>
+    <object class="wxBoxSizer" name="">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALL</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticText" name="CutToolTopLabel">
+          <label>Cut Selected Brushes</label>
+          <wrap>-1</wrap>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Direction</label>
+          <object class="sizeritem">
+            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <vgap>6</vgap>
+              <hgap>12</hgap>
+              <growablerows></growablerows>
+              <growablecols>1</growablecols>
+              <rows>1</rows>
+              <cols>2</cols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Cut Along:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxChoice" name="CutToolAxis">
+                  <selection>0</selection>
+                  <content>
+                    <item>X Axis</item>
+                    <item>Y Axis</item>
+                    <item>Z Axis</item>
+                    <item>Longest Side</item>
+                  </content>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticBoxSizer" name="">
+          <orient>wxVERTICAL</orient>
+          <label>Rule</label>
+          <object class="sizeritem">
+            <flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
+            <border>12</border>
+            <option>0</option>
+            <object class="wxFlexGridSizer" name="">
+              <vgap>6</vgap>
+              <hgap>12</hgap>
+              <growablerows></growablerows>
+              <growablecols>1</growablecols>
+              <rows>7</rows>
+              <cols>2</cols>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Type:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxChoice" name="CutToolRule">
+                  <selection>0</selection>
+                  <content>
+                    <item>Equal Parts</item>
+                    <item>Every N Units</item>
+                    <item>Repeating Pattern</item>
+                  </content>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Parts:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxSpinCtrl" name="CutToolParts">
+                  <style>wxSP_ARROW_KEYS</style>
+                  <value>2</value>
+                  <min>2</min>
+                  <max>257</max>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Spacing:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="CutToolStep">
+                  <value>64</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Cuts Between:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxSpinCtrl" name="CutToolSubdivisions">
+                  <style>wxSP_ARROW_KEYS</style>
+                  <value>0</value>
+                  <min>0</min>
+                  <max>16</max>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Pattern:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="CutToolPattern">
+                  <value>10, 5</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Offset:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxTextCtrl" name="CutToolOffset">
+                  <value>0</value>
+                  <maxlength>0</maxlength>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                <border>0</border>
+                <option>0</option>
+                <object class="wxStaticText" name="">
+                  <label>Measure From:</label>
+                  <wrap>0</wrap>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <flag>wxEXPAND</flag>
+                <border>0</border>
+                <option>1</option>
+                <object class="wxChoice" name="CutToolAnchor">
+                  <selection>0</selection>
+                  <content>
+                    <item>Brush Start</item>
+                    <item>Brush Centre</item>
+                    <item>World Origin</item>
+                  </content>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxStaticText" name="CutToolCount">
+          <label>0 cuts, 0 pieces</label>
+          <wrap>-1</wrap>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxCheckBox" name="CutToolOverrideMaterial">
+          <label>Apply a specific material to the new faces</label>
+          <checked>0</checked>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+        <border>12</border>
+        <option>0</option>
+        <object class="wxFlexGridSizer" name="">
+          <vgap>6</vgap>
+          <hgap>6</hgap>
+          <growablerows></growablerows>
+          <growablecols>1</growablecols>
+          <rows>1</rows>
+          <cols>3</cols>
+          <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL</flag>
+            <border>0</border>
+            <option>0</option>
+            <object class="wxStaticText" name="">
+              <label>Material:</label>
+              <wrap>0</wrap>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxEXPAND</flag>
+            <border>0</border>
+            <option>1</option>
+            <object class="wxTextCtrl" name="CutToolMaterial">
+              <value>textures/common/caulk</value>
+              <maxlength>0</maxlength>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <flag>wxLEFT</flag>
+            <border>6</border>
+            <option>0</option>
+            <object class="wxButton" name="CutToolBrowseMaterial">
+              <size>30,-1</size>
+              <label>...</label>
+              <default>0</default>
+              <auth_needed>0</auth_needed>
+              <markup>0</markup>
+              <bitmap/>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

@@ -12,6 +12,8 @@ add_executable(drtest
                ContinuousBuffer.cpp
                CSG.cpp
                Curves.cpp
+               CutGeometry.cpp
+               CutRules.cpp
                DarkmodTxt.cpp
                ../plugins/dm.editing/DarkmodTxt.cpp
                ../plugins/dm.editing/MissionInfoTextFile.cpp

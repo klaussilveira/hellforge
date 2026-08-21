@@ -331,6 +331,9 @@ public:
 
 	// Returns the IBrush interface
 	virtual IBrush& getIBrush() = 0;
+
+	// Renders the cross section of each plane as a preview
+	virtual void setCutPlanes(const std::vector<Plane3>& planes) = 0;
 };
 typedef std::shared_ptr<IBrushNode> IBrushNodePtr;
 

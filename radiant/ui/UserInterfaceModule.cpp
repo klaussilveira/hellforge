@@ -70,6 +70,7 @@
 #include "ui/building/BuildingGeneratorDialog.h"
 #include "ui/cables/CableGeneratorDialog.h"
 #include "ui/cornerpatch/CornerPatchDialog.h"
+#include "ui/cut/CutToolDialog.h"
 #include "ui/scatter/ScatterDialog.h"
 #include "ui/roof/RoofGeneratorDialog.h"
 #include "ui/facade/FacadeGeneratorDialog.h"
@@ -656,6 +657,13 @@ void UserInterfaceModule::registerUICommands()
     // Facade generator dialog for turning a blockout brush or patch into a building front
     GlobalCommandSystem().addWithCheck("FacadeGeneratorDialog", FacadeGeneratorDialog::Show,
         [] { return selection::pred::haveBrush() || selection::pred::havePatch(); });
+
+    GlobalCommandSystem().addWithCheck("CutBrushDialog", CutToolDialog::Show,
+        selection::pred::haveBrush);
+
+    GlobalCommandSystem().addWithCheck("CutBrush", CutToolDialog::RunPreset,
+        selection::pred::haveBrush,
+        { cmd::ARGTYPE_INT, cmd::ARGTYPE_STRING | cmd::ARGTYPE_OPTIONAL });
 
     // Corner patch generator for creating curved patches at brush corners
     GlobalCommandSystem().addCommand("CornerPatchDialog", CornerPatchDialog::Show);

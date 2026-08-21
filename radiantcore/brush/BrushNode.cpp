@@ -49,6 +49,14 @@ BrushNode::BrushNode(const BrushNode& other) :
 BrushNode::~BrushNode()
 {
 	_brush.detach(*this); // BrushObserver
+
+	// Deallocate the clip and cut plane windings
+	_clipPlane.clear();
+
+	for (auto& cutPlane : _cutPlanes)
+	{
+		cutPlane->clear();
+	}
 }
 
 scene::INode::Type BrushNode::getNodeType() const
@@ -483,6 +491,14 @@ void BrushNode::renderHighlights(IRenderableCollector& collector, const VolumeTe
         collector.addHighlightRenderable(_clipPlane, Matrix4::getIdentity());
     }
 
+    if (wholeBrushSelected)
+    {
+        for (const auto& cutPlane : _cutPlanes)
+        {
+            collector.addHighlightRenderable(*cutPlane, Matrix4::getIdentity());
+        }
+    }
+
     collector.setHighlightFlag(IRenderableCollector::Highlight::Primitives, false);
 }
 
@@ -505,6 +521,11 @@ void BrushNode::setRenderSystem(const RenderSystemPtr& renderSystem)
 
 	_brush.setRenderSystem(renderSystem);
 	_clipPlane.setRenderSystem(renderSystem);
+
+	for (auto& cutPlane : _cutPlanes)
+	{
+		cutPlane->setRenderSystem(renderSystem);
+	}
 }
 
 std::size_t BrushNode::getHighlightFlags()
@@ -596,6 +617,30 @@ void BrushNode::setClipPlane(const Plane3& plane)
     if (_renderEntity)
     {
         _clipPlane.setPlane(_brush, plane, *_renderEntity);
+    }
+}
+
+void BrushNode::setCutPlanes(const std::vector<Plane3>& planes)
+{
+    std::size_t wanted = _renderEntity != nullptr ? planes.size() : 0;
+
+    while (_cutPlanes.size() > wanted)
+    {
+        _cutPlanes.back()->clear();
+        _cutPlanes.pop_back();
+    }
+
+    while (_cutPlanes.size() < wanted)
+    {
+        auto cutPlane = std::make_unique<BrushClipPlane>();
+        cutPlane->setRenderSystem(getRenderSystem());
+
+        _cutPlanes.push_back(std::move(cutPlane));
+    }
+
+    for (std::size_t i = 0; i < wanted; ++i)
+    {
+        _cutPlanes[i]->setPlane(_brush, planes[i], *_renderEntity);
     }
 }
 

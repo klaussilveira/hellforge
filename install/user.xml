@@ -277,6 +277,7 @@
       <toggletoolbutton name="walltool" action="ToggleWallMode" tooltip="Draw walls" icon="wall.png"/>
       <toggletoolbutton name="penciltool" action="TogglePencilMode" tooltip="Draw curves freehand" icon="sketching.png"/>
       <separator/>
+      <toolbutton name="rulecut" action="CutBrushDialog" tooltip="Rule-based cut" icon="cut.png"/>
       <toolbutton name="csgsubstract" action="CSGSubtract" tooltip="CSG Subtract" icon="selection_csgsubtract.png"/>
       <toolbutton name="csgmerge" action="CSGMerge" tooltip="CSG Merge" icon="selection_csgmerge.png"/>
       <toolbutton name="csgintersect" action="CSGIntersect" tooltip="CSG Intersect" icon="selection_csgintersect.png"/>

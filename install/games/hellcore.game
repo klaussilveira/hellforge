@@ -157,6 +157,11 @@
 			<eave value="20" />
 			<rake value="10" />
 		</roof>
+		<cut>
+			<parts value="2" />
+			<step value="64" />
+			<offset value="0" />
+		</cut>
 		<stairs>
 			<stepCount value="10" />
 			<stepHeight value="16" />
