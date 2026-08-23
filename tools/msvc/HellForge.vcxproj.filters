@@ -233,6 +233,12 @@
     <Filter Include="src\ui\stairs">
       <UniqueIdentifier>{b2c3d4e5-f6a7-8901-bcde-f12345678901}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\road">
+      <UniqueIdentifier>{7d2f4a61-93c8-4e5b-a170-6b8e5f2c9d43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\clipper2">
+      <UniqueIdentifier>{2c9e1b84-5f37-4d16-9a52-c81d7e40b6af}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\roof">
       <UniqueIdentifier>{c3d4e5f6-a7b8-9012-cdef-123456789012}</UniqueIdentifier>
     </Filter>
@@ -897,6 +903,27 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\facade\FacadeGeneratorDialog.cpp">
       <Filter>src\ui\facade</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.engine.cpp">
+      <Filter>libs\clipper2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.offset.cpp">
+      <Filter>libs\clipper2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.rectclip.cpp">
+      <Filter>libs\clipper2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.triangulation.cpp">
+      <Filter>libs\clipper2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\road\RoadGeneratorDialog.cpp">
+      <Filter>src\ui\road</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\road\RoadNetwork.cpp">
+      <Filter>src\ui\road</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\road\RoadShape.cpp">
+      <Filter>src\ui\road</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\roof\RoofGeneratorDialog.cpp">
       <Filter>src\ui\roof</Filter>
@@ -1811,6 +1838,42 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\facade\FacadeGeometry.h">
       <Filter>src\ui\facade</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.core.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.engine.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.minkowski.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.offset.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.rectclip.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.triangulation.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.version.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\road\RoadGeneratorDialog.h">
+      <Filter>src\ui\road</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\road\RoadGeometry.h">
+      <Filter>src\ui\road</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\road\RoadNetwork.h">
+      <Filter>src\ui\road</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\road\RoadShape.h">
+      <Filter>src\ui\road</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeneratorDialog.h">
       <Filter>src\ui\roof</Filter>

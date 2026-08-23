@@ -238,6 +238,7 @@
 		<menuItem name="cableGenerator" caption="Cables..." command="CableGeneratorDialog" />
 		<menuItem name="archGenerator" caption="Arch..." command="ArchGeneratorDialog" />
 		<menuItem name="cornerPatch" caption="Corner Patch..." command="CornerPatchDialog" />
+		<menuItem name="roadGenerator" caption="Road..." command="RoadGeneratorDialog" />
 		<menuItem name="roofGenerator" caption="Roof..." command="RoofGeneratorDialog" />
 		<menuItem name="buildingGenerator" caption="Building..." command="BuildingGeneratorDialog" />
 		<menuItem name="facadeGenerator" caption="Facade..." command="FacadeGeneratorDialog" />

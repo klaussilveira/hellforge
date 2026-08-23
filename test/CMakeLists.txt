@@ -64,6 +64,13 @@ add_executable(drtest
                Settings.cpp
                Skin.cpp
                FacadeGenerator.cpp
+               RoadNetwork.cpp
+               ${CMAKE_SOURCE_DIR}/radiant/ui/road/RoadNetwork.cpp
+               ${CMAKE_SOURCE_DIR}/radiant/ui/road/RoadShape.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.engine.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.offset.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.rectclip.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.triangulation.cpp
                RoofGenerator.cpp
                StairsGenerator.cpp
                StrokeGeometry.cpp

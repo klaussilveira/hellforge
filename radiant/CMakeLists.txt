@@ -181,6 +181,13 @@ add_executable(hellforge
                ui/cut/CutToolDialog.cpp
                ui/facade/FacadeGeneratorDialog.cpp
                ui/scatter/ScatterDialog.cpp
+               ui/road/RoadGeneratorDialog.cpp
+               ui/road/RoadNetwork.cpp
+               ui/road/RoadShape.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.engine.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.offset.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.rectclip.cpp
+               ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.triangulation.cpp
                ui/roof/RoofGeneratorDialog.cpp
                ui/stairs/StairsGeneratorDialog.cpp
                ui/terrain/TerrainGeneratorDialog.cpp

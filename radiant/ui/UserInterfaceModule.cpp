@@ -72,6 +72,7 @@
 #include "ui/cornerpatch/CornerPatchDialog.h"
 #include "ui/cut/CutToolDialog.h"
 #include "ui/scatter/ScatterDialog.h"
+#include "ui/road/RoadGeneratorDialog.h"
 #include "ui/roof/RoofGeneratorDialog.h"
 #include "ui/facade/FacadeGeneratorDialog.h"
 #include "ui/stairs/StairsGeneratorDialog.h"
@@ -653,6 +654,9 @@ void UserInterfaceModule::registerUICommands()
     // Roof generator dialog for topping selected wall brushes with a roof
     GlobalCommandSystem().addWithCheck("RoofGeneratorDialog", RoofGeneratorDialog::Show,
         selection::pred::haveBrush);
+
+    // Road generator dialog for turning selected curves into a road network
+    GlobalCommandSystem().addCommand("RoadGeneratorDialog", RoadGeneratorDialog::Show);
 
     // Facade generator dialog for turning a blockout brush or patch into a building front
     GlobalCommandSystem().addWithCheck("FacadeGeneratorDialog", FacadeGeneratorDialog::Show,

@@ -1,6 +1,7 @@
 #include "WindowPosition.h"
 
 #include "iregistry.h"
+#include "ui/imainframe.h"
 #include "registry/registry.h"
 #include "string/convert.h"
 #include <wx/frame.h>
@@ -176,9 +177,12 @@ void WindowPosition::fitToScreen(float xfraction, float yfraction)
 {
     if (_window == nullptr) return;
 
-    if (auto* parent = _window->GetParent())
+    auto* mainFrame = module::GlobalModuleRegistry().moduleExists(MODULE_MAINFRAME) ?
+        GlobalMainFrame().getWxTopLevelWindow() : nullptr;
+
+    if (mainFrame != nullptr)
     {
-        fitToScreen(parent->GetScreenRect(), xfraction, yfraction);
+        fitToScreen(mainFrame->GetScreenRect(), xfraction, yfraction);
     }
     else
     {
