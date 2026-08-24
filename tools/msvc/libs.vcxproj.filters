@@ -105,10 +105,7 @@
     <ClInclude Include="..\..\libs\string\convert.h">
       <Filter>string</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libs\noise\SimplexNoise.h">
-      <Filter>noise</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\libs\noise\PerlinNoise.h">
+    <ClInclude Include="..\..\libs\noise\FastNoiseLite.h">
       <Filter>noise</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libs\noise\Noise.h">

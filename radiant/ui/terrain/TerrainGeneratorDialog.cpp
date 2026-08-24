@@ -47,7 +47,7 @@ namespace ui
 
 TerrainGeneratorDialog::TerrainGeneratorDialog(const scene::INodePtr& parent)
     : Dialog(_(WINDOW_TITLE), GlobalMainFrame().getWxTopLevelWindow()), _fractalSizer(nullptr),
-      _offsetLabel(nullptr), _offsetCtrl(nullptr), _parent(parent)
+      _parent(parent)
 {
     _dialog->GetSizer()->Add(
         loadNamedPanel(_dialog, "TerrainGeneratorMainPanel"), 1, wxEXPAND | wxALL, 12);
@@ -55,12 +55,15 @@ TerrainGeneratorDialog::TerrainGeneratorDialog(const scene::INodePtr& parent)
     wxStaticText* topLabel = findNamedObject<wxStaticText>(_dialog, "TerrainGeneratorTopLabel");
     topLabel->SetFont(topLabel->GetFont().Bold());
 
-    // Get control references for visibility management
-    _offsetLabel = findNamedObject<wxStaticText>(_dialog, "TerrainGeneratorOffsetLabel");
-    _offsetCtrl = findNamedObject<wxTextCtrl>(_dialog, "TerrainGeneratorOffset");
-
     // Bind events
     wxChoice* algorithmChoice = findNamedObject<wxChoice>(_dialog, "TerrainGeneratorAlgorithm");
+
+    for (int i = 0; i < noise::AlgorithmCount; ++i)
+    {
+        algorithmChoice->Append(_(noise::getAlgorithmName(static_cast<noise::Algorithm>(i))));
+    }
+
+    algorithmChoice->SetSelection(static_cast<int>(noise::Algorithm::FBm));
     algorithmChoice->Bind(wxEVT_CHOICE, &TerrainGeneratorDialog::onAlgorithmChanged, this);
 
     wxButton* randomizeBtn = findNamedObject<wxButton>(_dialog, "TerrainGeneratorRandomizeSeed");
@@ -116,7 +119,6 @@ void TerrainGeneratorDialog::generateInto()
     params.octaves = getOctaves();
     params.persistence = getPersistence();
     params.lacunarity = getLacunarity();
-    params.offset = getOffset();
 
     noise::generateTerrainPatch(params, columns, rows, physicalWidth, physicalHeight,
         spawnPos, getMaterial(), _parent);
@@ -156,27 +158,10 @@ void TerrainGeneratorDialog::onBrowseMaterial(wxCommandEvent& ev)
 
 void TerrainGeneratorDialog::updateControlVisibility()
 {
-    noise::Algorithm algo = getAlgorithm();
-
-    // Show fractal parameters only for fBm and Ridged Multifractal
-    bool showFractal =
-        (algo == noise::Algorithm::FBm || algo == noise::Algorithm::RidgedMultifractal);
-
-    // Show offset only for Ridged Multifractal
-    bool showOffset = (algo == noise::Algorithm::RidgedMultifractal);
+    bool showFractal = noise::algorithmUsesFractalParameters(getAlgorithm());
 
     // Show/hide fractal parameter controls
     findNamedObject<wxSpinCtrl>(_dialog, "TerrainGeneratorOctaves")->GetParent()->Show(showFractal);
-
-    // Show/hide offset controls
-    if (_offsetLabel)
-    {
-        _offsetLabel->Show(showOffset);
-    }
-    if (_offsetCtrl)
-    {
-        _offsetCtrl->Show(showOffset);
-    }
 }
 
 noise::Algorithm TerrainGeneratorDialog::getAlgorithm()
@@ -251,13 +236,6 @@ float TerrainGeneratorDialog::getLacunarity()
                                       ->GetValue()
                                       .ToStdString(),
                                   2.0f);
-}
-
-float TerrainGeneratorDialog::getOffset()
-{
-    return string::convert<float>(
-        findNamedObject<wxTextCtrl>(_dialog, "TerrainGeneratorOffset")->GetValue().ToStdString(),
-        1.0f);
 }
 
 std::string TerrainGeneratorDialog::getMaterial()

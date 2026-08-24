@@ -9,6 +9,9 @@
 #include "algorithm/Primitives.h"
 #include "selection/TerrainSculptTool.h"
 
+#include <cmath>
+#include <vector>
+
 namespace test
 {
 
@@ -281,6 +284,67 @@ TEST_F(TerrainSculptTest, NoiseSeedProducesDifferentResults)
         }
     }
     EXPECT_TRUE(anyDiff) << "Different seeds should produce different noise patterns";
+}
+
+TEST_F(TerrainSculptTest, NoiseStaysRepresentableOnCoarsePatches)
+{
+    auto node = createFlatTerrainPatch(9, 9, 64.0f, 0.0f);
+    auto* patch = Node_getIPatch(node);
+
+    auto s = makeSettings(512.0f, 100.0f);
+    s.noiseAlgorithm = noise::Algorithm::FBm;
+    s.noiseScale = 0.05f;
+    s.noiseAmount = 16.0f;
+    s.noiseSeed = 42;
+    Vector3 center(256.0, 256.0, 0.0);
+
+    ui::terrainSculpt::applyNoise(patch, center, s);
+
+    std::vector<double> left;
+    std::vector<double> right;
+
+    for (std::size_t row = 0; row < patch->getHeight(); ++row)
+    {
+        for (std::size_t col = 1; col < patch->getWidth(); ++col)
+        {
+            left.push_back(patch->ctrlAt(row, col - 1).vertex.z());
+            right.push_back(patch->ctrlAt(row, col).vertex.z());
+        }
+    }
+
+    double meanLeft = 0.0;
+    double meanRight = 0.0;
+
+    for (std::size_t i = 0; i < left.size(); ++i)
+    {
+        meanLeft += left[i];
+        meanRight += right[i];
+    }
+
+    meanLeft /= left.size();
+    meanRight /= right.size();
+
+    double covariance = 0.0;
+    double varianceLeft = 0.0;
+    double varianceRight = 0.0;
+
+    for (std::size_t i = 0; i < left.size(); ++i)
+    {
+        double a = left[i] - meanLeft;
+        double b = right[i] - meanRight;
+        covariance += a * b;
+        varianceLeft += a * a;
+        varianceRight += b * b;
+    }
+
+    ASSERT_GT(varianceLeft, 0.0) << "Noise should have displaced the control points";
+    ASSERT_GT(varianceRight, 0.0) << "Noise should have displaced the control points";
+
+    double correlation = covariance / std::sqrt(varianceLeft * varianceRight);
+
+    EXPECT_GT(correlation, 0.15)
+        << "Noise finer than the patch can represent leaves adjacent control points "
+        << "uncorrelated, which reads as a regular grid rather than terrain";
 }
 
 TEST_F(TerrainSculptTest, OperationsAreUndoable)

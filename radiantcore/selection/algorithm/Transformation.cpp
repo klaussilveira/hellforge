@@ -1958,32 +1958,40 @@ void scatterObjectsCmd(const cmd::ArgumentList &args) {
 
 void generateTerrainCmd(const cmd::ArgumentList& args)
 {
-	if (args.size() != 16)
+	if (args.size() != 15)
 	{
 		rWarning() << "Usage: GenerateTerrain <algorithm:int> <seed:int> <frequency:double> <amplitude:double> "
-			<< "<octaves:int> <persistence:double> <lacunarity:double> <offset:double> "
+			<< "<octaves:int> <persistence:double> <lacunarity:double> "
 			<< "<columns:int> <rows:int> <physicalWidth:double> <physicalHeight:double> "
 			<< "<spawnX:double> <spawnY:double> <spawnZ:double> <material:string>" << std::endl;
 		return;
 	}
 
+	int algorithm = args[0].getInt();
+
+	if (algorithm < 0 || algorithm >= noise::AlgorithmCount)
+	{
+		rWarning() << "GenerateTerrain: algorithm must be between 0 and "
+			<< (noise::AlgorithmCount - 1) << std::endl;
+		return;
+	}
+
 	noise::NoiseParameters params;
-	params.algorithm = static_cast<noise::Algorithm>(args[0].getInt());
+	params.algorithm = static_cast<noise::Algorithm>(algorithm);
 	params.seed = static_cast<unsigned int>(args[1].getInt());
 	params.frequency = args[2].getDouble();
 	params.amplitude = args[3].getDouble();
 	params.octaves = args[4].getInt();
 	params.persistence = args[5].getDouble();
 	params.lacunarity = args[6].getDouble();
-	params.offset = args[7].getDouble();
 
-	std::size_t columns = static_cast<std::size_t>(args[8].getInt());
-	std::size_t rows = static_cast<std::size_t>(args[9].getInt());
-	float physicalWidth = static_cast<float>(args[10].getDouble());
-	float physicalHeight = static_cast<float>(args[11].getDouble());
+	std::size_t columns = static_cast<std::size_t>(args[7].getInt());
+	std::size_t rows = static_cast<std::size_t>(args[8].getInt());
+	float physicalWidth = static_cast<float>(args[9].getDouble());
+	float physicalHeight = static_cast<float>(args[10].getDouble());
 
-	Vector3 spawnPos(args[12].getDouble(), args[13].getDouble(), args[14].getDouble());
-	std::string material = args[15].getString();
+	Vector3 spawnPos(args[11].getDouble(), args[12].getDouble(), args[13].getDouble());
+	std::string material = args[14].getString();
 
 	UndoableCommand undo("terrainGeneratorCreate");
 

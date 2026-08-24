@@ -37,15 +37,7 @@
             <flag>wxEXPAND</flag>
             <border>0</border>
             <option>1</option>
-            <object class="wxChoice" name="TerrainGeneratorAlgorithm">
-              <selection>2</selection>
-              <content>
-                <item>Perlin Noise</item>
-                <item>Simplex Noise</item>
-                <item>fBm (Fractional Brownian Motion)</item>
-                <item>Ridged Multifractal</item>
-              </content>
-            </object>
+            <object class="wxChoice" name="TerrainGeneratorAlgorithm"/>
           </object>
         </object>
       </object>
@@ -295,7 +287,7 @@
               <hgap>12</hgap>
               <growablerows></growablerows>
               <growablecols>1</growablecols>
-              <rows>4</rows>
+              <rows>3</rows>
               <cols>2</cols>
               <object class="sizeritem">
                 <flag>wxALIGN_CENTER_VERTICAL</flag>
@@ -350,24 +342,6 @@
                 <option>1</option>
                 <object class="wxTextCtrl" name="TerrainGeneratorLacunarity">
                   <value>2.0</value>
-                  <maxlength>0</maxlength>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxALIGN_CENTER_VERTICAL</flag>
-                <border>0</border>
-                <option>0</option>
-                <object class="wxStaticText" name="TerrainGeneratorOffsetLabel">
-                  <label>Ridge Offset:</label>
-                  <wrap>-1</wrap>
-                </object>
-              </object>
-              <object class="sizeritem">
-                <flag>wxEXPAND</flag>
-                <border>0</border>
-                <option>1</option>
-                <object class="wxTextCtrl" name="TerrainGeneratorOffset">
-                  <value>1.0</value>
                   <maxlength>0</maxlength>
                 </object>
               </object>

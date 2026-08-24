@@ -18,8 +18,6 @@ class TerrainGeneratorDialog : public wxutil::Dialog, private wxutil::XmlResourc
 {
 private:
     wxWindow* _fractalSizer;
-    wxWindow* _offsetLabel;
-    wxWindow* _offsetCtrl;
     scene::INodePtr _parent;
     GeneratorPreview _preview;
 
@@ -49,7 +47,6 @@ public:
     int getOctaves();
     float getPersistence();
     float getLacunarity();
-    float getOffset();
 
     std::string getMaterial();
 

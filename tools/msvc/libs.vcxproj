@@ -210,8 +210,7 @@
     <ClInclude Include="..\..\libs\Rectangle.h" />
     <ClInclude Include="..\..\libs\noise\Noise.h" />
     <ClInclude Include="..\..\libs\noise\TerrainGenerator.h" />
-    <ClInclude Include="..\..\libs\noise\PerlinNoise.h" />
-    <ClInclude Include="..\..\libs\noise\SimplexNoise.h" />
+    <ClInclude Include="..\..\libs\noise\FastNoiseLite.h" />
     <ClInclude Include="..\..\libs\registry\adaptors.h" />
     <ClInclude Include="..\..\libs\registry\buffer.h" />
     <ClInclude Include="..\..\libs\registry\CachedKey.h" />

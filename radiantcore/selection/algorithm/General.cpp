@@ -1063,7 +1063,7 @@ void registerCommands()
     GlobalCommandSystem().addCommand("GenerateTerrain", generateTerrainCmd,
         {
             cmd::ARGTYPE_INT, cmd::ARGTYPE_INT, cmd::ARGTYPE_DOUBLE, cmd::ARGTYPE_DOUBLE,
-            cmd::ARGTYPE_INT, cmd::ARGTYPE_DOUBLE, cmd::ARGTYPE_DOUBLE, cmd::ARGTYPE_DOUBLE,
+            cmd::ARGTYPE_INT, cmd::ARGTYPE_DOUBLE, cmd::ARGTYPE_DOUBLE,
             cmd::ARGTYPE_INT, cmd::ARGTYPE_INT, cmd::ARGTYPE_DOUBLE, cmd::ARGTYPE_DOUBLE,
             cmd::ARGTYPE_DOUBLE, cmd::ARGTYPE_DOUBLE, cmd::ARGTYPE_DOUBLE,
             cmd::ARGTYPE_STRING

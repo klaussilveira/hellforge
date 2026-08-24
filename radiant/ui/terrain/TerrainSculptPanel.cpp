@@ -139,10 +139,12 @@ void TerrainSculptPanel::populateWindow()
     _noiseAlgorithmLabel = new wxStaticText(this, wxID_ANY, _("Noise algorithm:"));
     grid->Add(_noiseAlgorithmLabel, 0, wxALIGN_CENTER_VERTICAL);
     _noiseAlgorithm = new wxChoice(this, wxID_ANY);
-    _noiseAlgorithm->Append(_("Perlin"));
-    _noiseAlgorithm->Append(_("Simplex"));
-    _noiseAlgorithm->Append(_("fBm"));
-    _noiseAlgorithm->Append(_("Ridged Multifractal"));
+
+    for (int i = 0; i < noise::AlgorithmCount; ++i)
+    {
+        _noiseAlgorithm->Append(_(noise::getAlgorithmName(static_cast<noise::Algorithm>(i))));
+    }
+
     grid->Add(_noiseAlgorithm, 1, wxEXPAND);
 
     _noiseScaleLabel = new wxStaticText(this, wxID_ANY, _("Noise scale:"));

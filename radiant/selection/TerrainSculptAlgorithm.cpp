@@ -12,6 +12,41 @@ namespace ui
 namespace terrainSculpt
 {
 
+namespace
+{
+
+constexpr double MinSamplesPerFeature = 4.0;
+
+double meanControlSpacing(IPatch* patch)
+{
+    const std::size_t w = patch->getWidth();
+    const std::size_t h = patch->getHeight();
+    double total = 0.0;
+    std::size_t count = 0;
+
+    for (std::size_t row = 0; row < h; ++row)
+    {
+        for (std::size_t col = 1; col < w; ++col)
+        {
+            total += (patch->ctrlAt(row, col).vertex - patch->ctrlAt(row, col - 1).vertex).getLength();
+            ++count;
+        }
+    }
+
+    for (std::size_t row = 1; row < h; ++row)
+    {
+        for (std::size_t col = 0; col < w; ++col)
+        {
+            total += (patch->ctrlAt(row, col).vertex - patch->ctrlAt(row - 1, col).vertex).getLength();
+            ++count;
+        }
+    }
+
+    return count > 0 ? total / count : 0.0;
+}
+
+} // namespace
+
 double computeBrushWeight(double distNorm, float falloff, TerrainBrushFalloff type)
 {
     if (distNorm >= 1.0) return 0.0;
@@ -131,11 +166,21 @@ bool applyNoise(IPatch* patch, const Vector3& center, const TerrainSculptSetting
     const double blendBase = std::clamp(s.strength / 100.0, 0.0, 1.0);
     const double amount = s.noiseAmount;
 
+    const double spacing = meanControlSpacing(patch);
+
     noise::NoiseParameters params;
     params.algorithm = s.noiseAlgorithm;
     params.seed = s.noiseSeed;
     params.frequency = s.noiseScale;
     params.amplitude = 1.0;
+
+    if (spacing > 0.0)
+    {
+        double maxFrequency =
+            noise::FeatureSizePerUnitFrequency / (spacing * MinSamplesPerFeature);
+        params.frequency = std::min(params.frequency, maxFrequency);
+    }
+
     noise::NoiseGenerator gen(params);
 
     bool touched = false;
