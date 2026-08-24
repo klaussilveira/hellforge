@@ -11,6 +11,7 @@
 #include "scenelib.h"
 #include "math/FloatTools.h"
 #include "math/pi.h"
+#include "polygon/Polygon2D.h"
 #include "XYMouseToolEvent.h"
 #include "WallGeometry.h"
 #include "camera/tools/CameraMouseToolEvent.h"
@@ -18,7 +19,6 @@
 #include "../GlobalXYWnd.h"
 
 #include <algorithm>
-#include <deque>
 #include <map>
 #include <set>
 
@@ -42,6 +42,61 @@ bool pointsEqual(const Vector2& a, const Vector2& b)
     return std::abs(a.x() - b.x()) < 0.01 && std::abs(a.y() - b.y()) < 0.01;
 }
 
+std::string quantisedKey(double value)
+{
+    return std::to_string(std::llround(value * 8.0));
+}
+
+std::string levelKey(const WallSegment& seg)
+{
+    return quantisedKey(seg.baseZ) + ":" + quantisedKey(seg.height);
+}
+
+std::string wallGroupKey(const WallSegment& seg)
+{
+    return levelKey(seg) + ":" + quantisedKey(seg.thickness) + ":" + seg.material;
+}
+
+std::vector<polygon::Ring> regionRings(const polygon::Region& region)
+{
+    std::vector<polygon::Ring> rings;
+
+    rings.push_back(region.outer);
+    rings.insert(rings.end(), region.holes.begin(), region.holes.end());
+
+    return rings;
+}
+
+std::string roomKey(const std::string& level, const polygon::Ring& outline)
+{
+    std::vector<PointKey> keys;
+
+    for (const Vector2& point : outline)
+    {
+        keys.push_back(makeKey(point));
+    }
+
+    std::size_t start = 0;
+
+    for (std::size_t i = 1; i < keys.size(); ++i)
+    {
+        if (keys[i] < keys[start])
+        {
+            start = i;
+        }
+    }
+
+    std::string key = level;
+
+    for (std::size_t i = 0; i < keys.size(); ++i)
+    {
+        const PointKey& point = keys[(start + i) % keys.size()];
+        key += "|" + std::to_string(point.first) + "," + std::to_string(point.second);
+    }
+
+    return key;
+}
+
 }
 
 WallToolSettings& WallToolSettings::Instance()
@@ -50,8 +105,13 @@ WallToolSettings& WallToolSettings::Instance()
     return _instance;
 }
 
+WallTool::WallTool() :
+    _undoable(_state, [this](const WallToolState& state) { _state = state; })
+{}
+
 WallTool::~WallTool()
 {
+    releaseUndoable();
     _mapEventConn.disconnect();
 }
 
@@ -303,18 +363,22 @@ MouseTool::Result WallTool::onMouseUp(Event& ev)
         return Result::Finished;
     }
 
-    if (!_brush || !_hasSegment || !_brush->getParent())
-    {
-        if (_brush && _brush->getParent())
-        {
-            scene::removeNodeFromParent(_brush);
-        }
+    bool commit = _brush && _hasSegment && _brush->getParent();
 
-        GlobalUndoSystem().cancel();
-    }
-    else
+    if (_brush && _brush->getParent())
     {
+        scene::removeNodeFromParent(_brush);
+    }
+
+    _brush.reset();
+
+    if (commit)
+    {
+        GlobalUndoSystem().start();
+        saveStateForUndo();
+
         commitSegment();
+
         GlobalUndoSystem().finish("wallSegment");
 
         _lastPoint = _segmentEnd;
@@ -367,8 +431,6 @@ void WallTool::startDrag(const Vector2& point, bool cameraDrag)
     _cameraDrag = cameraDrag;
     _hasSegment = false;
     _brush.reset();
-
-    GlobalUndoSystem().start();
 }
 
 void WallTool::updateDrag(const Vector2& current)
@@ -442,7 +504,6 @@ void WallTool::abortDrag()
         scene::removeNodeFromParent(_brush);
     }
 
-    GlobalUndoSystem().cancel();
     resetDragState();
 }
 
@@ -488,12 +549,8 @@ bool WallTool::isConnectedEndpoint(const Vector2& point, double baseZ) const
 {
     const auto& settings = WallToolSettings::Instance();
 
-    for (const auto& seg : _segments)
+    for (const auto& seg : _state.segments)
     {
-        auto node = seg.node.lock();
-
-        if (!node || !node->getParent()) continue;
-
         if (std::abs(seg.baseZ - baseZ) > 0.01 || std::abs(seg.height - settings.wallHeight) > 0.01)
         {
             continue;
@@ -581,21 +638,47 @@ void WallTool::ensureMapConnection()
         _mapEventConn = GlobalMapModule().signal_mapEvent().connect(
             sigc::mem_fun(*this, &WallTool::onMapEvent));
     }
+
+    if (!_undoable.isConnected())
+    {
+        _undoable.connectUndoSystem(GlobalUndoSystem());
+    }
+}
+
+void WallTool::releaseUndoable()
+{
+    if (_undoable.isConnected())
+    {
+        try
+        {
+            _undoable.disconnectUndoSystem(GlobalUndoSystem());
+        }
+        catch (const std::runtime_error&)
+        {
+        }
+    }
+}
+
+void WallTool::saveStateForUndo()
+{
+    ensureMapConnection();
+    _undoable.save();
 }
 
 void WallTool::onMapEvent(IMap::MapEvent ev)
 {
     if (ev == IMap::MapUnloading || ev == IMap::MapLoaded)
     {
-        _segments.clear();
-        _loops.clear();
+        releaseUndoable();
+
+        _state.segments.clear();
+        _state.walls.clear();
+        _state.rooms.clear();
     }
 }
 
 void WallTool::commitSegment()
 {
-    ensureMapConnection();
-
     auto& settings = WallToolSettings::Instance();
 
     WallSegment seg;
@@ -605,216 +688,351 @@ void WallTool::commitSegment()
     seg.height = settings.wallHeight;
     seg.thickness = settings.wallThickness;
     seg.material = settings.wallMaterial;
-    seg.node = _brush;
 
-    pruneSegments();
-    mergeCollinear(seg);
-    applyCornerJoints(seg);
+    _state.segments.push_back(seg);
 
-    _segments.push_back(seg);
-
-    detectLoopAndFill(seg);
+    rebuildGeometry({ levelKey(seg) });
 }
 
-void WallTool::pruneSegments()
+void WallTool::destroyGeometry(WallToolGeometry& geometry)
 {
-    for (auto it = _segments.begin(); it != _segments.end();)
+    for (const scene::INodeWeakPtr& weak : geometry.nodes)
     {
-        auto node = it->node.lock();
+        auto node = weak.lock();
 
-        if (!node || !node->getParent())
+        if (node && node->getParent())
         {
-            it = _segments.erase(it);
+            scene::removeNodeFromParent(node);
+        }
+    }
+
+    geometry.nodes.clear();
+}
+
+void WallTool::rebuildGeometry(const std::set<std::string>& touchedLevels)
+{
+    if (touchedLevels.empty())
+    {
+        return;
+    }
+
+    std::map<std::string, LevelWalls> levels = collectLevels(touchedLevels);
+
+    rebuildWalls(levels);
+    rebuildRooms(levels);
+}
+
+std::map<std::string, LevelWalls> WallTool::collectLevels(
+    const std::set<std::string>& touchedLevels) const
+{
+    std::map<std::string, LevelWalls> levels;
+
+    for (const WallSegment& seg : _state.segments)
+    {
+        std::string key = levelKey(seg);
+
+        if (touchedLevels.count(key) == 0)
+        {
+            continue;
+        }
+
+        LevelWalls& level = levels[key];
+        level.baseZ = seg.baseZ;
+        level.height = seg.height;
+        level.lines.push_back({ seg.a, seg.b, seg.thickness });
+    }
+
+    for (const std::string& key : touchedLevels)
+    {
+        levels[key].mouths = wallgeometry::corridorMouths(levels[key].lines);
+    }
+
+    return levels;
+}
+
+void WallTool::rebuildWalls(const std::map<std::string, LevelWalls>& levels)
+{
+    for (auto it = _state.walls.begin(); it != _state.walls.end();)
+    {
+        if (levels.count(it->level) > 0)
+        {
+            destroyGeometry(*it);
+            it = _state.walls.erase(it);
         }
         else
         {
             ++it;
         }
     }
-}
 
-void WallTool::mergeCollinear(WallSegment& seg)
-{
-    bool changed = false;
+    std::map<std::string, std::vector<const WallSegment*>> groups;
 
-    for (bool merged = true; merged;)
+    for (const WallSegment& seg : _state.segments)
     {
-        merged = false;
-
-        Vector2 dir = (seg.b - seg.a).getNormalised();
-
-        for (auto it = _segments.begin(); it != _segments.end(); ++it)
+        if (levels.count(levelKey(seg)) > 0)
         {
-            auto node = it->node.lock();
-
-            if (!node || !node->getParent()) continue;
-
-            if (std::abs(it->baseZ - seg.baseZ) > 0.01 ||
-                std::abs(it->height - seg.height) > 0.01 ||
-                std::abs(it->thickness - seg.thickness) > 0.01 ||
-                it->material != seg.material)
-            {
-                continue;
-            }
-
-            Vector2 otherDir = (it->b - it->a).getNormalised();
-
-            if (std::abs(dir.x() * otherDir.y() - dir.y() * otherDir.x()) > 0.001)
-            {
-                continue;
-            }
-
-            const Vector2 newEnds[2] = { seg.a, seg.b };
-            const Vector2 oldEnds[2] = { it->a, it->b };
-
-            Vector2 shared, farNew, farOld;
-            bool found = false;
-
-            for (int n = 0; n < 2 && !found; ++n)
-            {
-                for (int o = 0; o < 2 && !found; ++o)
-                {
-                    if (pointsEqual(newEnds[n], oldEnds[o]))
-                    {
-                        shared = newEnds[n];
-                        farNew = newEnds[1 - n];
-                        farOld = oldEnds[1 - o];
-                        found = true;
-                    }
-                }
-            }
-
-            if (!found)
-            {
-                continue;
-            }
-
-            if ((farNew - shared).dot(farOld - shared) > -1e-6)
-            {
-                continue;
-            }
-
-            auto oldCap = pointsEqual(farOld, it->a) ? it->capA : it->capB;
-            auto newCap = pointsEqual(farNew, seg.a) ? seg.capA : seg.capB;
-
-            scene::removeNodeFromParent(node);
-            seg.a = farOld;
-            seg.b = farNew;
-            seg.capA = oldCap;
-            seg.capB = newCap;
-            _segments.erase(it);
-
-            changed = true;
-            merged = true;
-            break;
+            groups[wallGroupKey(seg)].push_back(&seg);
         }
     }
 
-    if (changed)
+    for (const auto& [key, group] : groups)
     {
-        rebuildSegmentBrush(seg);
+        WallToolGeometry geometry;
+        geometry.key = key;
+        geometry.level = levelKey(*group.front());
+
+        createWallBrushes(group, levels.at(geometry.level), geometry);
+
+        if (!geometry.nodes.empty())
+        {
+            _state.walls.push_back(geometry);
+        }
     }
 }
 
-void WallTool::applyCornerJoints(WallSegment& seg)
+void WallTool::createWallBrushes(const std::vector<const WallSegment*>& group,
+    const LevelWalls& level, WallToolGeometry& geometry)
 {
-    bool hadCapA = seg.capA.has_value();
-    bool hadCapB = seg.capB.has_value();
-
-    applyCornerJointAt(seg, true);
-    applyCornerJointAt(seg, false);
-
-    if (seg.capA.has_value() != hadCapA || seg.capB.has_value() != hadCapB)
-    {
-        rebuildSegmentBrush(seg);
-    }
-}
-
-void WallTool::applyCornerJointAt(WallSegment& seg, bool atEndA)
-{
-    if (atEndA ? seg.capA.has_value() : seg.capB.has_value())
+    if (group.empty())
     {
         return;
     }
 
-    const Vector2 corner = atEndA ? seg.a : seg.b;
-    Vector2 segAway = ((atEndA ? seg.b : seg.a) - corner).getNormalised();
+    const WallSegment& first = *group.front();
 
-    for (auto& other : _segments)
+    std::vector<wallgeometry::WallLine> lines;
+
+    for (const WallSegment* seg : group)
     {
-        auto node = other.node.lock();
+        lines.push_back({ seg->a, seg->b, seg->thickness });
+    }
 
-        if (!node || !node->getParent()) continue;
+    std::vector<polygon::Ring> footprint = polygon::thicken(
+        wallgeometry::trimFreeEnds(lines, level.lines), first.thickness);
 
-        if (std::abs(other.baseZ - seg.baseZ) > 0.01 || std::abs(other.height - seg.height) > 0.01)
-        {
-            continue;
-        }
+    footprint = polygon::difference(footprint, level.mouths);
 
-        bool otherAtA;
+    std::vector<polygon::Ring> pieces = polygon::convexPieces(footprint, polygon::EPSILON);
 
-        if (pointsEqual(other.a, corner))
-        {
-            otherAtA = true;
-        }
-        else if (pointsEqual(other.b, corner))
-        {
-            otherAtA = false;
-        }
-        else
-        {
-            continue;
-        }
-
-        if (otherAtA ? other.capA.has_value() : other.capB.has_value())
-        {
-            continue;
-        }
-
-        Vector2 otherAway = ((otherAtA ? other.b : other.a) - corner).getNormalised();
-
-        auto caps = wallgeometry::computeButtJointCaps(corner, segAway, seg.thickness,
-            otherAway, other.thickness);
-
-        if (!caps)
-        {
-            continue;
-        }
-
-        if (atEndA)
-        {
-            seg.capA = caps->segmentCap;
-        }
-        else
-        {
-            seg.capB = caps->segmentCap;
-        }
-
-        if (otherAtA)
-        {
-            other.capA = caps->otherCap;
-        }
-        else
-        {
-            other.capB = caps->otherCap;
-        }
-
-        rebuildSegmentBrush(other);
+    if (pieces.empty())
+    {
         return;
+    }
+
+    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+
+    for (const polygon::Ring& piece : pieces)
+    {
+        auto node = GlobalBrushCreator().createBrush();
+
+        if (!node)
+        {
+            continue;
+        }
+
+        wallgeometry::buildPrismFaces(*Node_getIBrush(node), piece,
+            first.baseZ, first.baseZ + first.height, first.material);
+
+        scene::addNodeToContainer(node, worldspawn);
+
+        geometry.nodes.push_back(node);
     }
 }
 
-void WallTool::rebuildSegmentBrush(const WallSegment& seg)
+void WallTool::rebuildRooms(const std::map<std::string, LevelWalls>& levels)
 {
-    auto node = seg.node.lock();
-
-    if (!node || !node->getParent())
+    struct Candidate
     {
+        std::string level;
+        polygon::Region region;
+    };
+
+    std::map<std::string, Candidate> wanted;
+
+    for (const auto& [key, level] : levels)
+    {
+        for (const polygon::Region& region :
+             wallgeometry::walkableRegions(level.lines, level.mouths))
+        {
+            wanted[roomKey(key, region.outer)] = { key, region };
+        }
+    }
+
+    for (auto it = _state.rooms.begin(); it != _state.rooms.end();)
+    {
+        if (levels.count(it->level) == 0)
+        {
+            ++it;
+            continue;
+        }
+
+        if (wanted.count(it->key) > 0)
+        {
+            wanted.erase(it->key);
+            ++it;
+        }
+        else
+        {
+            destroyGeometry(*it);
+            it = _state.rooms.erase(it);
+        }
+    }
+
+    for (const auto& [key, candidate] : wanted)
+    {
+        const LevelWalls& level = levels.at(candidate.level);
+
+        WallToolGeometry geometry;
+        geometry.key = key;
+        geometry.level = candidate.level;
+
+        createRoomBrushes(candidate.region, level.baseZ, level.height, geometry);
+
+        if (!geometry.nodes.empty())
+        {
+            _state.rooms.push_back(geometry);
+        }
+    }
+}
+
+void WallTool::createRoomBrushes(const polygon::Region& region, double baseZ, double height,
+    WallToolGeometry& geometry)
+{
+    auto& settings = WallToolSettings::Instance();
+
+    std::vector<polygon::Ring> rings = regionRings(region);
+    std::vector<polygon::Ring> pieces = polygon::convexPieces(rings, polygon::EPSILON);
+
+    if (pieces.empty())
+    {
+        GlobalStatusBarManager().setText("Commands",
+            _("Wall Tool: could not generate a floor for this room"));
         return;
     }
 
-    wallgeometry::buildWallSegmentFaces(*Node_getIBrush(node), seg.a, seg.b,
-        seg.baseZ, seg.height, seg.thickness, seg.material, seg.capA, seg.capB);
+    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+
+    auto addBrush = [&](const polygon::Ring& piece, double bottom, double top,
+        const std::string& material)
+    {
+        auto node = GlobalBrushCreator().createBrush();
+
+        if (!node)
+        {
+            return;
+        }
+
+        wallgeometry::buildPrismFaces(*Node_getIBrush(node), piece, bottom, top, material);
+        scene::addNodeToContainer(node, worldspawn);
+        geometry.nodes.push_back(node);
+    };
+
+    for (const polygon::Ring& piece : pieces)
+    {
+        addBrush(piece, baseZ - settings.floorThickness, baseZ, settings.floorMaterial);
+    }
+
+    double topZ = baseZ + height;
+
+    if (settings.roofType == WallRoofType::Flat)
+    {
+        for (const polygon::Ring& piece : pieces)
+        {
+            addBrush(piece, topZ, topZ + settings.floorThickness, settings.roofMaterial);
+        }
+
+        return;
+    }
+
+    Vector2 mins = region.outer[0];
+    Vector2 maxs = region.outer[0];
+
+    for (const Vector2& point : region.outer)
+    {
+        mins.x() = std::min(mins.x(), point.x());
+        mins.y() = std::min(mins.y(), point.y());
+        maxs.x() = std::max(maxs.x(), point.x());
+        maxs.y() = std::max(maxs.y(), point.y());
+    }
+
+    double spanX = maxs.x() - mins.x();
+    double spanY = maxs.y() - mins.y();
+    double span = std::min(spanX, spanY);
+    double pitch = std::tan(settings.roofPitch * math::PI / 180.0);
+
+    int axis = spanY <= spanX ? 1 : 0;
+    double low = axis == 1 ? mins.y() : mins.x();
+    double high = axis == 1 ? maxs.y() : maxs.x();
+
+    auto slopePlane = [&](double eave, double ridge, double rise)
+    {
+        double run = ridge - eave;
+        double length = std::sqrt(rise * rise + run * run);
+
+        if (length < 1e-6)
+        {
+            return Plane3(0, 0, 1, topZ);
+        }
+
+        double n = -rise / length;
+        double nz = std::abs(run) / length;
+
+        if (run < 0)
+        {
+            n = -n;
+        }
+
+        return axis == 1 ? Plane3(0, n, nz, n * eave + nz * topZ)
+                         : Plane3(n, 0, nz, n * eave + nz * topZ);
+    };
+
+    auto addSloped = [&](const std::vector<polygon::Ring>& footprint, const Plane3& top)
+    {
+        for (const polygon::Ring& piece : polygon::convexPieces(footprint, polygon::EPSILON))
+        {
+            auto node = GlobalBrushCreator().createBrush();
+
+            if (!node)
+            {
+                continue;
+            }
+
+            wallgeometry::buildSlopedPrismFaces(*Node_getIBrush(node), piece, topZ, top,
+                settings.roofMaterial);
+            scene::addNodeToContainer(node, worldspawn);
+            geometry.nodes.push_back(node);
+        }
+    };
+
+    if (settings.roofType == WallRoofType::Shed)
+    {
+        addSloped(rings, slopePlane(low, high, pitch * span));
+
+        return;
+    }
+
+    double middle = (low + high) * 0.5;
+    double rise = pitch * span * 0.5;
+
+    polygon::Ring lowHalf, highHalf;
+
+    if (axis == 1)
+    {
+        lowHalf = { Vector2(mins.x() - 1, mins.y() - 1), Vector2(maxs.x() + 1, mins.y() - 1),
+                    Vector2(maxs.x() + 1, middle), Vector2(mins.x() - 1, middle) };
+        highHalf = { Vector2(mins.x() - 1, middle), Vector2(maxs.x() + 1, middle),
+                     Vector2(maxs.x() + 1, maxs.y() + 1), Vector2(mins.x() - 1, maxs.y() + 1) };
+    }
+    else
+    {
+        lowHalf = { Vector2(mins.x() - 1, mins.y() - 1), Vector2(middle, mins.y() - 1),
+                    Vector2(middle, maxs.y() + 1), Vector2(mins.x() - 1, maxs.y() + 1) };
+        highHalf = { Vector2(middle, mins.y() - 1), Vector2(maxs.x() + 1, mins.y() - 1),
+                     Vector2(maxs.x() + 1, maxs.y() + 1), Vector2(middle, maxs.y() + 1) };
+    }
+
+    addSloped(polygon::intersect(rings, { lowHalf }), slopePlane(low, middle, rise));
+    addSloped(polygon::intersect(rings, { highHalf }), slopePlane(high, middle, rise));
 }
 
 void WallTool::chainWallTo(const Vector2& point)
@@ -838,24 +1056,11 @@ void WallTool::chainWallTo(const Vector2& point)
     }
 
     GlobalUndoSystem().start();
-
-    _brush = GlobalBrushCreator().createBrush();
-
-    if (!_brush)
-    {
-        GlobalUndoSystem().cancel();
-        return;
-    }
-
-    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
-    scene::addNodeToContainer(_brush, worldspawn);
+    saveStateForUndo();
 
     _anchor = _lastPoint;
     _segmentEnd = end;
     _hasSegment = true;
-
-    wallgeometry::buildWallSegmentFaces(*Node_getIBrush(_brush), _anchor, end,
-        _baseZ, settings.wallHeight, settings.wallThickness, settings.wallMaterial);
 
     commitSegment();
     GlobalUndoSystem().finish("wallSegment");
@@ -873,6 +1078,7 @@ void WallTool::startErase(const Vector2& point)
     _erasedAny = false;
 
     GlobalUndoSystem().start();
+    saveStateForUndo();
     eraseAt(point);
 }
 
@@ -880,263 +1086,22 @@ void WallTool::eraseAt(const Vector2& point)
 {
     double tolerance = std::max(2.0, GlobalGrid().getGridSize() * 0.25);
 
-    for (auto it = _segments.begin(); it != _segments.end();)
+    std::set<std::string> touchedLevels;
+
+    for (auto it = _state.segments.begin(); it != _state.segments.end();)
     {
-        auto node = it->node.lock();
-
-        if (!node || !node->getParent())
-        {
-            it = _segments.erase(it);
-            continue;
-        }
-
         if (wallgeometry::distanceToSegment(point, it->a, it->b) <= it->thickness * 0.5 + tolerance)
         {
-            scene::removeNodeFromParent(node);
-            it = _segments.erase(it);
+            touchedLevels.insert(levelKey(*it));
+            it = _state.segments.erase(it);
             _erasedAny = true;
             continue;
         }
 
         ++it;
     }
-}
 
-void WallTool::detectLoopAndFill(const WallSegment& seg)
-{
-    std::map<PointKey, std::vector<std::pair<PointKey, Vector2>>> adjacency;
-
-    for (std::size_t i = 0; i + 1 < _segments.size(); ++i)
-    {
-        const auto& other = _segments[i];
-        auto node = other.node.lock();
-
-        if (!node || !node->getParent()) continue;
-
-        if (std::abs(other.baseZ - seg.baseZ) > 0.01 || std::abs(other.height - seg.height) > 0.01)
-        {
-            continue;
-        }
-
-        auto keyA = makeKey(other.a);
-        auto keyB = makeKey(other.b);
-
-        adjacency[keyA].push_back({ keyB, other.b });
-        adjacency[keyB].push_back({ keyA, other.a });
-    }
-
-    auto start = makeKey(seg.a);
-    auto goal = makeKey(seg.b);
-
-    std::map<PointKey, std::pair<PointKey, Vector2>> parent;
-    std::set<PointKey> visited;
-    std::deque<PointKey> queue;
-
-    visited.insert(start);
-    queue.push_back(start);
-
-    bool foundGoal = false;
-
-    while (!queue.empty() && !foundGoal)
-    {
-        auto current = queue.front();
-        queue.pop_front();
-
-        for (const auto& [nextKey, nextPoint] : adjacency[current])
-        {
-            if (visited.count(nextKey) > 0) continue;
-
-            visited.insert(nextKey);
-            parent[nextKey] = { current, nextPoint };
-
-            if (nextKey == goal)
-            {
-                foundGoal = true;
-                break;
-            }
-
-            queue.push_back(nextKey);
-        }
-    }
-
-    if (!foundGoal)
-    {
-        return;
-    }
-
-    std::vector<Vector2> reversedPath;
-
-    for (auto key = goal; key != start;)
-    {
-        const auto& [prevKey, point] = parent[key];
-        reversedPath.push_back(point);
-        key = prevKey;
-    }
-
-    std::vector<Vector2> polygon;
-    polygon.push_back(seg.a);
-
-    for (auto it = reversedPath.rbegin(); it != reversedPath.rend(); ++it)
-    {
-        polygon.push_back(*it);
-    }
-
-    polygon = wallgeometry::simplifyCollinear(polygon);
-
-    if (polygon.size() < 3)
-    {
-        return;
-    }
-
-    if (wallgeometry::signedArea(polygon) < 0)
-    {
-        std::reverse(polygon.begin(), polygon.end());
-    }
-
-    std::vector<PointKey> keys;
-
-    for (const auto& point : polygon)
-    {
-        keys.push_back(makeKey(point));
-    }
-
-    std::sort(keys.begin(), keys.end());
-
-    std::string loopKey;
-
-    for (const auto& key : keys)
-    {
-        loopKey += std::to_string(key.first) + ":" + std::to_string(key.second) + ";";
-    }
-
-    loopKey += "z" + std::to_string(std::llround(seg.baseZ * 8.0));
-
-    for (auto it = _loops.begin(); it != _loops.end();)
-    {
-        auto node = it->floorNode.lock();
-
-        if (!node || !node->getParent())
-        {
-            it = _loops.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
-
-    for (const auto& loop : _loops)
-    {
-        if (loop.key == loopKey)
-        {
-            return;
-        }
-    }
-
-    _loops.push_back({ loopKey, scene::INodeWeakPtr() });
-
-    generateRoom(polygon, seg);
-}
-
-void WallTool::generateRoom(const std::vector<Vector2>& polygon, const WallSegment& seg)
-{
-    auto& settings = WallToolSettings::Instance();
-
-    std::vector<std::vector<Vector2>> pieces;
-
-    if (wallgeometry::isConvex(polygon))
-    {
-        pieces.push_back(polygon);
-    }
-    else
-    {
-        pieces = wallgeometry::decomposeIntoConvex(polygon);
-    }
-
-    if (pieces.empty())
-    {
-        GlobalStatusBarManager().setText("Commands",
-            _("Wall Tool: could not generate a floor for this room"));
-        return;
-    }
-
-    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
-
-    scene::INodePtr firstFloor;
-
-    for (const auto& piece : pieces)
-    {
-        auto node = GlobalBrushCreator().createBrush();
-        scene::addNodeToContainer(node, worldspawn);
-
-        wallgeometry::buildPrismFaces(*Node_getIBrush(node), piece,
-            seg.baseZ - settings.floorThickness, seg.baseZ, settings.floorMaterial);
-
-        if (!firstFloor)
-        {
-            firstFloor = node;
-        }
-    }
-
-    _loops.back().floorNode = firstFloor;
-
-    double topZ = seg.baseZ + seg.height;
-    auto roofType = settings.roofType;
-
-    if (roofType != WallRoofType::Flat && !wallgeometry::isAxisAlignedRectangle(polygon))
-    {
-        GlobalStatusBarManager().setText("Commands",
-            _("Wall Tool: room is not rectangular, using a flat roof"));
-        roofType = WallRoofType::Flat;
-    }
-
-    if (roofType == WallRoofType::Flat)
-    {
-        for (const auto& piece : pieces)
-        {
-            auto node = GlobalBrushCreator().createBrush();
-            scene::addNodeToContainer(node, worldspawn);
-
-            wallgeometry::buildPrismFaces(*Node_getIBrush(node), piece,
-                topZ, topZ + settings.floorThickness, settings.roofMaterial);
-        }
-
-        return;
-    }
-
-    Vector2 mins = polygon[0];
-    Vector2 maxs = polygon[0];
-
-    for (const auto& point : polygon)
-    {
-        mins.x() = std::min(mins.x(), point.x());
-        mins.y() = std::min(mins.y(), point.y());
-        maxs.x() = std::max(maxs.x(), point.x());
-        maxs.y() = std::max(maxs.y(), point.y());
-    }
-
-    double span = std::min(maxs.x() - mins.x(), maxs.y() - mins.y());
-    double pitch = std::tan(settings.roofPitch * math::PI / 180.0);
-
-    if (roofType == WallRoofType::Shed)
-    {
-        auto node = GlobalBrushCreator().createBrush();
-        scene::addNodeToContainer(node, worldspawn);
-
-        wallgeometry::buildShedRoofFaces(*Node_getIBrush(node), mins, maxs,
-            topZ, pitch * span, settings.roofMaterial);
-    }
-    else
-    {
-        for (bool firstHalf : { true, false })
-        {
-            auto node = GlobalBrushCreator().createBrush();
-            scene::addNodeToContainer(node, worldspawn);
-
-            wallgeometry::buildGabledRoofWedgeFaces(*Node_getIBrush(node), mins, maxs,
-                topZ, pitch * span * 0.5, firstHalf, settings.roofMaterial);
-        }
-    }
+    rebuildGeometry(touchedLevels);
 }
 
 }

@@ -5,7 +5,9 @@
 #include "math/pi.h"
 #include "ui/building/BuildingGeometry.h"
 
+#include <algorithm>
 #include <cmath>
+#include <map>
 
 namespace ui
 {
@@ -17,6 +19,14 @@ namespace
 {
 
 constexpr double Epsilon = 1e-6;
+constexpr double JOINT_TOLERANCE = 0.01;
+
+using PointKey = std::pair<long long, long long>;
+
+PointKey endpointKey(const Vector2& point)
+{
+    return { std::llround(point.x() * 8.0), std::llround(point.y() * 8.0) };
+}
 
 Matrix3 defaultProjection()
 {
@@ -27,136 +37,264 @@ Matrix3 defaultProjection()
     return proj;
 }
 
-double cross2(const Vector2& a, const Vector2& b)
-{
-    return a.x() * b.y() - a.y() * b.x();
 }
 
-bool pointInTriangle(const Vector2& p, const Vector2& a, const Vector2& b, const Vector2& c)
+std::vector<polygon::Ring> trimFreeEnds(const std::vector<WallLine>& groupLines,
+    const std::vector<WallLine>& levelLines)
 {
-    double d1 = cross2(b - a, p - a);
-    double d2 = cross2(c - b, p - b);
-    double d3 = cross2(a - c, p - c);
+    std::map<PointKey, int> degree;
 
-    bool hasNeg = (d1 < -Epsilon) || (d2 < -Epsilon) || (d3 < -Epsilon);
-    bool hasPos = (d1 > Epsilon) || (d2 > Epsilon) || (d3 > Epsilon);
-
-    return !(hasNeg && hasPos);
-}
-
-std::vector<std::vector<Vector2>> triangulate(const std::vector<Vector2>& polygon)
-{
-    std::vector<std::vector<Vector2>> triangles;
-    std::vector<Vector2> remaining = polygon;
-
-    std::size_t guard = remaining.size() * remaining.size() + 16;
-
-    while (remaining.size() > 3 && guard-- > 0)
+    for (const WallLine& line : levelLines)
     {
-        bool clipped = false;
+        ++degree[endpointKey(line.a)];
+        ++degree[endpointKey(line.b)];
+    }
 
-        for (std::size_t i = 0; i < remaining.size(); ++i)
+    auto isFree = [&degree](const Vector2& point)
+    {
+        auto found = degree.find(endpointKey(point));
+        return found == degree.end() || found->second < 2;
+    };
+
+    std::vector<polygon::Ring> result;
+
+    for (const WallLine& line : groupLines)
+    {
+        Vector2 direction = line.b - line.a;
+        double length = direction.getLength();
+
+        if (length < Epsilon)
         {
-            std::size_t prev = (i + remaining.size() - 1) % remaining.size();
-            std::size_t next = (i + 1) % remaining.size();
+            result.push_back(polygon::Ring{ line.a, line.b });
+            continue;
+        }
 
-            const Vector2& a = remaining[prev];
-            const Vector2& b = remaining[i];
-            const Vector2& c = remaining[next];
+        direction /= length;
 
-            if (cross2(b - a, c - b) <= Epsilon)
+        bool freeFrom = isFree(line.a);
+        bool freeTo = isFree(line.b);
+        double half = line.thickness * 0.5;
+        double trim = (freeFrom ? half : 0.0) + (freeTo ? half : 0.0);
+
+        if (trim >= length)
+        {
+            result.push_back(polygon::Ring{ line.a, line.b });
+            continue;
+        }
+
+        result.push_back(polygon::Ring{
+            freeFrom ? line.a + direction * half : line.a,
+            freeTo ? line.b - direction * half : line.b });
+    }
+
+    return result;
+}
+
+std::vector<polygon::Ring> corridorMouths(const std::vector<WallLine>& levelLines)
+{
+    struct Stub
+    {
+        std::size_t host;
+        Vector2 point;
+        Vector2 away;
+        double thickness;
+        double along;
+    };
+
+    std::vector<Stub> stubs;
+
+    for (std::size_t index = 0; index < levelLines.size(); ++index)
+    {
+        const WallLine& line = levelLines[index];
+
+        for (int end = 0; end < 2; ++end)
+        {
+            const Vector2& point = end == 0 ? line.a : line.b;
+            const Vector2& other = end == 0 ? line.b : line.a;
+
+            Vector2 away = other - point;
+            double length = away.getLength();
+
+            if (length < Epsilon)
             {
                 continue;
             }
 
-            bool containsOther = false;
+            away /= length;
 
-            for (std::size_t j = 0; j < remaining.size(); ++j)
+            for (std::size_t h = 0; h < levelLines.size(); ++h)
             {
-                if (j == prev || j == i || j == next) continue;
-
-                if (pointInTriangle(remaining[j], a, b, c))
+                if (h == index)
                 {
-                    containsOther = true;
-                    break;
+                    continue;
                 }
-            }
 
-            if (containsOther)
+                const WallLine& host = levelLines[h];
+
+                Vector2 span = host.b - host.a;
+                double hostLength = span.getLength();
+
+                if (hostLength < Epsilon)
+                {
+                    continue;
+                }
+
+                Vector2 direction = span / hostLength;
+                double along = (point - host.a).dot(direction);
+
+                if (along <= Epsilon || along >= hostLength - Epsilon)
+                {
+                    continue;
+                }
+
+                if (std::abs((point - host.a).crossProduct(direction)) > JOINT_TOLERANCE)
+                {
+                    continue;
+                }
+
+                stubs.push_back({ h, point, away, line.thickness, along });
+                break;
+            }
+        }
+    }
+
+    std::map<std::size_t, std::vector<Stub>> byHost;
+
+    for (const Stub& stub : stubs)
+    {
+        byHost[stub.host].push_back(stub);
+    }
+
+    std::vector<polygon::Ring> mouths;
+
+    for (auto& entry : byHost)
+    {
+        std::vector<Stub>& group = entry.second;
+
+        std::sort(group.begin(), group.end(),
+            [](const Stub& left, const Stub& right) { return left.along < right.along; });
+
+        const WallLine& host = levelLines[entry.first];
+
+        std::vector<polygon::Ring> hostFootprint =
+            polygon::thicken({ polygon::Ring{ host.a, host.b } }, host.thickness);
+
+        double reach = (host.b - host.a).getLength() + host.thickness;
+
+        for (std::size_t i = 0; i + 1 < group.size(); ++i)
+        {
+            const Stub& first = group[i];
+            const Stub& second = group[i + 1];
+
+            if (std::abs(first.away.crossProduct(second.away)) > JOINT_TOLERANCE)
             {
                 continue;
             }
 
-            triangles.push_back({ a, b, c });
-            remaining.erase(remaining.begin() + i);
-            clipped = true;
-            break;
-        }
-
-        if (!clipped)
-        {
-            return {};
-        }
-    }
-
-    if (remaining.size() == 3)
-    {
-        triangles.push_back(remaining);
-    }
-
-    return triangles;
-}
-
-bool pointsEqual(const Vector2& a, const Vector2& b)
-{
-    return std::abs(a.x() - b.x()) < 0.01 && std::abs(a.y() - b.y()) < 0.01;
-}
-
-bool tryMerge(const std::vector<Vector2>& p, const std::vector<Vector2>& q,
-    std::vector<Vector2>& result)
-{
-    for (std::size_t i = 0; i < p.size(); ++i)
-    {
-        const Vector2& a = p[i];
-        const Vector2& b = p[(i + 1) % p.size()];
-
-        for (std::size_t j = 0; j < q.size(); ++j)
-        {
-            if (!pointsEqual(q[j], b) || !pointsEqual(q[(j + 1) % q.size()], a))
+            if (first.away.dot(second.away) <= 0)
             {
                 continue;
             }
 
-            std::vector<Vector2> merged;
+            Vector2 across = second.point - first.point;
+            double gap = across.getLength();
 
-            for (std::size_t k = 0; k <= i; ++k)
+            if (gap < Epsilon)
             {
-                merged.push_back(p[k]);
+                continue;
             }
 
-            for (std::size_t k = 2; k < q.size(); ++k)
+            across /= gap;
+
+            Vector2 from = first.point + across * (first.thickness * 0.5);
+            Vector2 to = second.point - across * (second.thickness * 0.5);
+
+            if ((to - from).dot(across) <= Epsilon)
             {
-                merged.push_back(q[(j + k) % q.size()]);
+                continue;
             }
 
-            for (std::size_t k = i + 1; k < p.size(); ++k)
-            {
-                merged.push_back(p[k]);
-            }
+            Vector2 depth = first.away * reach;
 
-            if (!isConvex(merged))
-            {
-                return false;
-            }
+            polygon::Ring channel{ from - depth, to - depth, to + depth, from + depth };
 
-            result = std::move(merged);
-            return true;
+            std::vector<polygon::Ring> cut = polygon::intersect({ channel }, hostFootprint);
+
+            mouths.insert(mouths.end(), cut.begin(), cut.end());
         }
     }
 
-    return false;
+    return mouths;
 }
 
+std::vector<polygon::Ring> levelFootprint(const std::vector<WallLine>& levelLines)
+{
+    std::map<long long, std::vector<WallLine>> byThickness;
+
+    for (const WallLine& line : levelLines)
+    {
+        byThickness[std::llround(line.thickness * 8.0)].push_back(line);
+    }
+
+    std::vector<polygon::Ring> footprint;
+
+    for (const auto& entry : byThickness)
+    {
+        std::vector<polygon::Ring> thickened = polygon::thicken(
+            trimFreeEnds(entry.second, levelLines), entry.second.front().thickness);
+
+        footprint.insert(footprint.end(), thickened.begin(), thickened.end());
+    }
+
+    return footprint;
+}
+
+std::vector<polygon::Region> walkableRegions(const std::vector<WallLine>& levelLines,
+    const std::vector<polygon::Ring>& mouths)
+{
+    std::vector<polygon::Ring> rooms;
+
+    for (const polygon::Region& enclosure : polygon::regions(levelFootprint(levelLines)))
+    {
+        rooms.insert(rooms.end(), enclosure.holes.begin(), enclosure.holes.end());
+    }
+
+    for (polygon::Ring& ring : rooms)
+    {
+        if (polygon::ringArea(ring) < 0)
+        {
+            std::reverse(ring.begin(), ring.end());
+        }
+    }
+
+    if (rooms.empty())
+    {
+        return {};
+    }
+
+    std::vector<polygon::Ring> walkable = rooms;
+
+    for (const polygon::Ring& mouth : mouths)
+    {
+        walkable.push_back(mouth);
+
+        if (polygon::ringArea(walkable.back()) < 0)
+        {
+            std::reverse(walkable.back().begin(), walkable.back().end());
+        }
+    }
+
+    std::vector<polygon::Region> result;
+
+    for (const polygon::Region& region : polygon::regions(walkable))
+    {
+        if (!polygon::intersect({ region.outer }, rooms).empty())
+        {
+            result.push_back(region);
+        }
+    }
+
+    return result;
 }
 
 Vector2 snapSegmentEnd(const Vector2& anchor, const Vector2& current, double gridSize)
@@ -192,8 +330,7 @@ Vector2 snapSegmentEnd(const Vector2& anchor, const Vector2& current, double gri
 }
 
 void buildWallSegmentFaces(IBrush& brush, const Vector2& a, const Vector2& b,
-    double baseZ, double height, double thickness, const std::string& material,
-    const std::optional<WallJointCap>& capA, const std::optional<WallJointCap>& capB)
+    double baseZ, double height, double thickness, const std::string& material)
 {
     Vector2 dir = (b - a).getNormalised();
     Vector2 perp(-dir.y(), dir.x());
@@ -206,62 +343,10 @@ void buildWallSegmentFaces(IBrush& brush, const Vector2& a, const Vector2& b,
     brush.addFace(Plane3(0, 0, -1, -baseZ), proj, material);
     brush.addFace(Plane3(perp.x(), perp.y(), 0, perp.dot(a) + half), proj, material);
     brush.addFace(Plane3(-perp.x(), -perp.y(), 0, -perp.dot(a) + half), proj, material);
-
-    if (capB)
-    {
-        brush.addFace(Plane3(capB->normal.x(), capB->normal.y(), 0, capB->dist), proj, material);
-    }
-    else
-    {
-        brush.addFace(Plane3(dir.x(), dir.y(), 0, dir.dot(b)), proj, material);
-    }
-
-    if (capA)
-    {
-        brush.addFace(Plane3(capA->normal.x(), capA->normal.y(), 0, capA->dist), proj, material);
-    }
-    else
-    {
-        brush.addFace(Plane3(-dir.x(), -dir.y(), 0, -dir.dot(a)), proj, material);
-    }
+    brush.addFace(Plane3(dir.x(), dir.y(), 0, dir.dot(b)), proj, material);
+    brush.addFace(Plane3(-dir.x(), -dir.y(), 0, -dir.dot(a)), proj, material);
 
     brush.evaluateBRep();
-}
-
-std::optional<WallJointCaps> computeButtJointCaps(const Vector2& corner,
-    const Vector2& segmentAway, double segmentThickness,
-    const Vector2& otherAway, double otherThickness)
-{
-    if (std::abs(segmentAway.x() * otherAway.y() - segmentAway.y() * otherAway.x()) < 0.001)
-    {
-        return {};
-    }
-
-    Vector2 perpOther(-otherAway.y(), otherAway.x());
-    Vector2 sideN = perpOther.dot(segmentAway) > 0 ? perpOther : Vector2(-perpOther.x(), -perpOther.y());
-    double nearDist = sideN.dot(corner) + otherThickness * 0.5;
-
-    Vector2 perpSegment(-segmentAway.y(), segmentAway.x());
-    Vector2 farN = perpSegment.dot(otherAway) < 0 ? perpSegment : Vector2(-perpSegment.x(), -perpSegment.y());
-    double farDist = farN.dot(corner) + segmentThickness * 0.5;
-
-    double det = sideN.x() * farN.y() - sideN.y() * farN.x();
-
-    if (std::abs(det) < 1e-6)
-    {
-        return {};
-    }
-
-    Vector2 outerPoint((nearDist * farN.y() - farDist * sideN.y()) / det,
-        (sideN.x() * farDist - farN.x() * nearDist) / det);
-
-    WallJointCaps caps;
-    caps.segmentCap.normal = Vector2(-sideN.x(), -sideN.y());
-    caps.segmentCap.dist = -nearDist;
-    caps.otherCap.normal = Vector2(-otherAway.x(), -otherAway.y());
-    caps.otherCap.dist = caps.otherCap.normal.dot(outerPoint);
-
-    return caps;
 }
 
 double distanceToSegment(const Vector2& point, const Vector2& a, const Vector2& b)
@@ -308,229 +393,33 @@ void buildPrismFaces(IBrush& brush, const std::vector<Vector2>& polygon,
     brush.evaluateBRep();
 }
 
-void buildShedRoofFaces(IBrush& brush, const Vector2& mins, const Vector2& maxs,
-    double baseZ, double rise, const std::string& material)
+void buildSlopedPrismFaces(IBrush& brush, const std::vector<Vector2>& polygon,
+    double zBottom, const Plane3& top, const std::string& material)
 {
     Matrix3 proj = defaultProjection();
 
     brush.clear();
-    brush.addFace(Plane3(1, 0, 0, maxs.x()), proj, material);
-    brush.addFace(Plane3(-1, 0, 0, -mins.x()), proj, material);
-    brush.addFace(Plane3(0, 1, 0, maxs.y()), proj, material);
-    brush.addFace(Plane3(0, -1, 0, -mins.y()), proj, material);
-    brush.addFace(Plane3(0, 0, -1, -baseZ), proj, material);
-
-    double spanX = maxs.x() - mins.x();
-    double spanY = maxs.y() - mins.y();
-
-    if (spanY <= spanX)
-    {
-        double length = std::sqrt(rise * rise + spanY * spanY);
-        double ny = -rise / length;
-        double nz = spanY / length;
-        brush.addFace(Plane3(0, ny, nz, ny * maxs.y() + nz * (baseZ + rise)), proj, material);
-    }
-    else
-    {
-        double length = std::sqrt(rise * rise + spanX * spanX);
-        double nx = -rise / length;
-        double nz = spanX / length;
-        brush.addFace(Plane3(nx, 0, nz, nx * maxs.x() + nz * (baseZ + rise)), proj, material);
-    }
-
-    brush.evaluateBRep();
-}
-
-void buildGabledRoofWedgeFaces(IBrush& brush, const Vector2& mins, const Vector2& maxs,
-    double baseZ, double rise, bool firstHalf, const std::string& material)
-{
-    Matrix3 proj = defaultProjection();
-
-    double spanX = maxs.x() - mins.x();
-    double spanY = maxs.y() - mins.y();
-
-    brush.clear();
-    brush.addFace(Plane3(0, 0, -1, -baseZ), proj, material);
-
-    if (spanY <= spanX)
-    {
-        double mid = (mins.y() + maxs.y()) * 0.5;
-        double half = spanY * 0.5;
-        double length = std::sqrt(rise * rise + half * half);
-
-        brush.addFace(Plane3(1, 0, 0, maxs.x()), proj, material);
-        brush.addFace(Plane3(-1, 0, 0, -mins.x()), proj, material);
-
-        if (firstHalf)
-        {
-            brush.addFace(Plane3(0, 1, 0, maxs.y()), proj, material);
-            brush.addFace(Plane3(0, -1, 0, -mid), proj, material);
-
-            double ny = rise / length;
-            double nz = half / length;
-            brush.addFace(Plane3(0, ny, nz, ny * maxs.y() + nz * baseZ), proj, material);
-        }
-        else
-        {
-            brush.addFace(Plane3(0, 1, 0, mid), proj, material);
-            brush.addFace(Plane3(0, -1, 0, -mins.y()), proj, material);
-
-            double ny = -rise / length;
-            double nz = half / length;
-            brush.addFace(Plane3(0, ny, nz, ny * mins.y() + nz * baseZ), proj, material);
-        }
-    }
-    else
-    {
-        double mid = (mins.x() + maxs.x()) * 0.5;
-        double half = spanX * 0.5;
-        double length = std::sqrt(rise * rise + half * half);
-
-        brush.addFace(Plane3(0, 1, 0, maxs.y()), proj, material);
-        brush.addFace(Plane3(0, -1, 0, -mins.y()), proj, material);
-
-        if (firstHalf)
-        {
-            brush.addFace(Plane3(1, 0, 0, maxs.x()), proj, material);
-            brush.addFace(Plane3(-1, 0, 0, -mid), proj, material);
-
-            double nx = rise / length;
-            double nz = half / length;
-            brush.addFace(Plane3(nx, 0, nz, nx * maxs.x() + nz * baseZ), proj, material);
-        }
-        else
-        {
-            brush.addFace(Plane3(1, 0, 0, mid), proj, material);
-            brush.addFace(Plane3(-1, 0, 0, -mins.x()), proj, material);
-
-            double nx = -rise / length;
-            double nz = half / length;
-            brush.addFace(Plane3(nx, 0, nz, nx * mins.x() + nz * baseZ), proj, material);
-        }
-    }
-
-    brush.evaluateBRep();
-}
-
-std::vector<Vector2> simplifyCollinear(const std::vector<Vector2>& polygon)
-{
-    std::vector<Vector2> result;
-
-    for (std::size_t i = 0; i < polygon.size(); ++i)
-    {
-        const Vector2& prev = polygon[(i + polygon.size() - 1) % polygon.size()];
-        const Vector2& curr = polygon[i];
-        const Vector2& next = polygon[(i + 1) % polygon.size()];
-
-        if ((curr - prev).getLengthSquared() < Epsilon)
-        {
-            continue;
-        }
-
-        if (std::abs(cross2(curr - prev, next - curr)) < Epsilon)
-        {
-            continue;
-        }
-
-        result.push_back(curr);
-    }
-
-    return result;
-}
-
-double signedArea(const std::vector<Vector2>& polygon)
-{
-    double area = 0;
+    brush.addFace(top, proj, material);
+    brush.addFace(Plane3(0, 0, -1, -zBottom), proj, material);
 
     for (std::size_t i = 0; i < polygon.size(); ++i)
     {
         const Vector2& p = polygon[i];
         const Vector2& q = polygon[(i + 1) % polygon.size()];
-        area += cross2(p, q);
-    }
 
-    return area * 0.5;
-}
+        Vector2 edge = q - p;
+        double length = edge.getLength();
 
-bool isConvex(const std::vector<Vector2>& polygon)
-{
-    if (polygon.size() < 3)
-    {
-        return false;
-    }
-
-    for (std::size_t i = 0; i < polygon.size(); ++i)
-    {
-        const Vector2& a = polygon[(i + polygon.size() - 1) % polygon.size()];
-        const Vector2& b = polygon[i];
-        const Vector2& c = polygon[(i + 1) % polygon.size()];
-
-        if (cross2(b - a, c - b) < -Epsilon)
+        if (length < Epsilon)
         {
-            return false;
+            continue;
         }
+
+        Vector2 normal(edge.y() / length, -edge.x() / length);
+        brush.addFace(Plane3(normal.x(), normal.y(), 0, normal.dot(p)), proj, material);
     }
 
-    return true;
-}
-
-bool isAxisAlignedRectangle(const std::vector<Vector2>& polygon)
-{
-    if (polygon.size() != 4)
-    {
-        return false;
-    }
-
-    for (std::size_t i = 0; i < 4; ++i)
-    {
-        Vector2 edge = polygon[(i + 1) % 4] - polygon[i];
-
-        if (std::abs(edge.x()) > Epsilon && std::abs(edge.y()) > Epsilon)
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-std::vector<std::vector<Vector2>> decomposeIntoConvex(const std::vector<Vector2>& polygon)
-{
-    auto pieces = triangulate(polygon);
-
-    if (pieces.empty())
-    {
-        return {};
-    }
-
-    bool merged = true;
-
-    while (merged)
-    {
-        merged = false;
-
-        for (std::size_t i = 0; i < pieces.size() && !merged; ++i)
-        {
-            for (std::size_t j = i + 1; j < pieces.size() && !merged; ++j)
-            {
-                std::vector<Vector2> result;
-
-                if (tryMerge(pieces[i], pieces[j], result))
-                {
-                    pieces[i] = std::move(result);
-                    pieces.erase(pieces.begin() + j);
-                    merged = true;
-                }
-            }
-        }
-    }
-
-    for (auto& piece : pieces)
-    {
-        piece = simplifyCollinear(piece);
-    }
-
-    return pieces;
+    brush.evaluateBRep();
 }
 
 }

@@ -4,9 +4,7 @@
 #include "math/curve.h"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <map>
 
 namespace road
 {
@@ -15,7 +13,6 @@ namespace
 {
 
 const double LINE_EPSILON = 0.000000001;
-const double WELD_TOLERANCE = 0.01;
 const double SIMPLIFY_EPSILON = 0.5;
 
 Vector2 flatten(const Vector3& point)
@@ -63,49 +60,6 @@ Clipper2Lib::PathsD centrelinePaths(const std::vector<std::vector<Vector3>>& cen
     return paths;
 }
 
-Clipper2Lib::PathsD ringPaths(const std::vector<Ring>& rings)
-{
-    Clipper2Lib::PathsD paths;
-
-    for (const Ring& ring : rings)
-    {
-        Clipper2Lib::PathD path;
-
-        for (const Vector2& point : ring)
-        {
-            path.push_back(Clipper2Lib::PointD(point.x(), point.y()));
-        }
-
-        paths.push_back(path);
-    }
-
-    return paths;
-}
-
-std::vector<Ring> pathRings(const Clipper2Lib::PathsD& paths)
-{
-    std::vector<Ring> rings;
-
-    for (const Clipper2Lib::PathD& path : paths)
-    {
-        if (path.size() < 3)
-        {
-            continue;
-        }
-
-        Ring ring;
-
-        for (const Clipper2Lib::PointD& point : path)
-        {
-            ring.push_back(Vector2(point.x, point.y));
-        }
-
-        rings.push_back(ring);
-    }
-
-    return rings;
-}
-
 Clipper2Lib::PathsD inflate(const Clipper2Lib::PathsD& paths, double delta,
                             Clipper2Lib::EndType endType)
 {
@@ -141,45 +95,6 @@ Clipper2Lib::PathsD closeCorners(const Clipper2Lib::PathsD& paths, double radius
     return Clipper2Lib::Union(shrunk, Clipper2Lib::FillRule::NonZero);
 }
 
-long long quantise(double value)
-{
-    return static_cast<long long>(std::llround(value / WELD_TOLERANCE));
-}
-
-typedef std::array<long long, 4> EdgeKey;
-
-EdgeKey edgeKey(const Vector2& from, const Vector2& to)
-{
-    return EdgeKey{ quantise(from.x()), quantise(from.y()), quantise(to.x()), quantise(to.y()) };
-}
-
-void makeCounterClockwise(Ring& ring)
-{
-    if (ringArea(ring) < 0)
-    {
-        std::reverse(ring.begin(), ring.end());
-    }
-}
-
-Ring mergedRing(const Ring& first, std::size_t firstEdge, const Ring& second,
-                std::size_t secondEdge)
-{
-    Ring result;
-    result.push_back(first[firstEdge]);
-
-    for (std::size_t step = 0; step + 1 < second.size(); ++step)
-    {
-        result.push_back(second[(secondEdge + 2 + step) % second.size()]);
-    }
-
-    for (std::size_t step = 0; step + 2 < first.size(); ++step)
-    {
-        result.push_back(first[(firstEdge + 2 + step) % first.size()]);
-    }
-
-    return result;
-}
-
 double segmentDistance(const Vector2& point, const Vector2& from, const Vector2& to)
 {
     Vector2 step = to - from;
@@ -197,52 +112,6 @@ double segmentDistance(const Vector2& point, const Vector2& from, const Vector2&
 }
 
 } // anonymous namespace
-
-double ringArea(const Ring& ring)
-{
-    double total = 0;
-
-    for (std::size_t index = 0; index < ring.size(); ++index)
-    {
-        const Vector2& current = ring[index];
-        const Vector2& next = ring[(index + 1) % ring.size()];
-
-        total += current.crossProduct(next);
-    }
-
-    return total * 0.5;
-}
-
-bool isConvex(const Ring& ring)
-{
-    if (ring.size() < 3)
-    {
-        return false;
-    }
-
-    bool positive = false;
-    bool negative = false;
-
-    for (std::size_t index = 0; index < ring.size(); ++index)
-    {
-        Vector2 current = ring[(index + 1) % ring.size()] - ring[index];
-        Vector2 next = ring[(index + 2) % ring.size()] - ring[(index + 1) % ring.size()];
-
-        double turn = current.crossProduct(next);
-
-        if (turn > POSITION_EPSILON)
-        {
-            positive = true;
-        }
-
-        if (turn < -POSITION_EPSILON)
-        {
-            negative = true;
-        }
-    }
-
-    return !(positive && negative);
-}
 
 std::vector<Vector3> sampleCurve(const std::vector<Vector3>& controlPoints, int samples)
 {
@@ -282,7 +151,7 @@ Footprint buildFootprint(const std::vector<std::vector<Vector3>>& centrelines, d
     Clipper2Lib::PathsD carriage = inflate(lines, roadHalf, Clipper2Lib::EndType::Butt);
     carriage = tidy(closeCorners(carriage, radius));
 
-    footprint.carriage = pathRings(carriage);
+    footprint.carriage = polygon::toRings(carriage);
 
     if (sidewalkWidth <= 0)
     {
@@ -292,113 +161,11 @@ Footprint buildFootprint(const std::vector<std::vector<Vector3>>& centrelines, d
     Clipper2Lib::PathsD corridor =
         inflate(carriage, sidewalkWidth, Clipper2Lib::EndType::Polygon);
 
-    footprint.band =
-        pathRings(Clipper2Lib::Difference(corridor, carriage, Clipper2Lib::FillRule::NonZero,
-                                          CLIPPER_PRECISION));
+    footprint.band = polygon::toRings(
+        Clipper2Lib::Difference(corridor, carriage, Clipper2Lib::FillRule::NonZero,
+                                CLIPPER_PRECISION));
 
     return footprint;
-}
-
-std::vector<Ring> triangulate(const std::vector<Ring>& rings)
-{
-    std::vector<Ring> result;
-
-    if (rings.empty())
-    {
-        return result;
-    }
-
-    Clipper2Lib::PathsD solution;
-
-    if (Clipper2Lib::Triangulate(ringPaths(rings), CLIPPER_PRECISION, solution, true) !=
-        Clipper2Lib::TriangulateResult::success)
-    {
-        return result;
-    }
-
-    return pathRings(solution);
-}
-
-std::vector<Ring> mergeConvex(const std::vector<Ring>& pieces,
-                              const std::function<bool(const Ring&)>& accept)
-{
-    std::vector<Ring> result = pieces;
-
-    for (Ring& ring : result)
-    {
-        makeCounterClockwise(ring);
-    }
-
-    bool changed = true;
-
-    while (changed)
-    {
-        changed = false;
-
-        std::map<EdgeKey, std::pair<std::size_t, std::size_t>> edges;
-
-        for (std::size_t piece = 0; piece < result.size(); ++piece)
-        {
-            for (std::size_t edge = 0; edge < result[piece].size(); ++edge)
-            {
-                const Ring& ring = result[piece];
-                EdgeKey key = edgeKey(ring[edge], ring[(edge + 1) % ring.size()]);
-
-                edges.emplace(key, std::make_pair(piece, edge));
-            }
-        }
-
-        std::vector<bool> locked(result.size(), false);
-
-        for (const auto& entry : edges)
-        {
-            std::size_t first = entry.second.first;
-            std::size_t firstEdge = entry.second.second;
-
-            if (locked[first] || result[first].empty())
-            {
-                continue;
-            }
-
-            EdgeKey reverse = EdgeKey{ entry.first[2], entry.first[3], entry.first[0],
-                                       entry.first[1] };
-
-            auto neighbour = edges.find(reverse);
-
-            if (neighbour == edges.end())
-            {
-                continue;
-            }
-
-            std::size_t second = neighbour->second.first;
-            std::size_t secondEdge = neighbour->second.second;
-
-            if (second == first || locked[second] || result[second].empty())
-            {
-                continue;
-            }
-
-            Ring candidate =
-                mergedRing(result[first], firstEdge, result[second], secondEdge);
-
-            if (!isConvex(candidate) || !accept(candidate))
-            {
-                continue;
-            }
-
-            result[first] = candidate;
-            result[second].clear();
-            locked[first] = true;
-            locked[second] = true;
-            changed = true;
-        }
-
-        result.erase(std::remove_if(result.begin(), result.end(),
-                                    [](const Ring& ring) { return ring.size() < 3; }),
-                     result.end());
-    }
-
-    return result;
 }
 
 bool onBoundary(const std::vector<Ring>& rings, const Vector2& point, double tolerance)

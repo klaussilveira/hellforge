@@ -6,8 +6,10 @@
 #include "gamelib.h"
 #include "math/Plane3.h"
 #include "math/Matrix3.h"
+#include "math/Vector2.h"
 #include "math/Vector3.h"
 #include "math/pi.h"
+#include "polygon/Polygon2D.h"
 
 #include <pugixml.hpp>
 
@@ -52,17 +54,6 @@ struct OsmRoad
     int lanes;
 };
 
-struct Polygon2D
-{
-    std::vector<Vector3> verts;
-
-    Vector3 at(int i) const
-    {
-        int n = static_cast<int>(verts.size());
-        return verts[((i % n) + n) % n];
-    }
-};
-
 struct OsmData
 {
     std::unordered_map<long long, OsmNode> nodes;
@@ -86,402 +77,6 @@ struct OsmImportParams
     double sidewalkWidth = 2.0;
     double curbHeight = 0.2;
 };
-
-inline double area2D(const Vector3& a, const Vector3& b, const Vector3& c)
-{
-    return (a.x() * (b.y() - c.y()) + b.x() * (c.y() - a.y()) + c.x() * (a.y() - b.y()));
-}
-
-inline bool isReflex(const Vector3& p, const Vector3& o, const Vector3& n)
-{
-    double a = area2D(p, o, n);
-    if (std::abs(a) <= 1e-6)
-        return false;
-    return a < 0;
-}
-
-inline bool isCollinear2D(const Vector3& a, const Vector3& b, const Vector3& c)
-{
-    return std::abs(area2D(a, b, c)) <= 1e-6;
-}
-
-inline double sqDist2D(const Vector3& a, const Vector3& b)
-{
-    double dx = b.x() - a.x();
-    double dy = b.y() - a.y();
-    return dx * dx + dy * dy;
-}
-
-inline Vector3 lineIntersect2D(const Vector3& p1, const Vector3& p2,
-                                const Vector3& q1, const Vector3& q2)
-{
-    double a1 = p2.y() - p1.y();
-    double b1 = p1.x() - p2.x();
-    double c1 = a1 * p1.x() + b1 * p1.y();
-    double a2 = q2.y() - q1.y();
-    double b2 = q1.x() - q2.x();
-    double c2 = a2 * q1.x() + b2 * q1.y();
-    double det = a1 * b2 - a2 * b1;
-
-    if (std::abs(det) > 1e-4)
-        return Vector3((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det, 0);
-    return Vector3(0, 0, 0);
-}
-
-inline bool segmentIntersect(const Vector3& p1, const Vector3& p2,
-                              const Vector3& q1, const Vector3& q2, Vector3& out)
-{
-    double a = q2.y() - q1.y();
-    double b = p2.x() - p1.x();
-    double c = q2.x() - q1.x();
-    double d = p2.y() - p1.y();
-    double denom = (a * b) - (c * d);
-
-    if (std::abs(denom) < 1e-5)
-        return false;
-
-    double e = p1.y() - q1.y();
-    double f = p1.x() - q1.x();
-    double oneOverDenom = 1.0 / denom;
-
-    double ua = (c * e - a * f) * oneOverDenom;
-    if (ua < 0.0 || ua > 1.0)
-        return false;
-
-    double ub = (b * e - d * f) * oneOverDenom;
-    if (ub < 0.0 || ub > 1.0)
-        return false;
-
-    if (ua == 0.0 && ub == 0.0)
-        return false;
-
-    out = Vector3(p1.x() + ua * b, p1.y() + ua * d, 0);
-    return true;
-}
-
-inline bool canSee(int i, int j, const Polygon2D& p)
-{
-    Vector3 prev = p.at(i - 1);
-    Vector3 on = p.at(i);
-    Vector3 next = p.at(i + 1);
-    Vector3 onj = p.at(j);
-
-    if (isReflex(prev, on, next))
-    {
-        if (area2D(on, prev, onj) >= 0 && area2D(on, next, onj) <= 0)
-            return false;
-    }
-    else
-    {
-        if (area2D(on, next, onj) <= 0 || area2D(on, prev, onj) >= 0)
-            return false;
-    }
-
-    Vector3 prevj = p.at(j - 1);
-    Vector3 nextj = p.at(j + 1);
-
-    if (isReflex(prevj, onj, nextj))
-    {
-        if (area2D(onj, prevj, on) >= 0 && area2D(onj, nextj, on) <= 0)
-            return false;
-    }
-    else
-    {
-        if (area2D(onj, nextj, on) <= 0 || area2D(onj, prevj, on) >= 0)
-            return false;
-    }
-
-    int n = static_cast<int>(p.verts.size());
-    for (int k = 0; k < n; k++)
-    {
-        Vector3 ep1 = p.at(i);
-        Vector3 ep2 = p.at(j);
-        Vector3 eq1 = p.at(k);
-        Vector3 eq2 = p.at(k + 1);
-
-        if (ep1 == eq1 || ep1 == eq2 || ep2 == eq1 || ep2 == eq2)
-            continue;
-
-        Vector3 intPt;
-        if (segmentIntersect(ep1, ep2, eq1, eq2, intPt))
-        {
-            if (intPt != eq1 || intPt != eq2)
-                return false;
-        }
-    }
-
-    return true;
-}
-
-inline double signedArea(const Polygon2D& p)
-{
-    double r = 0;
-    int n = static_cast<int>(p.verts.size());
-    for (int i = 0; i < n; i++)
-    {
-        int j = (i + 1) % n;
-        r += p.verts[i].x() * p.verts[j].y();
-        r -= p.verts[i].y() * p.verts[j].x();
-    }
-    return r / 2.0;
-}
-
-inline void forceCCW(Polygon2D& p)
-{
-    if (signedArea(p) < 0)
-        std::reverse(p.verts.begin(), p.verts.end());
-}
-
-inline Polygon2D collinearSimplify(const Polygon2D& p, double tolerance)
-{
-    if (p.verts.size() <= 3)
-        return p;
-
-    Polygon2D result;
-    int n = static_cast<int>(p.verts.size());
-    for (int i = 0; i < n; i++)
-    {
-        Vector3 prev = p.at(i - 1);
-        Vector3 current = p.at(i);
-        Vector3 next = p.at(i + 1);
-        if (std::abs(area2D(prev, current, next)) > tolerance)
-            result.verts.push_back(current);
-    }
-    return result;
-}
-
-inline Polygon2D copyRange(const Polygon2D& p, int i, int j, int extra)
-{
-    int n = static_cast<int>(p.verts.size());
-    while (j < i) j += n;
-    Polygon2D result;
-    for (int k = i; k <= j; ++k)
-        result.verts.push_back(p.at(k));
-    result.verts.resize(result.verts.size() + extra);
-    return result;
-}
-
-inline bool isEar(int i, const Polygon2D& p)
-{
-    int n = static_cast<int>(p.verts.size());
-    Vector3 prev = p.at(i - 1);
-    Vector3 on = p.at(i);
-    Vector3 next = p.at(i + 1);
-
-    if (isReflex(prev, on, next))
-        return false;
-
-    for (int j = 0; j < n; j++)
-    {
-        if (j == ((i - 1 + n) % n) || j == i || j == ((i + 1) % n))
-            continue;
-
-        Vector3 pt = p.verts[j];
-        double d1 = area2D(prev, on, pt);
-        double d2 = area2D(on, next, pt);
-        double d3 = area2D(next, prev, pt);
-        if (d1 >= 0 && d2 >= 0 && d3 >= 0)
-            return false;
-    }
-    return true;
-}
-
-inline std::vector<Polygon2D> earClipTriangulate(const Polygon2D& input)
-{
-    std::vector<Polygon2D> result;
-    Polygon2D p = input;
-    forceCCW(p);
-
-    int safety = static_cast<int>(p.verts.size()) * 2;
-    while (p.verts.size() > 3 && safety > 0)
-    {
-        bool found = false;
-        int n = static_cast<int>(p.verts.size());
-        for (int i = 0; i < n; i++)
-        {
-            if (isEar(i, p))
-            {
-                Polygon2D tri;
-                tri.verts.push_back(p.at(i - 1));
-                tri.verts.push_back(p.at(i));
-                tri.verts.push_back(p.at(i + 1));
-                result.push_back(tri);
-                p.verts.erase(p.verts.begin() + i);
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-            break;
-        safety--;
-    }
-
-    if (p.verts.size() >= 3)
-        result.push_back(p);
-
-    return result;
-}
-
-inline std::vector<Polygon2D> convexPartition(const Polygon2D& input, int depth = 0)
-{
-    std::vector<Polygon2D> list;
-    Polygon2D p = input;
-
-    if (p.verts.size() < 3)
-        return list;
-
-    if (depth > 100)
-        return earClipTriangulate(p);
-
-    forceCCW(p);
-
-    int n = static_cast<int>(p.verts.size());
-
-    for (int i = 0; i < n; i++)
-    {
-        Vector3 prev = p.at(i - 1);
-        Vector3 on = p.at(i);
-        Vector3 next = p.at(i + 1);
-
-        if (!isReflex(prev, on, next))
-            continue;
-
-        double lowerDist = 1e18;
-        double upperDist = 1e18;
-        Vector3 lowerInt, upperInt;
-        int lowerIndex = 0, upperIndex = 0;
-        bool lowerFound = false, upperFound = false;
-
-        for (int j = 0; j < n; j++)
-        {
-            if (j == i || j == ((i + 1) % n) || j == (i - 1 + n) % n)
-                continue;
-
-            Vector3 jSelf = p.at(j);
-            Vector3 jPrev = p.at(j - 1);
-            Vector3 jNext = p.at(j + 1);
-
-            bool leftOK = area2D(prev, on, jSelf) > 0;
-            bool rightOK = area2D(prev, on, jPrev) < 0;
-            bool leftOnOK = isCollinear2D(prev, on, jSelf);
-            bool rightOnOK = isCollinear2D(prev, on, jPrev);
-
-            if (leftOnOK || rightOnOK)
-            {
-                double d = sqDist2D(on, jSelf);
-                if (d < lowerDist) { lowerDist = d; lowerInt = jSelf; lowerIndex = j; lowerFound = true; }
-                d = sqDist2D(on, jPrev);
-                if (d < lowerDist) { lowerDist = d; lowerInt = jPrev; lowerIndex = j - 1; lowerFound = true; }
-            }
-            else if (leftOK && rightOK)
-            {
-                Vector3 intersect = lineIntersect2D(p.at(i - 1), p.at(i), p.at(j), p.at(j - 1));
-                if (area2D(p.at(i + 1), p.at(i), intersect) < 0)
-                {
-                    double d = sqDist2D(p.at(i), intersect);
-                    if (d < lowerDist) { lowerDist = d; lowerInt = intersect; lowerIndex = j; lowerFound = true; }
-                }
-            }
-
-            bool leftOKn = area2D(next, on, jNext) > 0;
-            bool rightOKn = area2D(next, on, jSelf) < 0;
-            bool leftOnOKn = isCollinear2D(next, on, jNext);
-            bool rightOnOKn = isCollinear2D(next, on, jSelf);
-
-            if (leftOnOKn || rightOnOKn)
-            {
-                double d = sqDist2D(on, jNext);
-                if (d < upperDist) { upperDist = d; upperInt = jNext; upperIndex = j + 1; upperFound = true; }
-                d = sqDist2D(on, jSelf);
-                if (d < upperDist) { upperDist = d; upperInt = jSelf; upperIndex = j; upperFound = true; }
-            }
-            else if (leftOKn && rightOKn)
-            {
-                Vector3 intersect = lineIntersect2D(p.at(i + 1), p.at(i), p.at(j), p.at(j + 1));
-                if (area2D(p.at(i - 1), p.at(i), intersect) > 0)
-                {
-                    double d = sqDist2D(p.at(i), intersect);
-                    if (d < upperDist) { upperDist = d; upperIndex = j; upperInt = intersect; upperFound = true; }
-                }
-            }
-        }
-
-        if (!lowerFound || !upperFound)
-            return earClipTriangulate(p);
-
-        Polygon2D lowerPoly, upperPoly;
-
-        if (lowerIndex == (upperIndex + 1) % n)
-        {
-            Vector3 sp = (lowerInt + upperInt) * 0.5;
-            lowerPoly = copyRange(p, i, upperIndex, 1);
-            lowerPoly.verts.back() = sp;
-            upperPoly = copyRange(p, lowerIndex, i, 1);
-            upperPoly.verts.back() = sp;
-        }
-        else
-        {
-            double highest = 0;
-            int bestIndex = lowerIndex;
-            int uIdx = upperIndex;
-            while (uIdx < lowerIndex) uIdx += n;
-
-            for (int j = lowerIndex; j <= uIdx; ++j)
-            {
-                if (!canSee(i, j, p))
-                    continue;
-
-                double score = 1.0 / (sqDist2D(p.at(i), p.at(j)) + 1.0);
-                Vector3 pj = p.at(j - 1);
-                Vector3 oj = p.at(j);
-                Vector3 nj = p.at(j + 1);
-
-                if (isReflex(pj, oj, nj))
-                {
-                    if (area2D(pj, oj, on) <= 0 && area2D(nj, oj, on) >= 0)
-                        score += 3;
-                    else
-                        score += 2;
-                }
-                else
-                {
-                    score += 1;
-                }
-
-                if (score > highest) { bestIndex = j; highest = score; }
-            }
-
-            lowerPoly = copyRange(p, i, bestIndex, 0);
-            upperPoly = copyRange(p, bestIndex, i, 0);
-        }
-
-        if (lowerPoly.verts.size() < 3 || upperPoly.verts.size() < 3 ||
-            (lowerPoly.verts.size() >= p.verts.size() && upperPoly.verts.size() >= p.verts.size()))
-            return earClipTriangulate(p);
-
-        if (lowerPoly.verts.size() < upperPoly.verts.size())
-        {
-            auto a = convexPartition(lowerPoly, depth + 1);
-            auto b = convexPartition(upperPoly, depth + 1);
-            list.insert(list.end(), a.begin(), a.end());
-            list.insert(list.end(), b.begin(), b.end());
-        }
-        else
-        {
-            auto a = convexPartition(upperPoly, depth + 1);
-            auto b = convexPartition(lowerPoly, depth + 1);
-            list.insert(list.end(), a.begin(), a.end());
-            list.insert(list.end(), b.begin(), b.end());
-        }
-
-        return list;
-    }
-
-    list.push_back(p);
-    for (auto& poly : list)
-        poly = collinearSimplify(poly, 0.3);
-    return list;
-}
 
 inline Vector3 lonLatToLocal(double lon, double lat, double centerLon, double centerLat)
 {
@@ -645,13 +240,13 @@ inline bool parseOsmFile(const std::string& filepath, OsmData& data, double leve
     return true;
 }
 
-inline std::vector<Polygon2D> getBuildingPolygons(const OsmBuilding& bd,
+inline std::vector<polygon::Ring> getBuildingPolygons(const OsmBuilding& bd,
     const OsmData& data, double unitsPerMeter)
 {
     if (bd.nodeIds.size() < 4)
         return {};
 
-    Polygon2D poly;
+    polygon::Ring outline;
     for (size_t j = 0; j < bd.nodeIds.size() - 1; j++)
     {
         auto it = data.nodes.find(bd.nodeIds[j]);
@@ -660,24 +255,21 @@ inline std::vector<Polygon2D> getBuildingPolygons(const OsmBuilding& bd,
         Vector3 v = lonLatToLocal(it->second.lon, it->second.lat,
                                    data.centerLon, data.centerLat);
         v *= unitsPerMeter;
-        poly.verts.push_back(v);
+        outline.push_back(Vector2(v.x(), v.y()));
     }
 
-    forceCCW(poly);
-    poly = collinearSimplify(poly, 0.3 * unitsPerMeter);
-
-    if (poly.verts.size() < 3)
+    if (outline.size() < 3)
         return {};
 
-    return convexPartition(poly);
+    return polygon::convexPieces({ outline }, 0.3 * unitsPerMeter);
 }
 
 inline scene::INodePtr createBuildingBrush(
-    const Polygon2D& poly, double zBottom, double zTop,
+    const polygon::Ring& poly, double zBottom, double zTop,
     const std::string& wallMaterial, const std::string& roofMaterial,
     const std::string& floorMaterial, const scene::INodePtr& parent)
 {
-    if (poly.verts.size() < 3)
+    if (poly.size() < 3)
         return {};
 
     auto brushNode = GlobalBrushCreator().createBrush();
@@ -690,11 +282,11 @@ inline scene::INodePtr createBuildingBrush(
     proj.xx() = texScale;
     proj.yy() = texScale;
 
-    int n = static_cast<int>(poly.verts.size());
+    int n = static_cast<int>(poly.size());
     for (int i = 0; i < n; i++)
     {
-        const Vector3& v1 = poly.verts[i];
-        const Vector3& v2 = poly.verts[(i + 1) % n];
+        const Vector2& v1 = poly[i];
+        const Vector2& v2 = poly[(i + 1) % n];
 
         double nx = v2.y() - v1.y();
         double ny = v1.x() - v2.x();

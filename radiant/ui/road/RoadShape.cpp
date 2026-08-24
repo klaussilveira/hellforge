@@ -236,7 +236,7 @@ void addFacets(BrushSolid& solid, const SideFace& side, const Plane3& top, doubl
 void appendPiece(RoadPlan& plan, const Ring& ring, HeightCache& heights,
                  const Corridor& corridor, const RoadParams& params, bool sidewalk)
 {
-    if (ring.size() < 3 || std::fabs(ringArea(ring)) < MIN_AREA)
+    if (ring.size() < 3 || std::fabs(polygon::ringArea(ring)) < MIN_AREA)
     {
         return;
     }
@@ -346,7 +346,7 @@ void appendPiece(RoadPlan& plan, const Ring& ring, HeightCache& heights,
 void appendRings(RoadPlan& plan, const std::vector<Ring>& rings, const Corridor& corridor,
                  const RoadParams& params, bool sidewalk)
 {
-    std::vector<Ring> triangles = triangulate(rings);
+    std::vector<Ring> triangles = polygon::triangulate(rings);
 
     if (triangles.empty())
     {
@@ -355,8 +355,8 @@ void appendRings(RoadPlan& plan, const std::vector<Ring>& rings, const Corridor&
 
     HeightCache heights(corridor.centrelines);
 
-    std::vector<Ring> pieces =
-        mergeConvex(triangles, [&heights](const Ring& ring) { return heights.coplanar(ring); });
+    std::vector<Ring> pieces = polygon::mergeConvex(
+        triangles, [&heights](const Ring& ring) { return heights.coplanar(ring); });
 
     for (const Ring& piece : pieces)
     {

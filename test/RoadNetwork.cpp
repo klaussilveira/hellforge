@@ -83,7 +83,7 @@ double totalArea(const std::vector<road::Ring>& rings)
 
     for (const road::Ring& ring : rings)
     {
-        total += road::ringArea(ring);
+        total += polygon::ringArea(ring);
     }
 
     return total;
@@ -389,7 +389,7 @@ TEST(RoadFootprintTest, TriangulationCoversTheRingAreaExactly)
     road::Footprint footprint = road::buildFootprint(
         centrelinesOf({ straightLine(), crossingLine() }, 8), 128, 96, 64, true);
 
-    std::vector<road::Ring> triangles = road::triangulate(footprint.band);
+    std::vector<road::Ring> triangles = polygon::triangulate(footprint.band);
 
     ASSERT_FALSE(triangles.empty());
 
@@ -406,9 +406,9 @@ TEST(RoadFootprintTest, MergingKeepsTheAreaAndProducesConvexPieces)
     road::Footprint footprint = road::buildFootprint(
         centrelinesOf({ straightLine(), crossingLine() }, 8), 128, 96, 64, true);
 
-    std::vector<road::Ring> triangles = road::triangulate(footprint.band);
+    std::vector<road::Ring> triangles = polygon::triangulate(footprint.band);
     std::vector<road::Ring> pieces =
-        road::mergeConvex(triangles, [](const road::Ring&) { return true; });
+        polygon::mergeConvex(triangles, [](const road::Ring&) { return true; });
 
     ASSERT_FALSE(pieces.empty());
     EXPECT_LT(pieces.size(), triangles.size());
@@ -416,7 +416,7 @@ TEST(RoadFootprintTest, MergingKeepsTheAreaAndProducesConvexPieces)
 
     for (const road::Ring& piece : pieces)
     {
-        EXPECT_TRUE(road::isConvex(piece));
+        EXPECT_TRUE(polygon::isConvex(piece));
     }
 }
 
@@ -425,9 +425,9 @@ TEST(RoadFootprintTest, MergingStopsWhereTheCallerRefuses)
     road::Footprint footprint =
         road::buildFootprint(centrelinesOf({ straightLine() }, 8), 128, 96, 0, false);
 
-    std::vector<road::Ring> triangles = road::triangulate(footprint.carriage);
+    std::vector<road::Ring> triangles = polygon::triangulate(footprint.carriage);
     std::vector<road::Ring> pieces =
-        road::mergeConvex(triangles, [](const road::Ring&) { return false; });
+        polygon::mergeConvex(triangles, [](const road::Ring&) { return false; });
 
     EXPECT_EQ(pieces.size(), triangles.size());
 }

@@ -8,8 +8,11 @@
 #include "math/Vector3.h"
 #include "math/Plane3.h"
 #include "math/Ray.h"
+#include "polygon/Polygon2D.h"
+#include "ObservedUndoable.h"
 #include "WallGeometry.h"
-#include <optional>
+#include <map>
+#include <set>
 #include <sigc++/connection.h>
 #include <string>
 #include <vector>
@@ -60,9 +63,28 @@ struct WallSegment
     double height;
     double thickness;
     std::string material;
-    scene::INodeWeakPtr node;
-    std::optional<wallgeometry::WallJointCap> capA;
-    std::optional<wallgeometry::WallJointCap> capB;
+};
+
+struct WallToolGeometry
+{
+    std::string key;
+    std::string level;
+    std::vector<scene::INodeWeakPtr> nodes;
+};
+
+struct LevelWalls
+{
+    double baseZ = 0;
+    double height = 0;
+    std::vector<wallgeometry::WallLine> lines;
+    std::vector<polygon::Ring> mouths;
+};
+
+struct WallToolState
+{
+    std::vector<WallSegment> segments;
+    std::vector<WallToolGeometry> walls;
+    std::vector<WallToolGeometry> rooms;
 };
 
 class WallTool :
@@ -83,17 +105,12 @@ private:
     Vector2 _lastPoint;
     bool _lastPointValid = false;
 
-    struct ClosedLoop
-    {
-        std::string key;
-        scene::INodeWeakPtr floorNode;
-    };
-
-    std::vector<WallSegment> _segments;
-    std::vector<ClosedLoop> _loops;
+    WallToolState _state;
+    undo::ObservedUndoable<WallToolState> _undoable;
     sigc::connection _mapEventConn;
 
 public:
+    WallTool();
     ~WallTool();
 
     const std::string& getName() override;
@@ -123,15 +140,19 @@ private:
 
     void ensureMapConnection();
     void onMapEvent(IMap::MapEvent ev);
+    void saveStateForUndo();
+    void releaseUndoable();
 
     void commitSegment();
-    void pruneSegments();
-    void mergeCollinear(WallSegment& seg);
-    void applyCornerJoints(WallSegment& seg);
-    void applyCornerJointAt(WallSegment& seg, bool atEndA);
-    void rebuildSegmentBrush(const WallSegment& seg);
-    void detectLoopAndFill(const WallSegment& seg);
-    void generateRoom(const std::vector<Vector2>& polygon, const WallSegment& seg);
+    void rebuildGeometry(const std::set<std::string>& touchedLevels);
+    std::map<std::string, LevelWalls> collectLevels(const std::set<std::string>& touchedLevels) const;
+    void rebuildWalls(const std::map<std::string, LevelWalls>& levels);
+    void rebuildRooms(const std::map<std::string, LevelWalls>& levels);
+    void createWallBrushes(const std::vector<const WallSegment*>& group,
+        const LevelWalls& level, WallToolGeometry& geometry);
+    void createRoomBrushes(const polygon::Region& region, double baseZ, double height,
+        WallToolGeometry& geometry);
+    static void destroyGeometry(WallToolGeometry& geometry);
 
     void chainWallTo(const Vector2& point);
     void startErase(const Vector2& point);

@@ -680,6 +680,7 @@
     <ClInclude Include="..\..\libs\clipper2\clipper.rectclip.h" />
     <ClInclude Include="..\..\libs\clipper2\clipper.triangulation.h" />
     <ClInclude Include="..\..\libs\clipper2\clipper.version.h" />
+    <ClInclude Include="..\..\libs\polygon\Polygon2D.h" />
     <ClInclude Include="..\..\radiant\ui\road\RoadGeneratorDialog.h" />
     <ClInclude Include="..\..\radiant\ui\road\RoadGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\road\RoadNetwork.h" />
