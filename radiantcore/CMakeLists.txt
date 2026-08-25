@@ -7,6 +7,7 @@ add_library(radiantcore MODULE
             brush/BrushModule.cpp
             brush/BrushNode.cpp
             brush/csg/CSG.cpp
+            brush/csg/OpeningSolver.cpp
             brush/export/CollisionModel.cpp
             brush/Face.cpp
             brush/FaceInstance.cpp
@@ -22,6 +23,10 @@ add_library(radiantcore MODULE
             clipper/Clipper.cpp
             clipper/ClipPoint.cpp
             clipper/SplitAlgorithm.cpp
+            ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.engine.cpp
+            ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.offset.cpp
+            ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.rectclip.cpp
+            ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.triangulation.cpp
             commandsystem/CommandSystem.cpp
             decl/DeclarationFolderParser.cpp
             decl/DeclarationManager.cpp

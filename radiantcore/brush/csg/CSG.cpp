@@ -1,5 +1,6 @@
 #include "CSG.h"
 
+#include <cmath>
 #include <limits>
 #include <map>
 
@@ -16,6 +17,8 @@
 #include "selectionlib.h"
 
 #include "registry/registry.h"
+#include "imodel.h"
+#include "brush/csg/OpeningSolver.h"
 #include "brush/Face.h"
 #include "brush/Brush.h"
 #include "brush/BrushNode.h"
@@ -1059,98 +1062,479 @@ void sealSelectedEntities(const cmd::ArgumentList& args)
 	SceneChangeNotify();
 }
 
+namespace
+{
+
+const double WALL_FACE_ALIGNMENT = 0.999;
+const double CUTTER_MARGIN = 1.0;
+
+struct WallSlab
+{
+    bool valid = false;
+    Vector3 normal;
+    double thickness = 0;
+    double mid = 0;
+};
+
+class OpeningModelFinder :
+    public scene::NodeVisitor
+{
+private:
+    scene::INodePtr _node;
+    model::ModelNodePtr _model;
+
+public:
+    const scene::INodePtr& getNode() const
+    {
+        return _node;
+    }
+
+    const model::ModelNodePtr& getModel() const
+    {
+        return _model;
+    }
+
+    bool pre(const scene::INodePtr& node) override
+    {
+        if (_model)
+        {
+            return false;
+        }
+
+        model::ModelNodePtr candidate = Node_getModel(node);
+
+        if (candidate)
+        {
+            _node = node;
+            _model = candidate;
+            return false;
+        }
+
+        return true;
+    }
+};
+
+WallSlab findThinnestSlab(const Brush& brush)
+{
+    WallSlab slab;
+
+    for (Brush::const_iterator i = brush.begin(); i != brush.end(); ++i)
+    {
+        const Face& first = *(*i);
+
+        if (!first.contributes())
+        {
+            continue;
+        }
+
+        for (Brush::const_iterator j = brush.begin(); j != brush.end(); ++j)
+        {
+            const Face& second = *(*j);
+
+            if (&first == &second || !second.contributes())
+            {
+                continue;
+            }
+
+            if (first.plane3().normal().dot(second.plane3().normal()) > -WALL_FACE_ALIGNMENT)
+            {
+                continue;
+            }
+
+            double thickness = first.plane3().dist() + second.plane3().dist();
+
+            if (thickness <= 0 || (slab.valid && thickness >= slab.thickness))
+            {
+                continue;
+            }
+
+            slab.valid = true;
+            slab.normal = first.plane3().normal();
+            slab.thickness = thickness;
+            slab.mid = (first.plane3().dist() - second.plane3().dist()) * 0.5;
+        }
+    }
+
+    return slab;
+}
+
+bool brushExtentAlongAxis(const Brush& brush, const Vector3& axis, double& low, double& high)
+{
+    bool found = false;
+
+    low = std::numeric_limits<double>::max();
+    high = std::numeric_limits<double>::lowest();
+
+    brush.forEachFace([&](Face& face)
+    {
+        const Winding& winding = face.getWinding();
+
+        for (std::size_t i = 0; i < winding.size(); ++i)
+        {
+            double distance = winding[i].vertex.dot(axis);
+
+            low = std::min(low, distance);
+            high = std::max(high, distance);
+            found = true;
+        }
+    });
+
+    return found;
+}
+
+bool isWallInFrame(const Brush& brush, const OpeningFrame& frame)
+{
+    bool aligned = false;
+
+    brush.forEachFace([&](Face& face)
+    {
+        if (face.contributes() &&
+            std::abs(face.plane3().normal().dot(frame.normal)) > WALL_FACE_ALIGNMENT)
+        {
+            aligned = true;
+        }
+    });
+
+    if (!aligned)
+    {
+        return false;
+    }
+
+    double normalLow = 0;
+    double normalHigh = 0;
+    double runLow = 0;
+    double runHigh = 0;
+    double upLow = 0;
+    double upHigh = 0;
+
+    if (!brushExtentAlongAxis(brush, frame.normal, normalLow, normalHigh) ||
+        !brushExtentAlongAxis(brush, frame.run, runLow, runHigh) ||
+        !brushExtentAlongAxis(brush, frame.up, upLow, upHigh))
+    {
+        return false;
+    }
+
+    double depth = normalHigh - normalLow;
+
+    return depth <= runHigh - runLow && depth <= upHigh - upLow;
+}
+
+BrushNodePtr createOpeningCutter(const polygon::Ring& ring, const OpeningFrame& frame,
+    double back, double front, const std::string& shader)
+{
+    scene::INodePtr node = GlobalBrushCreator().createBrush();
+    BrushNodePtr brushNode = std::dynamic_pointer_cast<BrushNode>(node);
+
+    if (!brushNode)
+    {
+        return BrushNodePtr();
+    }
+
+    Brush& brush = brushNode->getBrush();
+    brush.clear();
+
+    double originDistance = frame.origin.dot(frame.normal);
+
+    brush.addFace(Plane3(frame.normal, originDistance + front)).setShader(shader);
+    brush.addFace(Plane3(-frame.normal, -(originDistance + back))).setShader(shader);
+
+    double sign = polygon::ringArea(ring) > 0 ? 1.0 : -1.0;
+
+    for (std::size_t i = 0; i < ring.size(); ++i)
+    {
+        const Vector2& current = ring[i];
+        const Vector2& next = ring[(i + 1) % ring.size()];
+
+        double edgeU = next.x() - current.x();
+        double edgeV = next.y() - current.y();
+        double length = std::sqrt(edgeU * edgeU + edgeV * edgeV);
+
+        if (length < 0.0001)
+        {
+            continue;
+        }
+
+        Vector3 planeNormal =
+            frame.run * (edgeV * sign / length) + frame.up * (-edgeU * sign / length);
+        Vector3 point = frame.origin + frame.run * current.x() + frame.up * current.y();
+
+        brush.addFace(Plane3(planeNormal, planeNormal.dot(point))).setShader(shader);
+    }
+
+    brush.evaluateBRep();
+
+    return brushNode;
+}
+
+bool subtractCutters(const BrushNodePtr& target, const BrushPtrVector& cutters,
+    bool preserveTexture)
+{
+    scene::INodePtr parent = target->getParent();
+
+    if (!parent)
+    {
+        return false;
+    }
+
+    BrushPtrVector buffer[2];
+    std::size_t swap = 0;
+
+    BrushNodePtr original = std::dynamic_pointer_cast<BrushNode>(target->clone());
+    buffer[swap].push_back(original);
+
+    for (const BrushNodePtr& cutter : cutters)
+    {
+        for (const BrushNodePtr& piece : buffer[swap])
+        {
+            if (!Brush_subtract(piece, cutter->getBrush(), buffer[1 - swap], preserveTexture))
+            {
+                buffer[1 - swap].push_back(piece);
+            }
+        }
+
+        buffer[swap].clear();
+        swap = 1 - swap;
+    }
+
+    BrushPtrVector& out = buffer[swap];
+
+    if (out.size() == 1 && out.back() == original)
+    {
+        return false;
+    }
+
+    for (const BrushNodePtr& piece : out)
+    {
+        piece->getBrush().removeEmptyFaces();
+
+        if (piece->getBrush().empty())
+        {
+            continue;
+        }
+
+        scene::INodePtr newBrush = GlobalBrushCreator().createBrush();
+
+        parent->addChildNode(newBrush);
+        newBrush->assignToLayers(target->getLayers());
+
+        Node_getBrush(newBrush)->copy(piece->getBrush());
+        Node_getBrush(newBrush)->updateFaceVisibility();
+    }
+
+    scene::removeNodeFromParent(target);
+
+    return true;
+}
+
+} // namespace
+
+bool carveOpeningForEntity(const scene::INodePtr& entity, const scene::INodePtr& worldspawn,
+    OpeningReport& report)
+{
+    OpeningModelFinder finder;
+    entity->traverseChildren(finder);
+
+    if (!finder.getModel())
+    {
+        return false;
+    }
+
+    const AABB& bounds = entity->worldAABB();
+
+    if (!bounds.isValid())
+    {
+        return false;
+    }
+
+    BrushPtrVector candidates;
+
+    worldspawn->foreachNode([&](const scene::INodePtr& node)
+    {
+        if (Node_isBrush(node) && node->visible() && !Node_isSelected(node) &&
+            node->worldAABB().intersects(bounds))
+        {
+            candidates.emplace_back(std::dynamic_pointer_cast<BrushNode>(node));
+        }
+
+        return true;
+    });
+
+    if (candidates.empty())
+    {
+        return false;
+    }
+
+    BrushNodePtr reference;
+    WallSlab referenceSlab;
+
+    for (const BrushNodePtr& candidate : candidates)
+    {
+        WallSlab slab = findThinnestSlab(candidate->getBrush());
+
+        if (!slab.valid || (reference && slab.thickness >= referenceSlab.thickness))
+        {
+            continue;
+        }
+
+        reference = candidate;
+        referenceSlab = slab;
+    }
+
+    if (!reference)
+    {
+        return false;
+    }
+
+    Vector3 centre = bounds.getOrigin();
+    Vector3 origin =
+        centre - referenceSlab.normal * (centre.dot(referenceSlab.normal) - referenceSlab.mid);
+
+    OpeningFrame frame = buildOpeningFrame(referenceSlab.normal, origin,
+        -referenceSlab.thickness * 0.5, referenceSlab.thickness * 0.5);
+
+    OpeningSettings settings;
+    OpeningSolution solution = solveOpening(finder.getModel()->getIModel(),
+        finder.getNode()->localToWorld(), frame, settings);
+
+    if (!solution.valid)
+    {
+        return false;
+    }
+
+    BrushPtrVector targets;
+    double low = std::numeric_limits<double>::max();
+    double high = std::numeric_limits<double>::lowest();
+
+    for (const BrushNodePtr& candidate : candidates)
+    {
+        double brushLow = 0;
+        double brushHigh = 0;
+
+        if (!isWallInFrame(candidate->getBrush(), frame) ||
+            !brushExtentAlongAxis(candidate->getBrush(), frame.normal, brushLow, brushHigh))
+        {
+            continue;
+        }
+
+        targets.push_back(candidate);
+        low = std::min(low, brushLow);
+        high = std::max(high, brushHigh);
+    }
+
+    if (targets.empty())
+    {
+        return false;
+    }
+
+    double originDistance = frame.origin.dot(frame.normal);
+
+    BrushPtrVector cutters;
+
+    for (const polygon::Ring& piece : solution.pieces)
+    {
+        BrushNodePtr cutter = createOpeningCutter(piece, frame,
+            low - originDistance - CUTTER_MARGIN, high - originDistance + CUTTER_MARGIN,
+            texdef_name_default());
+
+        if (cutter && !cutter->getBrush().empty())
+        {
+            cutters.push_back(cutter);
+        }
+    }
+
+    if (cutters.empty())
+    {
+        return false;
+    }
+
+    bool preserveTexture = registry::getValue<bool>(RKEY_CSG_SUBTRACT_PRESERVE_TEXTURE);
+    bool carvedAny = false;
+
+    for (const BrushNodePtr& target : targets)
+    {
+        if (subtractCutters(target, cutters, preserveTexture))
+        {
+            ++report.brushesCarved;
+            carvedAny = true;
+        }
+    }
+
+    if (carvedAny)
+    {
+        ++report.openingsCut;
+        report.leakArea += solution.leakArea;
+        report.ignoredParts += solution.ignoredParts;
+
+        if (solution.leakArea > 0)
+        {
+            ++report.openingsLeaking;
+
+            if (report.openingsLeaking == 1 || solution.modelDepth < report.shallowestModel)
+            {
+                report.shallowestModel = solution.modelDepth;
+            }
+
+            report.thickestWall = std::max(report.thickestWall, referenceSlab.thickness);
+        }
+    }
+
+    return carvedAny;
+}
+
 void carveSelectedEntityOpenings(const cmd::ArgumentList& args)
 {
-	std::vector<AABB> volumes;
+    std::vector<scene::INodePtr> entities;
 
-	GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
-	{
-		if (!Node_isEntity(node)) return;
+    GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+    {
+        if (Node_isEntity(node))
+        {
+            entities.push_back(node);
+        }
+    });
 
-		const AABB& bounds = node->worldAABB();
+    if (entities.empty())
+    {
+        throw cmd::ExecutionNotPossible(_("Carve: No entities selected."));
+    }
 
-		if (bounds.isValid())
-		{
-			volumes.push_back(bounds);
-		}
-	});
+    UndoableCommand undo("carveEntityOpening");
 
-	if (volumes.empty())
-	{
-		throw cmd::ExecutionNotPossible(_("Carve: No entities with valid bounds selected."));
-	}
+    scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
 
-	UndoableCommand undo("carveEntityOpening");
+    OpeningReport report;
 
-	scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+    for (const scene::INodePtr& entity : entities)
+    {
+        carveOpeningForEntity(entity, worldspawn, report);
+    }
 
-	std::size_t carvedCount = 0;
+    if (report.openingsCut == 0)
+    {
+        throw cmd::ExecutionFailure(
+            _("Carve: no wall brush matched the selected model, or the model has no opening."));
+    }
 
-	for (const AABB& volume : volumes)
-	{
-		BrushPtrVector targets;
+    rMessage() << "Carve: cut " << report.openingsCut << " opening"
+        << (report.openingsCut == 1 ? "" : "s") << " through " << report.brushesCarved
+        << " brush" << (report.brushesCarved == 1 ? "" : "es") << "." << std::endl;
 
-		worldspawn->foreachNode([&](const scene::INodePtr& node)
-		{
-			if (Node_isBrush(node) && node->visible() && !Node_isSelected(node) &&
-				node->worldAABB().intersects(volume))
-			{
-				targets.emplace_back(std::dynamic_pointer_cast<BrushNode>(node));
-			}
+    if (report.ignoredParts > 0)
+    {
+        rMessage() << "Carve: left " << report.ignoredParts << " attached part"
+            << (report.ignoredParts == 1 ? "" : "s")
+            << " uncut, they frame no opening." << std::endl;
+    }
 
-			return true;
-		});
+    if (report.openingsLeaking > 0)
+    {
+        rWarning() << "Carve: " << report.openingsLeaking << " opening"
+            << (report.openingsLeaking == 1 ? " leaves" : "s leave")
+            << " the reveal open: the model is " << report.shallowestModel
+            << " units deep, the wall is " << report.thickestWall << "." << std::endl;
+    }
 
-		for (const BrushNodePtr& target : targets)
-		{
-			scene::INodePtr parent = target->getParent();
-
-			if (!parent) continue;
-
-			const AABB& targetBounds = target->worldAABB();
-			int thinAxis = targetBounds.extents.x() <= targetBounds.extents.y() ? 0 : 1;
-
-			AABB carveBounds = volume;
-			carveBounds.origin[thinAxis] = targetBounds.origin[thinAxis];
-			carveBounds.extents[thinAxis] = targetBounds.extents[thinAxis] + 1;
-
-			scene::INodePtr tempNode = GlobalBrushCreator().createBrush();
-			BrushNodePtr tempBrush = std::dynamic_pointer_cast<BrushNode>(tempNode);
-			tempBrush->getBrush().constructCuboid(carveBounds, texdef_name_default());
-			tempBrush->getBrush().evaluateBRep();
-
-			BrushPtrVector fragments;
-			BrushNodePtr original = std::dynamic_pointer_cast<BrushNode>(target->clone());
-
-			if (!Brush_subtract(original, tempBrush->getBrush(), fragments, true))
-			{
-				continue;
-			}
-
-			for (const BrushNodePtr& fragment : fragments)
-			{
-				fragment->getBrush().removeEmptyFaces();
-
-				if (fragment->getBrush().empty()) continue;
-
-				scene::INodePtr newBrush = GlobalBrushCreator().createBrush();
-
-				parent->addChildNode(newBrush);
-				newBrush->assignToLayers(target->getLayers());
-
-				Node_getBrush(newBrush)->copy(fragment->getBrush());
-				Node_getBrush(newBrush)->updateFaceVisibility();
-			}
-
-			scene::removeNodeFromParent(target);
-			carvedCount++;
-		}
-	}
-
-	rMessage() << "Carve: replaced " << carvedCount << " brush" << (carvedCount == 1 ? "" : "es")
-		<< " with carved fragments." << std::endl;
-
-	SceneChangeNotify();
+    SceneChangeNotify();
 }
 
 void bridgeSelectedFaces(const cmd::ArgumentList& args)

@@ -284,6 +284,7 @@
       <toolbutton name="csghollow" action="CSGHollow" tooltip="Hollow" icon="selection_makehollow.png"/>
       <toolbutton name="csgroom" action="CSGRoom" tooltip="Make Room" icon="selection_makeroom.png"/>
       <toolbutton name="csgbridge" action="CSGBridge" tooltip="Bridge two faces" icon="bridge.png"/>
+      <toolbutton name="carveopening" action="CarveEntityOpening" tooltip="Carve the selected door or window out of the wall" icon="carve_opening.png"/>
       <separator/>
       <toolbutton name="groupSelected" action="GroupSelected" tooltip="Group selected items" icon="group_selection.png"/>
       <toolbutton name="unGroupSelected" action="UngroupSelected" tooltip="Ungroup selected items" icon="ungroup_selection.png"/>

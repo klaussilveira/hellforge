@@ -2,6 +2,7 @@
 
 #include "iclipper.h"
 #include "icommandsystem.h"
+#include "inode.h"
 #include "math/Plane3.h"
 
 // Contains the routines for brush subtract, merge and hollow
@@ -62,10 +63,20 @@ void sealSelectedEntities(const cmd::ArgumentList& args);
  */
 void bridgeSelectedFaces(const cmd::ArgumentList& args);
 
-/**
- * Carves openings into worldspawn brushes intersecting the selected entities,
- * extending each entity's bounds through the brush's thinnest horizontal axis.
- */
+struct OpeningReport
+{
+    std::size_t openingsCut = 0;
+    std::size_t openingsLeaking = 0;
+    std::size_t brushesCarved = 0;
+    double leakArea = 0;
+    double shallowestModel = 0;
+    double thickestWall = 0;
+    std::size_t ignoredParts = 0;
+};
+
+bool carveOpeningForEntity(const scene::INodePtr& entity, const scene::INodePtr& worldspawn,
+    OpeningReport& report);
+
 void carveSelectedEntityOpenings(const cmd::ArgumentList& args);
 
 /**
