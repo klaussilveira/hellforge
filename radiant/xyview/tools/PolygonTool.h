@@ -10,6 +10,7 @@
 #include "math/Ray.h"
 #include "math/Plane3.h"
 #include "math/Matrix4.h"
+#include "polygon/Polygon2D.h"
 #include "render.h"
 #include "render/RenderableVertexArray.h"
 #include "wxutil/event/KeyEventFilter.h"
@@ -99,14 +100,12 @@ private:
     // Check if a point is near the first point (for closing polygon)
     bool isNearFirstPoint(const Vector3& point) const;
 
-    // Check if the polygon is convex
-    bool isConvex() const;
-
-    // Finalize the polygon and create a brush
+    // Finalize the polygon and create the brushes
     void finishPolygon();
 
-    // Convert polygon points to a brush
-    scene::INodePtr createBrushFromPolygon();
+    // Convert one convex ring to an extruded brush
+    scene::INodePtr createBrushFromRing(const polygon::Ring& ring, double minDepth,
+        double maxDepth, const std::string& shader);
 
     void reset();
     void addPoint(const Vector3& point);

@@ -490,48 +490,6 @@ bool PolygonTool::isNearFirstPoint(const Vector3& point) const
     return distanceSq < (CLOSE_DISTANCE_PIXELS * CLOSE_DISTANCE_PIXELS);
 }
 
-bool PolygonTool::isConvex() const
-{
-    if (_points.size() < MIN_POLYGON_POINTS)
-    {
-        return false;
-    }
-
-    int axis1, axis2;
-    getViewAxes(axis1, axis2);
-
-    int sign = 0;
-    std::size_t n = _points.size();
-
-    for (std::size_t i = 0; i < n; ++i)
-    {
-        std::size_t j = (i + 1) % n;
-        std::size_t k = (i + 2) % n;
-
-        double v1x = _points[j][axis1] - _points[i][axis1];
-        double v1y = _points[j][axis2] - _points[i][axis2];
-        double v2x = _points[k][axis1] - _points[j][axis1];
-        double v2y = _points[k][axis2] - _points[j][axis2];
-
-        double cross = v1x * v2y - v1y * v2x;
-
-        if (std::abs(cross) > 0.001)
-        {
-            int newSign = (cross > 0) ? 1 : -1;
-            if (sign == 0)
-            {
-                sign = newSign;
-            }
-            else if (sign != newSign)
-            {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
 void PolygonTool::finishPolygon()
 {
     if (_points.size() < MIN_POLYGON_POINTS)
@@ -540,27 +498,64 @@ void PolygonTool::finishPolygon()
         return;
     }
 
-    if (!isConvex())
+    int axis1, axis2;
+    getViewAxes(axis1, axis2);
+
+    polygon::Ring outline;
+
+    for (const Vector3& point : _points)
+    {
+        outline.push_back(Vector2(point[axis1], point[axis2]));
+    }
+
+    std::vector<polygon::Ring> pieces = polygon::convexPieces({ outline }, polygon::EPSILON);
+
+    if (pieces.empty())
     {
         GlobalDialogManager().createMessageBox(
             _("Polygon Tool"),
-            _("Cannot create brush: polygon is not convex. Only convex shapes are supported."),
+            _("Cannot create brush: the polygon encloses no area."),
             ui::IDialog::MessageType::MESSAGE_ERROR
         )->run();
         reset();
         return;
     }
 
-    auto brushNode = createBrushFromPolygon();
-    if (brushNode)
+    double minDepth, maxDepth;
+    getDepthRange(minDepth, maxDepth);
+
+    std::string shader = GlobalTextureBrowser().getSelectedShader();
+
+    if (shader.empty())
+    {
+        shader = "_default";
+    }
+
+    std::vector<scene::INodePtr> brushNodes;
+
+    for (const polygon::Ring& piece : pieces)
+    {
+        auto brushNode = createBrushFromRing(piece, minDepth, maxDepth, shader);
+
+        if (brushNode)
+        {
+            brushNodes.push_back(brushNode);
+        }
+    }
+
+    if (!brushNodes.empty())
     {
         UndoableCommand cmd("polygonBrush");
 
         auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
-        scene::addNodeToContainer(brushNode, worldspawn);
 
         GlobalSelectionSystem().setSelectedAll(false);
-        Node_setSelected(brushNode, true);
+
+        for (const scene::INodePtr& brushNode : brushNodes)
+        {
+            scene::addNodeToContainer(brushNode, worldspawn);
+            Node_setSelected(brushNode, true);
+        }
     }
 
     reset();
@@ -569,15 +564,13 @@ void PolygonTool::finishPolygon()
     GlobalMainFrame().updateAllWindows();
 }
 
-scene::INodePtr PolygonTool::createBrushFromPolygon()
+scene::INodePtr PolygonTool::createBrushFromRing(const polygon::Ring& ring, double minDepth,
+    double maxDepth, const std::string& shader)
 {
-    if (_points.size() < MIN_POLYGON_POINTS)
+    if (ring.size() < MIN_POLYGON_POINTS)
     {
         return scene::INodePtr();
     }
-
-    double minDepth, maxDepth;
-    getDepthRange(minDepth, maxDepth);
 
     int depthAxis = getExtrusionAxis();
     int axis1, axis2;
@@ -589,12 +582,6 @@ scene::INodePtr PolygonTool::createBrushFromPolygon()
     if (!brush)
     {
         return scene::INodePtr();
-    }
-
-    std::string shader = GlobalTextureBrowser().getSelectedShader();
-    if (shader.empty())
-    {
-        shader = "_default";
     }
 
     brush->clear();
@@ -617,25 +604,17 @@ scene::INodePtr PolygonTool::createBrushFromPolygon()
         face.setShader(shader);
     }
 
-    // Determine polygon winding direction
-    double windingSum = 0;
-    for (std::size_t i = 0; i < _points.size(); ++i)
-    {
-        std::size_t next = (i + 1) % _points.size();
-        windingSum += (_points[next][axis1] - _points[i][axis1]) *
-                      (_points[next][axis2] + _points[i][axis2]);
-    }
-    double windingSign = (windingSum > 0) ? -1.0 : 1.0;
+    // Apply winding sign to ensure outward-facing normals
+    double windingSign = polygon::ringArea(ring) > 0 ? 1.0 : -1.0;
 
     // Create side faces
-    for (std::size_t i = 0; i < _points.size(); ++i)
+    for (std::size_t i = 0; i < ring.size(); ++i)
     {
-        std::size_t next = (i + 1) % _points.size();
+        std::size_t next = (i + 1) % ring.size();
 
-        double edgeX = _points[next][axis1] - _points[i][axis1];
-        double edgeY = _points[next][axis2] - _points[i][axis2];
+        double edgeX = ring[next].x() - ring[i].x();
+        double edgeY = ring[next].y() - ring[i].y();
 
-        // Apply winding sign to ensure outward-facing normal
         double normalX = edgeY * windingSign;
         double normalY = -edgeX * windingSign;
 
@@ -655,7 +634,7 @@ scene::INodePtr PolygonTool::createBrushFromPolygon()
         normal[axis2] = normalY;
 
         // Distance from origin to plane
-        double dist = normal[axis1] * _points[i][axis1] + normal[axis2] * _points[i][axis2];
+        double dist = normalX * ring[i].x() + normalY * ring[i].y();
 
         Plane3 plane(normal, dist);
         IFace& face = brush->addFace(plane);
