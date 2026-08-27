@@ -670,8 +670,39 @@ void CamWnd::drawGrid()
 {
     constexpr double GRID_MAX_DIM = 2048.0;
     constexpr float GRID_MAX_F = static_cast<float>(GRID_MAX_DIM);
+    constexpr double MIN_PIXEL_SPACING = 8.0;
+    constexpr int MIN_HALF_STEPS = 16;
+    constexpr int MAX_HALF_STEPS = 256;
 
-    const double step = GlobalGrid().getGridSize();
+    const Vector3 camPos = _camera->getCameraOrigin();
+
+    double planeDistance = std::abs(camPos.z());
+
+    if (planeDistance < 1.0)
+    {
+        planeDistance = 1.0;
+    }
+
+    const double pixelsPerUnit = _camera->getProjection().yy() *
+                                 _camera->getDeviceHeight() * 0.5 / planeDistance;
+
+    double step = GlobalGrid().getGridSize();
+
+    while (step * pixelsPerUnit < MIN_PIXEL_SPACING && step * MIN_HALF_STEPS < GRID_MAX_DIM)
+    {
+        step *= 2;
+    }
+
+    int halfSteps = static_cast<int>(GRID_MAX_DIM / step);
+
+    if (halfSteps > MAX_HALF_STEPS)
+    {
+        halfSteps = MAX_HALF_STEPS;
+    }
+
+    const double extent = halfSteps * step;
+    const float extentF = static_cast<float>(extent);
+
     const int majorEvery = 8;
 
     glDisable(GL_TEXTURE_2D);
@@ -690,8 +721,6 @@ void CamWnd::drawGrid()
     auto origin = _camera->getCameraOrigin().getSnapped(step);
     const double skipVerticalAtX   = -origin.x();
     const double skipHorizontalAtY = -origin.y();
-
-    const Vector3 camPos = _camera->getCameraOrigin();
 
     auto isSameLine = [](double a, double b)
     {
@@ -721,11 +750,11 @@ void CamWnd::drawGrid()
     glPushMatrix();
     glTranslated(origin.x(), origin.y(), 0.0);
 
-    const double fadeStart = GRID_MAX_DIM * 0.25;
-    const double fadeEnd = GRID_MAX_DIM * 1.00;
+    const double fadeStart = extent * 0.25;
+    const double fadeEnd = extent * 1.00;
 
-    const double depthFadeStart = GRID_MAX_DIM * 0.5;
-    const double depthFadeEnd = GRID_MAX_DIM * 2.0;
+    const double depthFadeStart = extent * 0.5;
+    const double depthFadeEnd = extent * 2.0;
 
     auto smoothFade = [](double d, double start, double end) -> float
     {
@@ -751,7 +780,6 @@ void CamWnd::drawGrid()
     };
 
     // Pre-compute all grid line vertices and colors into arrays
-    const int halfSteps = static_cast<int>(GRID_MAX_DIM / step);
     const int numSteps = 2 * halfSteps + 1;
     std::vector<GLfloat> gridVertices;
     std::vector<GLfloat> gridColors;
@@ -774,9 +802,9 @@ void CamWnd::drawGrid()
             const float r = isMajor ? 0.60f : 0.55f;
             const float lineAlpha = isMajor ? 0.45f * a : 0.20f * a;
 
-            const float aFar0 = lineAlpha * depthAlphaForLine(worldX, origin.y() - GRID_MAX_DIM);
-            const float aFar1 = lineAlpha * depthAlphaForLine(worldX, origin.y() + GRID_MAX_DIM);
-            gridVertices.insert(gridVertices.end(), { xf, -GRID_MAX_F, 0.0f, xf, GRID_MAX_F, 0.0f });
+            const float aFar0 = lineAlpha * depthAlphaForLine(worldX, origin.y() - extent);
+            const float aFar1 = lineAlpha * depthAlphaForLine(worldX, origin.y() + extent);
+            gridVertices.insert(gridVertices.end(), { xf, -extentF, 0.0f, xf, extentF, 0.0f });
             gridColors.insert(gridColors.end(), { r, r, r, aFar0, r, r, r, aFar1 });
         }
 
@@ -789,9 +817,9 @@ void CamWnd::drawGrid()
             const float r = isMajor ? 0.60f : 0.55f;
             const float lineAlpha = isMajor ? 0.45f * a : 0.20f * a;
 
-            const float aFar0 = lineAlpha * depthAlphaForLine(origin.x() - GRID_MAX_DIM, worldY);
-            const float aFar1 = lineAlpha * depthAlphaForLine(origin.x() + GRID_MAX_DIM, worldY);
-            gridVertices.insert(gridVertices.end(), { -GRID_MAX_F, xf, 0.0f, GRID_MAX_F, xf, 0.0f });
+            const float aFar0 = lineAlpha * depthAlphaForLine(origin.x() - extent, worldY);
+            const float aFar1 = lineAlpha * depthAlphaForLine(origin.x() + extent, worldY);
+            gridVertices.insert(gridVertices.end(), { -extentF, xf, 0.0f, extentF, xf, 0.0f });
             gridColors.insert(gridColors.end(), { r, r, r, aFar0, r, r, r, aFar1 });
         }
     }
