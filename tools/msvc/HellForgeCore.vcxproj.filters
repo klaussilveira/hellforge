@@ -215,6 +215,9 @@
     <Filter Include="src\fx">
       <UniqueIdentifier>{8090888b-90cb-49eb-b203-f30f0635ab17}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\clipper2">
+      <UniqueIdentifier>{5b41d0f7-2a6c-4c39-8f18-3d7a90e2b514}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\radiantcore\modulesystem\ModuleLoader.cpp">
@@ -249,6 +252,18 @@
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\xmlregistry\XMLRegistry.cpp">
       <Filter>src\xmlregistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.engine.cpp">
+      <Filter>libs\clipper2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.offset.cpp">
+      <Filter>libs\clipper2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.rectclip.cpp">
+      <Filter>libs\clipper2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\clipper2\clipper.triangulation.cpp">
+      <Filter>libs\clipper2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\vfs\DeflatedInputStream.cpp">
       <Filter>src\vfs</Filter>
@@ -724,6 +739,9 @@
     <ClCompile Include="..\..\radiantcore\brush\csg\CSG.cpp">
       <Filter>src\brush\csg</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiantcore\brush\csg\OpeningSolver.cpp">
+      <Filter>src\brush\csg</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiantcore\brush\export\CollisionModel.cpp">
       <Filter>src\brush\export</Filter>
     </ClCompile>
@@ -1163,6 +1181,30 @@
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\xmlregistry\XMLRegistry.h">
       <Filter>src\xmlregistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.core.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.engine.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.minkowski.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.offset.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.rectclip.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.triangulation.h">
+      <Filter>libs\clipper2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\clipper2\clipper.version.h">
+      <Filter>libs\clipper2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\vfs\DeflatedArchiveFile.h">
       <Filter>src\vfs</Filter>
@@ -1744,6 +1786,9 @@
       <Filter>src\brush</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\brush\csg\CSG.h">
+      <Filter>src\brush\csg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiantcore\brush\csg\OpeningSolver.h">
       <Filter>src\brush\csg</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\brush\export\CollisionModel.h">

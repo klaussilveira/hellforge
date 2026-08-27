@@ -127,6 +127,7 @@
     <ClCompile Include="..\..\..\test\Entity.cpp" />
     <ClCompile Include="..\..\..\test\EntityClass.cpp" />
     <ClCompile Include="..\..\..\test\EntityInspector.cpp" />
+    <ClCompile Include="..\..\..\test\FacadeGenerator.cpp" />
     <ClCompile Include="..\..\..\test\Favourites.cpp" />
     <ClCompile Include="..\..\..\test\FileTypes.cpp" />
     <ClCompile Include="..\..\..\test\Filters.cpp" />
@@ -165,6 +166,24 @@
     <ClCompile Include="..\..\..\test\Prefabs.cpp" />
     <ClCompile Include="..\..\..\test\Registry.cpp" />
     <ClCompile Include="..\..\..\test\Renderer.cpp" />
+    <ClCompile Include="..\..\..\test\RoadNetwork.cpp" />
+    <ClCompile Include="..\..\..\radiant\ui\road\RoadNetwork.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\..\radiant\ui\road\RoadShape.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="..\..\..\test\RoofGenerator.cpp" />
     <ClCompile Include="..\..\..\test\SceneNode.cpp" />
     <ClCompile Include="..\..\..\test\SceneStatistics.cpp" />
     <ClCompile Include="..\..\..\test\Selection.cpp" />

@@ -23,6 +23,7 @@
     <ClCompile Include="..\..\radiantcore\brush\BrushModule.cpp" />
     <ClCompile Include="..\..\radiantcore\brush\BrushNode.cpp" />
     <ClCompile Include="..\..\radiantcore\brush\csg\CSG.cpp" />
+    <ClCompile Include="..\..\radiantcore\brush\csg\OpeningSolver.cpp" />
     <ClCompile Include="..\..\radiantcore\brush\export\CollisionModel.cpp" />
     <ClCompile Include="..\..\radiantcore\brush\Face.cpp" />
     <ClCompile Include="..\..\radiantcore\brush\FaceInstance.cpp" />
@@ -715,6 +716,10 @@
     <ClCompile Include="..\..\radiantcore\vfs\ZipArchive.cpp" />
     <ClCompile Include="..\..\radiantcore\xmlregistry\RegistryTree.cpp" />
     <ClCompile Include="..\..\radiantcore\xmlregistry\XMLRegistry.cpp" />
+    <ClCompile Include="..\..\libs\clipper2\clipper.engine.cpp" />
+    <ClCompile Include="..\..\libs\clipper2\clipper.offset.cpp" />
+    <ClCompile Include="..\..\libs\clipper2\clipper.rectclip.cpp" />
+    <ClCompile Include="..\..\libs\clipper2\clipper.triangulation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\radiantcore\brush\Brush.h" />
@@ -724,6 +729,7 @@
     <ClInclude Include="..\..\radiantcore\brush\BrushSettings.h" />
     <ClInclude Include="..\..\radiantcore\brush\BrushVisit.h" />
     <ClInclude Include="..\..\radiantcore\brush\csg\CSG.h" />
+    <ClInclude Include="..\..\radiantcore\brush\csg\OpeningSolver.h" />
     <ClInclude Include="..\..\radiantcore\brush\EdgeInstance.h" />
     <ClInclude Include="..\..\radiantcore\brush\export\CollisionModel.h" />
     <ClInclude Include="..\..\radiantcore\brush\export\Geometry.h" />
@@ -1098,6 +1104,14 @@
     <ClInclude Include="..\..\radiantcore\vfs\ZipStreamUtils.h" />
     <ClInclude Include="..\..\radiantcore\xmlregistry\RegistryTree.h" />
     <ClInclude Include="..\..\radiantcore\xmlregistry\XMLRegistry.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.core.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.engine.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.minkowski.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.offset.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.rectclip.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.triangulation.h" />
+    <ClInclude Include="..\..\libs\clipper2\clipper.version.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\install\gl\blend_light_fp.glsl" />

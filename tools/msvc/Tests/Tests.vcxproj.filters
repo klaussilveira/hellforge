@@ -6,7 +6,6 @@
     <ClCompile Include="..\..\..\test\Camera.cpp" />
     <ClCompile Include="..\..\..\test\SelectionAlgorithm.cpp" />
     <ClCompile Include="..\..\..\test\SelectionGroup.cpp" />
-    <ClCompile Include="..\..\..\test\ModelScale.cpp" />
     <ClCompile Include="..\..\..\test\VFS.cpp" />
     <ClCompile Include="..\..\..\test\Materials.cpp" />
     <ClCompile Include="..\..\..\test\math\Quaternion.cpp">
@@ -59,6 +58,11 @@
     <ClCompile Include="..\..\..\test\Transformation.cpp" />
     <ClCompile Include="..\..\..\test\MapMerging.cpp" />
     <ClCompile Include="..\..\..\test\PointTrace.cpp" />
+    <ClCompile Include="..\..\..\test\FacadeGenerator.cpp" />
+    <ClCompile Include="..\..\..\test\RoadNetwork.cpp" />
+    <ClCompile Include="..\..\..\radiant\ui\road\RoadNetwork.cpp" />
+    <ClCompile Include="..\..\..\radiant\ui\road\RoadShape.cpp" />
+    <ClCompile Include="..\..\..\test\RoofGenerator.cpp" />
     <ClCompile Include="..\..\..\test\math\Matrix3.cpp">
       <Filter>math</Filter>
     </ClCompile>
