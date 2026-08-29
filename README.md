@@ -26,9 +26,16 @@ HellForge has very opinionated features, keybindings and a different workflow. W
 - Learner mode for onboarding new users
 - Visual preview mode for browsing textures
 - Thumbnail browser in the Media panel
+- Asset browser panel with thumbnail previews and drag-and-drop placement into the map
 - AAS file visualization with data exposed to Python scripting and MCP
 - Position input fields on the entity tab for precise adjustments
 - Polygon tool also works in the 3D viewport
+- Metric grid sizes alongside the standard grid
+- Rotation snap menu for choosing the snap angle
+- Sew selected patches together
+- Convert a selected patch into a model in one step, replaced in place and ready to paint
+- Previews vertex colour terrain blends by running the material's own ARB vertex/fragment programs while the Vertex Paint panel is open
+- Orbit camera view in the MD5 model viewer
 
 ### New tools
 - **Array Modifier**: Duplicates selected brushes/entities in configurable array patterns.
@@ -43,6 +50,11 @@ HellForge has very opinionated features, keybindings and a different workflow. W
 - **Sweep Tool**: Extrudes a brush profile along a curve.
 - **Tile-based Map Designer**: Layout-based map design using a tile grid.
 - **OSM Importer**: Experimental import of OpenStreetMap data into maps.
+- **Wall Tool**: Draws connected walls and rooms.
+- **Terrain Sculpt Tool**: Brush-based height sculpting on patch terrain.
+- **Vertex Paint Tool**: Vertex color painting for terrain meshes (ASE, LWO).
+- **Parametric Cut**: Choose a brush and cut it based on parametric rules.
+- **Carve Tool**: Quickly carve brushes based on Door/Window meshes.
 
 ### Procedural generation
 - **Terrain Generator**: Procedural terrain generation using Perlin and Simplex noise algorithms.
@@ -50,12 +62,18 @@ HellForge has very opinionated features, keybindings and a different workflow. W
 - **Cable Generator**: Creates cable/rope geometry between points.
 - **Arch Generator**: Generates arch geometry with configurable parameters.
 - **Building Generator**: Generates building structures, can work with or without a reference brush.
+- **Facade Generator**: Generates building facades.
+- **City Planner**: Generates whole city layouts from presets including grid city, medieval village, downtown, industrial park, suburban sprawl, walled compound and Voronoi districts.
+- **Road Tool**: Generate road networks from any number of selected curves.
+- **Roof Generator**: Generate roofs for any brushes.
 
 ### Engine support
-- `modelscale` spawnarg handling, replacing the old scaled model export workflow
-- Support for MD5v11 (ETQW) and MD5v12 (Storm Engine 2) model formats
-- Improved Quake 4 decl support, including guide()
-- Import support for Valve VMF, Quake 1, Quake 2 and Valve 220 MAP formats
+- `modelscale` spawnarg handling, replacing the old scaled model export workflow.
+- Support for MD5v11 (ETQW) and MD5v12 (Storm Engine 2) model formats.
+- Quake 4 decl support, including guide().
+- HellCore decl support.
+- RBDOOM-3-BFG PBR material keyword support.
+- Import support for Valve VMF, Quake 1, Quake 2 and Valve 220 MAP formats.
 
 ## MCP Server
 
