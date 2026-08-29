@@ -132,6 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libs\wxutil\Bitmap.h" />
+    <ClInclude Include="..\..\libs\wxutil\PickerButton.h" />
     <ClInclude Include="..\..\libs\wxutil\Button.h" />
     <ClInclude Include="..\..\libs\wxutil\ChoiceHelper.h" />
     <ClInclude Include="..\..\libs\wxutil\ConsoleView.h" />

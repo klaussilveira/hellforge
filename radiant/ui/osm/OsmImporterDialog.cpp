@@ -20,6 +20,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -52,16 +53,19 @@ OsmImporterDialog::OsmImporterDialog()
 
     findNamedObject<wxButton>(_dialog, "OsmImporterBrowseFile")
         ->Bind(wxEVT_BUTTON, &OsmImporterDialog::onBrowseFile, this);
-    findNamedObject<wxButton>(_dialog, "OsmImporterBrowseWallMaterial")
-        ->Bind(wxEVT_BUTTON, &OsmImporterDialog::onBrowseWallMaterial, this);
-    findNamedObject<wxButton>(_dialog, "OsmImporterBrowseRoofMaterial")
-        ->Bind(wxEVT_BUTTON, &OsmImporterDialog::onBrowseRoofMaterial, this);
-    findNamedObject<wxButton>(_dialog, "OsmImporterBrowseFloorMaterial")
-        ->Bind(wxEVT_BUTTON, &OsmImporterDialog::onBrowseFloorMaterial, this);
-    findNamedObject<wxButton>(_dialog, "OsmImporterBrowseRoadMaterial")
-        ->Bind(wxEVT_BUTTON, &OsmImporterDialog::onBrowseRoadMaterial, this);
-    findNamedObject<wxButton>(_dialog, "OsmImporterBrowseSidewalkMaterial")
-        ->Bind(wxEVT_BUTTON, &OsmImporterDialog::onBrowseSidewalkMaterial, this);
+    auto bindMaterialBrowse = [this](const std::string& name,
+        void (OsmImporterDialog::*handler)(wxCommandEvent&))
+    {
+        auto* button = wxutil::ReplaceWithPickerButton(
+            findNamedObject<wxButton>(_dialog, name));
+        button->Bind(wxEVT_BUTTON, handler, this);
+    };
+
+    bindMaterialBrowse("OsmImporterBrowseWallMaterial", &OsmImporterDialog::onBrowseWallMaterial);
+    bindMaterialBrowse("OsmImporterBrowseRoofMaterial", &OsmImporterDialog::onBrowseRoofMaterial);
+    bindMaterialBrowse("OsmImporterBrowseFloorMaterial", &OsmImporterDialog::onBrowseFloorMaterial);
+    bindMaterialBrowse("OsmImporterBrowseRoadMaterial", &OsmImporterDialog::onBrowseRoadMaterial);
+    bindMaterialBrowse("OsmImporterBrowseSidewalkMaterial", &OsmImporterDialog::onBrowseSidewalkMaterial);
 }
 
 std::string OsmImporterDialog::getFilePath()

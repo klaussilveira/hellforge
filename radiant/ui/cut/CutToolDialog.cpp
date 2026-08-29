@@ -26,6 +26,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -93,8 +94,9 @@ CutToolDialog::CutToolDialog(const std::vector<cut::CutSource>& sources)
 
     findNamedObject<wxTextCtrl>(_dialog, "CutToolMaterial")->SetValue(getSelectedShader());
 
-    findNamedObject<wxButton>(_dialog, "CutToolBrowseMaterial")
-        ->Bind(wxEVT_BUTTON, &CutToolDialog::onBrowseMaterial, this);
+    auto* browseMaterial = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "CutToolBrowseMaterial"));
+    browseMaterial->Bind(wxEVT_BUTTON, &CutToolDialog::onBrowseMaterial, this);
 
     _regenerateTimer.SetOwner(_dialog);
     _dialog->Bind(wxEVT_TIMER, &CutToolDialog::onRegenerateTimer, this);

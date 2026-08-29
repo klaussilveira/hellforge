@@ -12,9 +12,9 @@
 #include "i18n.h"
 #include "imap.h"
 #include "ilayer.h"
-#include "wxutil/Bitmap.h"
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace ui
 {
@@ -218,9 +218,7 @@ void DecalShooterPanel::populateWindow()
     _materialEntry = new wxTextCtrl(this, wxID_ANY, "textures/decals/blood1");
     _materialEntry->SetMinSize(wxSize(120, -1));
 
-    _browseButton = new wxBitmapButton(this, wxID_ANY,
-        wxutil::GetLocalBitmap("folder16.png"));
-    _browseButton->SetToolTip(_("Choose decal material"));
+    _browseButton = wxutil::PickerButton(this, _("Choose decal material"));
     _browseButton->Bind(wxEVT_BUTTON, &DecalShooterPanel::onBrowseMaterial, this);
 
     materialSizer->Add(_materialEntry, 1, wxEXPAND | wxRIGHT, 4);

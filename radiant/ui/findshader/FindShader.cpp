@@ -8,6 +8,7 @@
 #include "wxutil/dialog/MessageBox.h"
 #include "wxutil/MouseButton.h"
 #include "wxutil/Modifier.h"
+#include "wxutil/PickerButton.h"
 #include "camera/tools/ShaderClipboardTools.h"
 #include "registry/registry.h"
 #include "shaderlib.h"
@@ -84,9 +85,14 @@ void FindAndReplaceShader::populateWindow()
     findNamedObject<wxTextCtrl>(this, "FindReplaceDialogReplaceEntry")->Connect(
         wxEVT_SET_FOCUS, wxFocusEventHandler(FindAndReplaceShader::onEntryFocusChanged), NULL, this);
 
-	findNamedObject<wxButton>(this, "FindReplaceDialogFindSelectButton")->Connect(
+	auto* findSelectButton = findNamedObject<wxButton>(this, "FindReplaceDialogFindSelectButton");
+	wxutil::ApplyPickerIcon(findSelectButton);
+	findSelectButton->Connect(
 		wxEVT_BUTTON, wxCommandEventHandler(FindAndReplaceShader::onChooseFind), NULL, this);
-	findNamedObject<wxButton>(this, "FindReplaceDialogReplaceSelectButton")->Connect(
+
+	auto* replaceSelectButton = findNamedObject<wxButton>(this, "FindReplaceDialogReplaceSelectButton");
+	wxutil::ApplyPickerIcon(replaceSelectButton);
+	replaceSelectButton->Connect(
 		wxEVT_BUTTON, wxCommandEventHandler(FindAndReplaceShader::onChooseReplace), NULL, this);
 
     findNamedObject<wxButton>(this, "FindReplaceDialogFindPickButton")->Connect(

@@ -4,6 +4,7 @@
 #include "itextstream.h"
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 #include "gamelib.h"
 
 #include <fmt/format.h>
@@ -199,6 +200,7 @@ MapConversionDialog::MapConversionDialog(wxWindow* parent, const std::string& fo
 	auto* texBtnSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	auto* browseTexBtn = new wxButton(texPanel, wxID_ANY, _("Find Material..."));
+	wxutil::ApplyPickerIcon(browseTexBtn);
 	browseTexBtn->Bind(wxEVT_BUTTON, &MapConversionDialog::onBrowseTexture, this);
 	texBtnSizer->Add(browseTexBtn, 0, wxALL, 5);
 

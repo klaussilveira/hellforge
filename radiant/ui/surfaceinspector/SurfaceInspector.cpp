@@ -13,6 +13,7 @@
 #include "wxutil/dialog/MessageBox.h"
 #include "wxutil/Button.h"
 #include "wxutil/BitmapToggleButton.h"
+#include "wxutil/PickerButton.h"
 
 #include "registry/Widgets.h"
 #include "selectionlib.h"
@@ -38,7 +39,6 @@ namespace
     constexpr const char* const LABEL_VSCALE = N_("Y Scale:");
     constexpr const char* const LABEL_ROTATION = N_("Rotate:");
     constexpr const char* const LABEL_SHADER = N_("Shader:");
-    constexpr const char* const FOLDER_ICON = "treeView16.png";
     constexpr const char* const LABEL_STEP = N_("Step:");
 
     constexpr const char* LABEL_FIT = N_("Fit");
@@ -380,12 +380,9 @@ void SurfaceInspector::populateWindow()
     shaderHBox->Add(_shaderEntry, 1, wxEXPAND);
 
     // Create the icon button to open the MaterialChooser
-    _selectShaderButton = new wxBitmapButton(
-        this, wxID_ANY, wxutil::GetLocalBitmap(FOLDER_ICON)
+    _selectShaderButton = wxutil::PickerButton(
+        this, _("Choose shader using the shader selection dialog")
     );
-    _selectShaderButton->SetToolTip(
-        _("Choose shader using the shader selection dialog"))
-    ;
     _selectShaderButton->Connect(
         wxEVT_BUTTON, wxCommandEventHandler(SurfaceInspector::onShaderSelect), NULL, this
     );

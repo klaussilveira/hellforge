@@ -7,6 +7,7 @@
 #include <wx/sizer.h>
 
 #include "ui/common/ImageFileSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace ui
 {
@@ -30,10 +31,8 @@ public:
 
         _textEntry = new wxTextCtrl(this, wxID_ANY);
 
-        _browseButton = new wxButton(this, wxID_ANY, "...");
-        _browseButton->SetMaxSize(wxSize(40, -1));
+        _browseButton = wxutil::PickerButton(this, _("Select an Image File"));
         _browseButton->Bind(wxEVT_BUTTON, &MapExpressionEntry::onBrowseButtonClick, this);
-        _browseButton->SetToolTip(_("Select an Image File"));
 
         GetSizer()->Add(_textEntry, 1, wxRIGHT|wxALIGN_CENTER_VERTICAL, 6);
         GetSizer()->Add(_browseButton, 0, wxALIGN_CENTER_VERTICAL, 0);

@@ -22,6 +22,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -69,7 +70,8 @@ TerrainGeneratorDialog::TerrainGeneratorDialog(const scene::INodePtr& parent)
     wxButton* randomizeBtn = findNamedObject<wxButton>(_dialog, "TerrainGeneratorRandomizeSeed");
     randomizeBtn->Bind(wxEVT_BUTTON, &TerrainGeneratorDialog::onRandomizeSeed, this);
 
-    wxButton* browseBtn = findNamedObject<wxButton>(_dialog, "TerrainGeneratorBrowseMaterial");
+    auto* browseBtn = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "TerrainGeneratorBrowseMaterial"));
     browseBtn->Bind(wxEVT_BUTTON, &TerrainGeneratorDialog::onBrowseMaterial, this);
 
     // Set a random seed on init

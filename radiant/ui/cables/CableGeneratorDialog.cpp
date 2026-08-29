@@ -31,6 +31,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -259,8 +260,9 @@ CableGeneratorDialog::CableGeneratorDialog(const std::vector<Vector3>& waypoints
     findNamedObject<wxCheckBox>(_dialog, "CableGeneratorFixedSubdivisions")
         ->Bind(wxEVT_CHECKBOX, &CableGeneratorDialog::onFixedSubdivisionsChanged, this);
 
-    findNamedObject<wxButton>(_dialog, "CableGeneratorBrowseMaterial")
-        ->Bind(wxEVT_BUTTON, &CableGeneratorDialog::onBrowseMaterial, this);
+    auto* browseMaterial = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "CableGeneratorBrowseMaterial"));
+    browseMaterial->Bind(wxEVT_BUTTON, &CableGeneratorDialog::onBrowseMaterial, this);
 
     findNamedObject<wxBitmapButton>(_dialog, "CableGeneratorRandomizeSpacingSeed")
         ->Bind(wxEVT_BUTTON, &CableGeneratorDialog::onRandomizeSeed, this);

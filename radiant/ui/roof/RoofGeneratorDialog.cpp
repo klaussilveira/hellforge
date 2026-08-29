@@ -23,6 +23,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -69,8 +70,9 @@ RoofGeneratorDialog::RoofGeneratorDialog(const std::vector<AABB>& walls, const A
 
     findNamedObject<wxTextCtrl>(_dialog, "RoofGeneratorMaterial")->SetValue(getSelectedShader());
 
-    findNamedObject<wxButton>(_dialog, "RoofGeneratorBrowseMaterial")
-        ->Bind(wxEVT_BUTTON, &RoofGeneratorDialog::onBrowseMaterial, this);
+    auto* browseMaterial = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "RoofGeneratorBrowseMaterial"));
+    browseMaterial->Bind(wxEVT_BUTTON, &RoofGeneratorDialog::onBrowseMaterial, this);
 
     for (const std::string& name : {"RoofGeneratorType", "RoofGeneratorRidge"})
     {

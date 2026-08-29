@@ -28,6 +28,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -94,11 +95,13 @@ BuildingGeneratorDialog::BuildingGeneratorDialog(bool hasBrushSelection, double 
     findNamedObject<wxChoice>(_dialog, "BuildingGeneratorRoofType")
         ->Bind(wxEVT_CHOICE, &BuildingGeneratorDialog::onRoofTypeChanged, this);
 
-    findNamedObject<wxButton>(_dialog, "BuildingGeneratorBrowseWallMaterial")
-        ->Bind(wxEVT_BUTTON, &BuildingGeneratorDialog::onBrowseWallMaterial, this);
+    auto* browseWall = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "BuildingGeneratorBrowseWallMaterial"));
+    browseWall->Bind(wxEVT_BUTTON, &BuildingGeneratorDialog::onBrowseWallMaterial, this);
 
-    findNamedObject<wxButton>(_dialog, "BuildingGeneratorBrowseTrimMaterial")
-        ->Bind(wxEVT_BUTTON, &BuildingGeneratorDialog::onBrowseTrimMaterial, this);
+    auto* browseTrim = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "BuildingGeneratorBrowseTrimMaterial"));
+    browseTrim->Bind(wxEVT_BUTTON, &BuildingGeneratorDialog::onBrowseTrimMaterial, this);
 
     std::string shader = getSelectedShader();
     findNamedObject<wxTextCtrl>(_dialog, "BuildingGeneratorWallMaterial")->SetValue(shader);

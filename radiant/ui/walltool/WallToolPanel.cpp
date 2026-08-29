@@ -14,9 +14,9 @@
 #include "ui/istatusbarmanager.h"
 #include "irender.h"
 #include "registry/Widgets.h"
-#include "wxutil/Bitmap.h"
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 #include "xyview/tools/WallTool.h"
 #include "WallCursorPreview.h"
 
@@ -121,8 +121,7 @@ void WallToolPanel::addMaterialRow(wxFlexGridSizer* sizer, const wxString& label
     registry::bindWidget(entry, registryKey);
     entry->Bind(wxEVT_TEXT, &WallToolPanel::onMaterialChange, this);
 
-    auto* browseButton = new wxBitmapButton(this, wxID_ANY, wxutil::GetLocalBitmap("folder16.png"));
-    browseButton->SetToolTip(_("Choose material"));
+    auto* browseButton = wxutil::PickerButton(this);
 
     wxTextCtrl* target = entry;
     browseButton->Bind(wxEVT_BUTTON, [this, target](wxCommandEvent&)

@@ -31,6 +31,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -121,13 +122,14 @@ FacadeGeneratorDialog::FacadeGeneratorDialog(bool fromPatch, const AABB& bounds,
     {
         std::string entryName = slot.second;
 
-        findNamedObject<wxButton>(_dialog, slot.first)
-            ->Bind(wxEVT_BUTTON, [this, entryName](wxCommandEvent&)
-            {
-                wxTextCtrl* entry = findNamedObject<wxTextCtrl>(_dialog, entryName);
-                MaterialChooser chooser(_dialog, MaterialSelector::TextureFilter::Regular, entry);
-                chooser.ShowModal();
-            });
+        auto* browseButton = wxutil::ReplaceWithPickerButton(
+            findNamedObject<wxButton>(_dialog, slot.first));
+        browseButton->Bind(wxEVT_BUTTON, [this, entryName](wxCommandEvent&)
+        {
+            wxTextCtrl* entry = findNamedObject<wxTextCtrl>(_dialog, entryName);
+            MaterialChooser chooser(_dialog, MaterialSelector::TextureFilter::Regular, entry);
+            chooser.ShowModal();
+        });
     }
 
     findNamedObject<wxChoice>(_dialog, "FacadeGeneratorFront")->SetSelection(autoFrontSide());

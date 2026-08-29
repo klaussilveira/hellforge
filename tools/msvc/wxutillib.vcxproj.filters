@@ -146,6 +146,7 @@
       <Filter>menu</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libs\wxutil\Bitmap.h" />
+    <ClInclude Include="..\..\libs\wxutil\PickerButton.h" />
     <ClInclude Include="..\..\libs\wxutil\dialog\AutoSaveRequestBlocker.h">
       <Filter>dialog</Filter>
     </ClInclude>

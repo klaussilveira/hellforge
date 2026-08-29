@@ -30,6 +30,7 @@
 #include "wxutil/dataview/ResourceTreeViewToolbar.h"
 #include "wxutil/dataview/TreeViewItemStyle.h"
 #include "wxutil/EntityClassChooser.h"
+#include "wxutil/PickerButton.h"
 #include "wxutil/Bitmap.h"
 #include "wxutil/decl/DeclFileInfo.h"
 #include "materials/FrobStageSetup.h"
@@ -412,7 +413,9 @@ void MaterialEditor::setupPreviewLightProperties(wxWindow* previewPanel)
         _preview->resetLightColour();
     });
 
-    getControl<wxButton>("MaterialPreviewRoomMaterialButton")->Bind(wxEVT_BUTTON, [this](wxCommandEvent& ev)
+    auto roomMaterialButton = wxutil::ReplaceWithPickerButton(
+        getControl<wxButton>("MaterialPreviewRoomMaterialButton"));
+    roomMaterialButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& ev)
     {
         auto textCtrl = getControl<wxTextCtrl>("MaterialPreviewRoomMaterial");
         auto selector = new MaterialChooser(this, MaterialSelector::TextureFilter::Regular, textCtrl);

@@ -24,6 +24,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -55,8 +56,9 @@ ArchGeneratorDialog::ArchGeneratorDialog(const arch::BridgeEndpoints& endpoints,
     wxStaticText* topLabel = findNamedObject<wxStaticText>(_dialog, "ArchGeneratorTopLabel");
     topLabel->SetFont(topLabel->GetFont().Bold());
 
-    findNamedObject<wxButton>(_dialog, "ArchGeneratorBrowseMaterial")
-        ->Bind(wxEVT_BUTTON, &ArchGeneratorDialog::onBrowseMaterial, this);
+    auto* browseMaterial = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "ArchGeneratorBrowseMaterial"));
+    browseMaterial->Bind(wxEVT_BUTTON, &ArchGeneratorDialog::onBrowseMaterial, this);
 
     findNamedObject<wxTextCtrl>(_dialog, "ArchGeneratorMaterial")
         ->SetValue(getSelectedShader());

@@ -26,6 +26,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -64,8 +65,9 @@ StairsGeneratorDialog::StairsGeneratorDialog(const scene::INodePtr& parent)
     findNamedObject<wxChoice>(_dialog, "StairsGeneratorType")
         ->Bind(wxEVT_CHOICE, &StairsGeneratorDialog::onTypeChanged, this);
 
-    findNamedObject<wxButton>(_dialog, "StairsGeneratorBrowseMaterial")
-        ->Bind(wxEVT_BUTTON, &StairsGeneratorDialog::onBrowseMaterial, this);
+    auto* browseMaterial = wxutil::ReplaceWithPickerButton(
+        findNamedObject<wxButton>(_dialog, "StairsGeneratorBrowseMaterial"));
+    browseMaterial->Bind(wxEVT_BUTTON, &StairsGeneratorDialog::onBrowseMaterial, this);
 
     findNamedObject<wxTextCtrl>(_dialog, "StairsGeneratorMaterial")
         ->SetValue(getSelectedShader());

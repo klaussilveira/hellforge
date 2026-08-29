@@ -37,6 +37,7 @@
 
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -91,7 +92,7 @@ wxTextCtrl* addMaterialRow(wxWindow* parent, wxFlexGridSizer* sizer,
     auto* tc = new wxTextCtrl(parent, wxID_ANY, value);
     row->Add(tc, 1, wxEXPAND);
 
-    auto* btn = new wxButton(parent, wxID_ANY, "...", wxDefaultPosition, wxSize(30, -1));
+    auto* btn = wxutil::PickerButton(parent);
     btn->Bind(wxEVT_BUTTON, [parent, tc](wxCommandEvent&) {
         ui::MaterialChooser chooser(parent, ui::MaterialSelector::TextureFilter::Regular, tc);
         chooser.ShowModal();

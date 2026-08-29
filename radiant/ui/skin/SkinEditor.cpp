@@ -23,6 +23,7 @@
 #include "wxutil/dataview/ThreadedDeclarationTreePopulator.h"
 #include "wxutil/decl/DeclFileInfo.h"
 #include "wxutil/dialog/MessageBox.h"
+#include "wxutil/PickerButton.h"
 #include "wxutil/sourceview/DeclarationSourceView.h"
 #include "wxutil/sourceview/SourceView.h"
 
@@ -220,10 +221,14 @@ void SkinEditor::setupRemappingPanel()
 
     // Material browse buttons
     _sourceMaterialBrowseBtn = getControl<wxBitmapButton>("chooseRemappedSourceMaterialBtn");
+    wxutil::ApplyPickerIcon(_sourceMaterialBrowseBtn);
     _sourceMaterialBrowseBtn->Bind(
         wxEVT_BUTTON, [=](wxCommandEvent&) { chooseRemappedSourceMaterial(); }
     );
-    getControl<wxBitmapButton>("chooseRemappedDestMaterialBtn")->Bind(
+
+    auto destMaterialBrowseBtn = getControl<wxBitmapButton>("chooseRemappedDestMaterialBtn");
+    wxutil::ApplyPickerIcon(destMaterialBrowseBtn);
+    destMaterialBrowseBtn->Bind(
         wxEVT_BUTTON, [=](wxCommandEvent&) { chooseRemappedDestMaterial(); }
     );
 

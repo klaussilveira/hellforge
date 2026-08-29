@@ -15,7 +15,6 @@
 #include "scene/EntityNode.h"
 #include "shaderlib.h"
 #include "string/convert.h"
-#include "wxutil/Bitmap.h"
 
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -27,6 +26,7 @@
 #include "ui/cables/CableGeometry.h"
 #include "ui/materials/MaterialChooser.h"
 #include "ui/materials/MaterialSelector.h"
+#include "wxutil/PickerButton.h"
 
 namespace
 {
@@ -94,8 +94,8 @@ RoadGeneratorDialog::RoadGeneratorDialog(const std::vector<std::vector<Vector3>>
                                      "RoadGeneratorBrowseSidewalkMaterial",
                                      "RoadGeneratorBrowseCurbMaterial" })
     {
-        auto* button = findNamedObject<wxButton>(_dialog, name);
-        button->SetBitmap(wxutil::GetLocalBitmap("folder16.png"));
+        auto* button = wxutil::ReplaceWithPickerButton(
+            findNamedObject<wxButton>(_dialog, name));
         button->Bind(wxEVT_BUTTON, &RoadGeneratorDialog::onBrowseMaterial, this);
     }
 
