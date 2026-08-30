@@ -41,7 +41,7 @@ MissionReadmeDialog::MissionReadmeDialog(wxWindow* parent) :
 			fmt::format(_("Failed to parse readme.txt:\n{0}"), ex.what()), this);
 
 		// Reset the file to defaults
-		_readmeFile.reset();
+		_readmeFile = std::make_shared<map::ReadmeTxt>();
 	}
 
 	_guiView->setGui(GlobalGuiManager().getGui("guis/mainmenu.gui"));

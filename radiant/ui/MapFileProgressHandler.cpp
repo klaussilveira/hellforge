@@ -105,6 +105,8 @@ void MapFileProgressHandler::handleFileOperation(map::FileOperation& msg)
 
 			dispatchWithLockAndCatch([text, fraction, this]()
 			{
+				if (!_blocker) return;
+
 				_blocker->setMessageAndProgress(text, fraction);
 			});
 		}
@@ -112,6 +114,8 @@ void MapFileProgressHandler::handleFileOperation(map::FileOperation& msg)
 		{
 			dispatchWithLockAndCatch([text, this]()
 			{
+				if (!_blocker) return;
+
 				_blocker->setMessage(text);
 				_blocker->pulse();
 			});
