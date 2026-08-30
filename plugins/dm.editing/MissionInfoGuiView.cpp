@@ -5,6 +5,21 @@
 namespace ui
 {
 
+namespace
+{
+
+void setWindowDefText(const gui::IGuiPtr& gui, const std::string& windowDefName, const std::string& value)
+{
+	gui::IGuiWindowDefPtr windowDef = gui->findWindowDef(windowDefName);
+
+	if (windowDef)
+	{
+		windowDef->text.setValue(value);
+	}
+}
+
+}
+
 MissionInfoGuiView::MissionInfoGuiView(wxWindow* parent) :
 	GuiView(parent)
 {}
@@ -77,29 +92,25 @@ void DarkmodTxtGuiView::updateGuiState()
 	// This is a localised value, hardcode some for the moment being
 	gui->setStateString("details_posx", "100");
 
-	gui->findWindowDef("modTitle")->text.setValue(_file->getTitle());
-	gui->findWindowDef("modDescription")->text.setValue(_file->getDescription());
-	gui->findWindowDef("modAuthor")->text.setValue(_file->getAuthor());
+	setWindowDefText(gui, "modTitle", _file->getTitle());
+	setWindowDefText(gui, "modDescription", _file->getDescription());
+	setWindowDefText(gui, "modAuthor", _file->getAuthor());
 
 	// These are internationalised strings in the GUI code, let's hardcode some for the preview
-	gui->findWindowDef("modLastPlayedTitle")->text.setValue("Last played:");
-	gui->findWindowDef("modCompletedTitle")->text.setValue("Completed:");
-	gui->findWindowDef("modLastPlayedValue")->text.setValue("2017-11-19");
-	gui->findWindowDef("modCompletedValue")->text.setValue("2017-11-26");
-	gui->findWindowDef("modSizeTitle")->text.setValue("Space used:");
-	gui->findWindowDef("modSizeValue")->text.setValue("123 MB");
+	setWindowDefText(gui, "modLastPlayedTitle", "Last played:");
+	setWindowDefText(gui, "modCompletedTitle", "Completed:");
+	setWindowDefText(gui, "modLastPlayedValue", "2017-11-19");
+	setWindowDefText(gui, "modCompletedValue", "2017-11-26");
+	setWindowDefText(gui, "modSizeTitle", "Space used:");
+	setWindowDefText(gui, "modSizeValue", "123 MB");
+	setWindowDefText(gui, "modSizeEraseFromDiskAction", "[Erase from disk]");
 
-    if (gui->findWindowDef("modSizeEraseFromDiskAction"))
-    {
-	    gui->findWindowDef("modSizeEraseFromDiskAction")->text.setValue("[Erase from disk]");
-    }
-
-	gui->findWindowDef("modLoadN")->text.setValue("Install Mission");
-	gui->findWindowDef("modLoadH")->text.setValue("Install Mission");
-	gui->findWindowDef("modLoad")->text.setValue("Install Mission");
-	gui->findWindowDef("moreInfoH")->text.setValue("Notes");
-	gui->findWindowDef("moreInfoN")->text.setValue("Notes");
-	gui->findWindowDef("moreInfo")->text.setValue("Notes");
+	setWindowDefText(gui, "modLoadN", "Install Mission");
+	setWindowDefText(gui, "modLoadH", "Install Mission");
+	setWindowDefText(gui, "modLoad", "Install Mission");
+	setWindowDefText(gui, "moreInfoH", "Notes");
+	setWindowDefText(gui, "moreInfoN", "Notes");
+	setWindowDefText(gui, "moreInfo", "Notes");
 
 	redraw();
 }
@@ -127,7 +138,7 @@ void ReadmeTxtGuiView::updateGuiState()
 	if (!_file || !gui) return;
 
 	gui->setStateString("ModNotesText", _file->getContents());
-	gui->findWindowDef("ModInstallationNotesButtonOK")->text.setValue("OK");
+	setWindowDefText(gui, "ModInstallationNotesButtonOK", "OK");
 
 	redraw();
 }
