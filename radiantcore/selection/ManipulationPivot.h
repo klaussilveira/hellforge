@@ -30,8 +30,11 @@ protected:
 	// During operations, we want to block pivot recalculations
 	bool _operationActive;
 
-	// "User has modified pivot"-flag, used to block pivot recalculations
-	bool _userLocked;
+	// The difference between the pivot and the selection
+	Vector3 _offset;
+
+	// The offset as it was when the current operation started
+	Vector3 _offsetStart;
 
 public:
 	ManipulationPivot();
@@ -48,9 +51,12 @@ public:
 	// an updateFromSelection() next time getMatrix4() is called
 	void setNeedsRecalculation(bool needsRecalculation);
 
-	// If the user has placed the pivot manually, we want to refrain
-	// from recalculating it automatically.
-	void setUserLocked(bool locked);
+	// Keeps the pivot at the position it currently occupies, so we
+	// dont mess manipulations
+	void anchorToCurrentPosition();
+
+	// Drops any offset, the pivot is defined by the selection alone again
+	void clearOffset();
 
 	// Call this before an operation is started, such that later
 	// transformations can be applied on top of the correct starting point

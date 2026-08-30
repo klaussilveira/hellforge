@@ -64,7 +64,9 @@ void AIVocalSetPropertyEditor::onChooseButton(wxCommandEvent& ev)
 	// Construct a new vocal set chooser dialog
 	AIVocalSetChooserDialog* dialog = new AIVocalSetChooserDialog(wxGetTopLevelParent(getWidget()));
 
-	dialog->setSelectedVocalSet(_entities.getSharedKeyValue(DEF_VOCAL_SET_KEY, true));
+	auto editedKey = _key->getFullKey();
+
+	dialog->setSelectedVocalSet(_entities.getSharedKeyValue(editedKey, true));
 
 	// Show and block
 	if (dialog->ShowModal() == wxID_OK)
@@ -73,10 +75,10 @@ void AIVocalSetPropertyEditor::onChooseButton(wxCommandEvent& ev)
 
         _entities.foreachEntity([&](const EntityNodePtr& entity)
         {
-            entity->getEntity().setKeyValue(DEF_VOCAL_SET_KEY, selectedSet);
+            entity->getEntity().setKeyValue(editedKey, selectedSet);
         });
 
-        signal_keyValueApplied().emit(DEF_VOCAL_SET_KEY, selectedSet);
+        signal_keyValueApplied().emit(editedKey, selectedSet);
 	}
 
 	dialog->Destroy();
@@ -87,7 +89,7 @@ std::string AIVocalSetEditorDialogWrapper::runDialog(Entity* entity, const std::
     // Construct a new vocal set chooser dialog
     AIVocalSetChooserDialog* dialog = new AIVocalSetChooserDialog(parent);
 
-    std::string oldValue = entity->getKeyValue(DEF_VOCAL_SET_KEY);
+    std::string oldValue = entity->getKeyValue(key);
     dialog->setSelectedVocalSet(oldValue);
 
     // Show and block

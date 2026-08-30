@@ -175,6 +175,22 @@ void TreeView::AddSearchColumn(const TreeModel::Column& column)
 	_colsToSearch.push_back(column);
 }
 
+bool TreeView::SetFilterText(const wxString& filterText)
+{
+	return false;
+}
+
+bool TreeView::JumpToFirstFilterMatch()
+{
+	return false;
+}
+
+void TreeView::JumpToNextFilterMatch()
+{}
+
+void TreeView::JumpToPrevFilterMatch()
+{}
+
 bool TreeView::HasActiveSearchPopup()
 {
     return _search != nullptr;

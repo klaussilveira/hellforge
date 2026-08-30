@@ -54,7 +54,6 @@ void SceneManipulationPivot::applyTranslation(const Vector3& translation)
 void SceneManipulationPivot::updateFromSelection()
 {
     _needsRecalculation = false;
-    _userLocked = false;
 
     Vector3 objectPivot;
 
@@ -103,7 +102,7 @@ void SceneManipulationPivot::updateFromSelection()
     }
 
     // The pivot2world matrix is just a translation from the world origin (0,0,0) to the object pivot
-    setFromMatrix(Matrix4::getTranslation(objectPivot));
+    setFromMatrix(Matrix4::getTranslation(objectPivot + _offset));
 }
 
 void SceneManipulationPivot::onRegistryKeyChanged()

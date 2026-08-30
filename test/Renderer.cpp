@@ -1,11 +1,16 @@
 #include "RadiantTest.h"
 
 #include "ieclass.h"
+#include "igl.h"
 #include "scene/EntityNode.h"
 #include "irender.h"
 #include "ilightnode.h"
 #include "math/Matrix4.h"
+#include "render/CamRenderer.h"
+#include "render/RenderableCollectionWalker.h"
 #include "scenelib.h"
+#include "algorithm/Primitives.h"
+#include "algorithm/View.h"
 
 namespace test
 {
@@ -488,6 +493,53 @@ TEST_F(RenderSystemTest, AttachmentIsRegisteredAsLight)
     scene::removeNodeFromParent(torch);
 
     EXPECT_EQ(getLightCount(renderSystem), 1) << "Rendersystem should know of 1 light after removing the torch";
+}
+
+constexpr RenderStateFlags CameraTexturedRenderFlags = RENDER_DEPTHTEST | RENDER_MASKCOLOUR |
+    RENDER_DEPTHWRITE | RENDER_ALPHATEST | RENDER_BLEND | RENDER_CULLFACE | RENDER_OFFSETLINE |
+    RENDER_VERTEX_COLOUR | RENDER_FILL | RENDER_LIGHTING | RENDER_TEXTURE_2D | RENDER_SMOOTH |
+    RENDER_SCALED;
+
+TEST_F(RenderSystemTest, SceneRenderResetsTextureMatrices)
+{
+    auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+    auto brush = algorithm::createCubicBrush(worldspawn, Vector3(0, 0, 0), "textures/celtic_ornament_leak");
+
+    render::View view(true);
+    algorithm::constructCameraView(view, brush->worldAABB(), Vector3(0, 0, -1), Vector3(-90, 0, 0));
+
+    glMatrixMode(GL_TEXTURE);
+
+    for (auto unit : { GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2 })
+    {
+        glActiveTexture(unit);
+        glLoadMatrixd(Matrix4::getScale(Vector3(1, 0.25, 1)));
+    }
+
+    glActiveTexture(GL_TEXTURE0);
+    glMatrixMode(GL_MODELVIEW);
+
+    render::CamRenderer::HighlightShaders shaders;
+    render::CamRenderer renderer(view, shaders);
+
+    GlobalRenderSystem().startFrame();
+    renderer.prepare();
+    render::RenderableCollectionWalker::CollectRenderablesInScene(renderer, view);
+    GlobalRenderSystem().renderFullBrightScene(RenderViewType::Camera, CameraTexturedRenderFlags, view);
+    renderer.cleanup();
+    GlobalRenderSystem().endFrame();
+
+    for (auto unit : { GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2 })
+    {
+        glActiveTexture(unit);
+
+        Matrix4 textureMatrix;
+        glGetDoublev(GL_TEXTURE_MATRIX, textureMatrix);
+
+        EXPECT_EQ(textureMatrix, Matrix4::getIdentity()) << "Texture matrix of unit " << (unit - GL_TEXTURE0) << " was left dirty after rendering";
+    }
+
+    glActiveTexture(GL_TEXTURE0);
 }
 
 }

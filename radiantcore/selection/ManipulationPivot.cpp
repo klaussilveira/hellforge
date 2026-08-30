@@ -5,14 +5,13 @@ namespace selection
 
 ManipulationPivot::ManipulationPivot() :
 	_needsRecalculation(true),
-	_operationActive(false),
-	_userLocked(false)
+	_operationActive(false)
 {}
 
 // Returns the pivot-to-world transform
 const Matrix4& ManipulationPivot::getMatrix4()
 {
-	if (_needsRecalculation && !_operationActive && !_userLocked)
+	if (_needsRecalculation && !_operationActive)
 	{
 		updateFromSelection();
 	}
@@ -23,12 +22,7 @@ const Matrix4& ManipulationPivot::getMatrix4()
 // Returns the position of the pivot point relative to origin
 Vector3 ManipulationPivot::getVector3()
 {
-	if (_needsRecalculation && !_operationActive && !_userLocked)
-	{
-		updateFromSelection();
-	}
-
-	return _pivot2World.translation();
+	return getMatrix4().translation();
 }
 
 void ManipulationPivot::setFromMatrix(const Matrix4& newPivot2World)
@@ -41,9 +35,23 @@ void ManipulationPivot::setNeedsRecalculation(bool needsRecalculation)
 	_needsRecalculation = needsRecalculation;
 }
 
-void ManipulationPivot::setUserLocked(bool locked)
+void ManipulationPivot::anchorToCurrentPosition()
 {
-	_userLocked = locked;
+	Vector3 position = _pivot2World.translation();
+
+	_offset = Vector3(0, 0, 0);
+	updateFromSelection();
+
+	_offset = position - _pivot2World.translation();
+	_pivot2World.setTranslation(position);
+
+	_needsRecalculation = false;
+}
+
+void ManipulationPivot::clearOffset()
+{
+	_offset = Vector3(0, 0, 0);
+	_needsRecalculation = true;
 }
 
 // Call this before an operation is started, such that later
@@ -51,6 +59,7 @@ void ManipulationPivot::setUserLocked(bool locked)
 void ManipulationPivot::beginOperation()
 {
 	_pivot2WorldStart = _pivot2World;
+	_offsetStart = _offset;
 	_operationActive = true;
 }
 
@@ -69,6 +78,7 @@ void ManipulationPivot::endOperation()
 void ManipulationPivot::cancelOperation()
 {
     revertToStart();
+    _offset = _offsetStart;
     _operationActive = false;
 }
 

@@ -305,6 +305,8 @@ ModelSelector::Result ModelSelector::showAndBlock(const std::string& curModel,
     // it might have been constructed at a time when this was still null
     wxASSERT(GetParent() == GlobalMainFrame().getWxTopLevelWindow());
 
+    _treeViewToolbar->FocusFilterEntry();
+
     // Show and enter recursive main loop.
     filters::ScopedFilterState filterState(GlobalFilterSystem());
     int returnCode = ShowModal();
@@ -408,6 +410,7 @@ wxWindow* ModelSelector::setupTreeViewToolbar(wxWindow* parent)
     // Set up the top treeview toolbar, including a custom button to enable/disable the showing of
     // skins in the tree.
     auto* toolbar = new wxutil::ResourceTreeViewToolbar(parent, _treeView);
+    _treeViewToolbar = toolbar;
     _showSkinsBtn = new wxBitmapToggleButton(toolbar, wxID_ANY,
                                              wxutil::GetLocalBitmap("skin16.png"),
                                              wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);

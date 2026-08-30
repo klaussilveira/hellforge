@@ -5,6 +5,7 @@
 #include "iselectiontest.h"
 #include "icommandsystem.h"
 #include "imap.h"
+#include "iundo.h"
 
 #include "selectionlib.h"
 #include "SelectedNodeList.h"
@@ -70,6 +71,8 @@ private:
     bool _selectionFocusActive;
     std::set<scene::INodePtr> _selectionFocusPool;
 
+    sigc::connection _undoEventConnection;
+
 public:
 	RadiantSelectionSystem();
 
@@ -83,7 +86,7 @@ public:
 
 	void pivotChanged() override;
 
-	void lockPivot() override;
+	void preservePivotPosition() override;
 
   	void pivotChangedSelection(const ISelectable& selectable);
 
@@ -220,6 +223,7 @@ private:
 	void deselectCmd(const cmd::ArgumentList& args);
 
 	void onMapEvent(IMap::MapEvent ev);
+	void onUndoEvent(IUndoSystem::EventType type, const std::string& operationName);
 };
 
 }

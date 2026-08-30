@@ -76,6 +76,11 @@ public:
 	// Adds a column to search when the user starts typing
 	void AddSearchColumn(const TreeModel::Column& column);
 
+	virtual bool SetFilterText(const wxString& filterText);
+	virtual bool JumpToFirstFilterMatch();
+	virtual void JumpToNextFilterMatch();
+	virtual void JumpToPrevFilterMatch();
+
     // Returns true if the treeview search popup is currently visible
     bool HasActiveSearchPopup();
 

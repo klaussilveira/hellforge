@@ -216,7 +216,7 @@ private:
 
     void onTreeViewPopulationFinished(wxutil::ResourceTreeView::PopulationFinishedEvent& ev)
     {
-        FocusTreeView();
+        FocusFilterEntry();
 
         // Make sure the "matching skins" item is expanded
         GetTreeView()->Expand(_matchingSkinsItem);

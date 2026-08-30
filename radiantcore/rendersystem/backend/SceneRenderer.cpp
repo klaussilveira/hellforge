@@ -144,6 +144,28 @@ void SceneRenderer::cleanupState()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    // Clear context so transformations do not leak
+    glMatrixMode(GL_TEXTURE);
+
+    if (GLEW_VERSION_1_3)
+    {
+        for (auto unit : { GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2 })
+        {
+            glActiveTexture(unit);
+            glClientActiveTexture(unit);
+            glLoadIdentity();
+        }
+
+        glActiveTexture(GL_TEXTURE0);
+        glClientActiveTexture(GL_TEXTURE0);
+    }
+    else
+    {
+        glLoadIdentity();
+    }
+
+    glMatrixMode(GL_MODELVIEW);
+
     glPopAttrib();
 }
 

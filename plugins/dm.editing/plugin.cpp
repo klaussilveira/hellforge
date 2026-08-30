@@ -53,6 +53,11 @@ public:
         GlobalEntityInspector().registerPropertyEditorDialog(ui::DEF_VOCAL_SET_KEY,
             []() { return std::make_shared<ui::AIVocalSetEditorDialogWrapper>(); });
 
+		GlobalEntityInspector().registerPropertyEditor(
+			ui::DEF_VOCAL_SET_DRUNK_KEY, ui::AIVocalSetPropertyEditor::CreateNew);
+        GlobalEntityInspector().registerPropertyEditorDialog(ui::DEF_VOCAL_SET_DRUNK_KEY,
+            []() { return std::make_shared<ui::AIVocalSetEditorDialogWrapper>(); });
+
 		GlobalCommandSystem().addCommand("FixupMapDialog", ui::FixupMapDialog::RunDialog);
 
 		GlobalMenuManager().add("main/map",
@@ -88,11 +93,13 @@ public:
         GlobalUserInterface().unregisterControl(ui::AIEditingControl::Name);
 
 		// Remove associated property keys
+		GlobalEntityInspector().unregisterPropertyEditor(ui::DEF_VOCAL_SET_DRUNK_KEY);
 		GlobalEntityInspector().unregisterPropertyEditor(ui::DEF_VOCAL_SET_KEY);
 		GlobalEntityInspector().unregisterPropertyEditor(ui::DEF_HEAD_KEY);
 
         GlobalEntityInspector().unregisterPropertyEditorDialog(ui::DEF_HEAD_KEY);
         GlobalEntityInspector().unregisterPropertyEditorDialog(ui::DEF_VOCAL_SET_KEY);
+        GlobalEntityInspector().unregisterPropertyEditorDialog(ui::DEF_VOCAL_SET_DRUNK_KEY);
 	}
 };
 

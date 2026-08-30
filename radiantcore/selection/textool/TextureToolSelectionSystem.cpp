@@ -104,7 +104,7 @@ void TextureToolSelectionSystem::setSelectionMode(SelectionMode mode)
         _selectionMode = mode;
         _sigSelectionModeChanged.emit(_selectionMode);
 
-        _manipulationPivot.setUserLocked(false);
+        _manipulationPivot.clearOffset();
         _manipulationPivot.setNeedsRecalculation(true);
     }
 }
@@ -357,7 +357,7 @@ void TextureToolSelectionSystem::setActiveManipulator(std::size_t manipulatorId)
     _activeManipulator = found->second;
 
     // Release the user lock when switching manipulators
-    _manipulationPivot.setUserLocked(false);
+    _manipulationPivot.clearOffset();
     _manipulationPivot.updateFromSelection();
 }
 
@@ -370,7 +370,7 @@ void TextureToolSelectionSystem::setActiveManipulator(selection::IManipulator::T
             _activeManipulator = pair.second;
 
             // Release the user lock when switching manipulators
-            _manipulationPivot.setUserLocked(false);
+            _manipulationPivot.clearOffset();
             _manipulationPivot.updateFromSelection();
             return;
         }

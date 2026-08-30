@@ -16,6 +16,7 @@ namespace wxutil
 {
 
 class DeclFileInfo;
+class ResourceTreeViewToolbar;
 
 /**
  * Common implementation of a declaration selector widget that can be added to a dialog.
@@ -31,6 +32,7 @@ private:
 
     const DeclarationTreeView::Columns& _columns;
     DeclarationTreeView* _treeView;
+    ResourceTreeViewToolbar* _toolbar;
 
     wxPanel* _leftPanel;
     wxPanel* _rightPanel;
@@ -71,8 +73,7 @@ public:
      */
     virtual void SetSelectedDeclName(const std::string& declName);
 
-    // Set the focus on the treeview widget
-    void FocusTreeView();
+    void FocusFilterEntry();
 
     void loadFromPath(const std::string& registryKey) override;
     void saveToPath(const std::string& registryKey) override;

@@ -18,6 +18,7 @@
 #include "registry/registry.h"
 #include "registry/Widgets.h"
 #include "os/path.h"
+#include "wxutil/dataview/ResourceTreeViewToolbar.h"
 
 #include <wx/button.h>
 #include <wx/panel.h>
@@ -69,8 +70,8 @@ PrefabSelector::PrefabSelector() :
 		wxDefaultPosition, wxDefaultSize, wxSP_3D | wxSP_LIVE_UPDATE);
     splitter->SetMinimumPaneSize(10); // disallow unsplitting
 
-    setupTreeView(splitter);
-	
+    wxWindow* treeViewPanel = setupTreeView(splitter);
+
 	wxPanel* previewPanel = new wxPanel(splitter, wxID_ANY);
 	previewPanel->SetSizer(new wxBoxSizer(wxVERTICAL));
 
@@ -83,7 +84,7 @@ PrefabSelector::PrefabSelector() :
 	previewPanel->GetSizer()->Add(_description, 0, wxEXPAND | wxBOTTOM, 6);
 	previewPanel->GetSizer()->Add(_preview->getWidget(), 1, wxEXPAND);
 
-	splitter->SplitVertically(_treeView, previewPanel);
+	splitter->SplitVertically(treeViewPanel, previewPanel);
 
 	vbox->Add(splitter, 1, wxEXPAND);
 
@@ -235,6 +236,8 @@ int PrefabSelector::ShowModal()
 	// Populate the tree
 	populatePrefabs();
 
+	_treeViewToolbar->FocusFilterEntry();
+
 	// Enter the main loop
 	int returnCode = DialogBase::ShowModal();
 
@@ -321,11 +324,20 @@ PrefabSelector::Result PrefabSelector::ChoosePrefab(const std::string& curPrefab
 }
 
 // Helper function to create the TreeView
-void PrefabSelector::setupTreeView(wxWindow* parent)
+wxWindow* PrefabSelector::setupTreeView(wxWindow* parent)
 {
-    _treeView = wxutil::FileSystemView::Create(parent, wxBORDER_STATIC | wxDV_NO_HEADER);
+    wxPanel* panel = new wxPanel(parent, wxID_ANY);
+    panel->SetSizer(new wxBoxSizer(wxVERTICAL));
+
+    _treeView = wxutil::FileSystemView::Create(panel, wxBORDER_STATIC | wxDV_NO_HEADER);
     _treeView->Bind(wxutil::EV_FSVIEW_SELECTION_CHANGED, &PrefabSelector::onSelectionChanged, this);
     _treeView->signal_TreePopulated().connect(sigc::mem_fun(this, &PrefabSelector::onFileViewTreePopulated));
+
+    _treeViewToolbar = new wxutil::ResourceTreeViewToolbar(panel, _treeView);
+    _treeViewToolbar->EnableFavouriteManagement(false);
+
+    panel->GetSizer()->Add(_treeViewToolbar, 0, wxEXPAND | wxBOTTOM, 6);
+    panel->GetSizer()->Add(_treeView, 1, wxEXPAND);
 
     // Get the extensions from all possible patterns (e.g. *.pfb or *.pfbx)
     FileTypePatterns patterns = GlobalFiletypes().getPatternsForType(filetype::TYPE_PREFAB);
@@ -339,6 +351,8 @@ void PrefabSelector::setupTreeView(wxWindow* parent)
 
     _treeView->SetFileExtensions(fileExtensions);
     _treeView->SetDefaultFileIcon(PREFAB_FILE_ICON);
+
+    return panel;
 }
 
 std::string PrefabSelector::getPrefabFolder()

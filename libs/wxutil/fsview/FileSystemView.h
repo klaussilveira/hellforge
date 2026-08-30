@@ -2,6 +2,7 @@
 
 #include <sigc++/signal.h>
 #include "../dataview/TreeModel.h"
+#include "../dataview/TreeModelFilter.h"
 #include "../dataview/TreeView.h"
 #include "Populator.h"
 
@@ -22,6 +23,9 @@ class FileSystemView :
 {
 private:
     TreeModel::Ptr _treeStore;
+    TreeModelFilter::Ptr _treeModelFilter;
+
+    wxString _filterText;
 
     std::string _basePath;
     std::string _fileIcon;
@@ -91,10 +95,20 @@ public:
     // Expands the given path, which is relative to the base path (e.g. "maps/")
     void ExpandPath(const std::string& relativePath);
 
+    bool SetFilterText(const wxString& filterText) override;
+
+    bool JumpToFirstFilterMatch() override;
+    void JumpToNextFilterMatch() override;
+    void JumpToPrevFilterMatch() override;
+
     sigc::signal<void>& signal_TreePopulated();
 
 private:
     TreeModel::Ptr CreateDefaultModel();
+
+    void SetupTreeModelFilter();
+    void UpdateTreeVisibility();
+    bool IsTreeModelRowOrAnyChildVisible(TreeModel::Row& row);
 
     void SelectItem(const wxDataViewItem& item);
     void HandleSelectionChange();

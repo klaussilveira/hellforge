@@ -19,6 +19,7 @@ DeclarationSelector::DeclarationSelector(wxWindow* parent, decl::Type declType,
     _declType(declType),
     _columns(columns),
     _treeView(nullptr),
+    _toolbar(nullptr),
     _leftPanel(nullptr),
     _rightPanel(nullptr)
 {
@@ -31,11 +32,11 @@ DeclarationSelector::DeclarationSelector(wxWindow* parent, decl::Type declType,
 
     createTreeView(_leftPanel);
 
-    auto* toolbar = new ResourceTreeViewToolbar(_leftPanel, _treeView);
+    _toolbar = new ResourceTreeViewToolbar(_leftPanel, _treeView);
     _declFileInfo = new DeclFileInfo(_leftPanel, _declType);
 
     _treeVbox = new wxBoxSizer(wxVERTICAL);
-    _treeVbox->Add(toolbar, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 6);
+    _treeVbox->Add(_toolbar, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 6);
     _treeVbox->Add(_treeView, 1, wxEXPAND);
     _treeVbox->Add(_declFileInfo, 0, wxEXPAND | wxTOP | wxBOTTOM, 6);
     // a preview widget can be appended to the vertical sizer => AddPreviewToBottom
@@ -118,9 +119,9 @@ void DeclarationSelector::createTreeView(wxWindow* parent)
     _treeView->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED, &DeclarationSelector::onTreeViewItemActivated, this);
 }
 
-void DeclarationSelector::FocusTreeView()
+void DeclarationSelector::FocusFilterEntry()
 {
-    _treeView->SetFocus();
+    _toolbar->FocusFilterEntry();
 }
 
 void DeclarationSelector::loadFromPath(const std::string& registryKey)

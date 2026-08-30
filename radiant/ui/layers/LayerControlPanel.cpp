@@ -108,7 +108,11 @@ void LayerControlPanel::populateWindow()
     _layersView->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, &LayerControlPanel::onBeginDrag, this);
     _layersView->Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &LayerControlPanel::onDropPossible, this);
     _layersView->Bind(wxEVT_DATAVIEW_ITEM_DROP, &LayerControlPanel::onDrop, this);
-    _layersView->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [&](auto&) { _popupMenu->show(this); });
+    _layersView->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [&](wxDataViewEvent& ev)
+    {
+        if (ev.GetItem().IsOk()) _layersView->Select(ev.GetItem());
+        _popupMenu->show(this);
+    });
 
     SetSizer(new wxBoxSizer(wxVERTICAL));
 
@@ -177,6 +181,34 @@ void LayerControlPanel::createPopupMenu()
         new wxMenuItem(nullptr, wxID_ANY, _("Make this the active layer\tCTRL-Doubleclick"), ""),
         [this]() { GlobalMapModule().getRoot()->getLayerManager().setActiveLayer(getSelectedLayerId()); queueUpdate(); },
         [this]() { return getSelectedLayerId() != -1; }
+    );
+
+    auto selectionMenu = new wxMenu();
+
+#ifdef __WXGTK__
+    wxEvtHandler* menuEventSource = selectionMenu;
+#else
+    wxEvtHandler* menuEventSource = _popupMenu.get();
+#endif
+
+    auto addSelectionItem = [this, selectionMenu, menuEventSource](const wxString& label, const std::string& command)
+    {
+        auto item = selectionMenu->Append(wxID_ANY, label);
+
+        menuEventSource->Bind(wxEVT_MENU, [this, command](wxCommandEvent&)
+        {
+            GlobalCommandSystem().executeCommand(command, cmd::Argument(getSelectedLayerId()));
+        }, item->GetId());
+    };
+
+    addSelectionItem(_("Add to this layer"), "AddSelectionToLayer");
+    addSelectionItem(_("Move to this layer"), "MoveSelectionToLayer");
+    addSelectionItem(_("Remove from this layer"), "RemoveSelectionFromLayer");
+
+    _popupMenu->addItem(
+        new wxMenuItem(nullptr, wxID_ANY, _("Selection"), "", wxITEM_NORMAL, selectionMenu),
+        []() {},
+        [this]() { return getSelectedLayerId() != -1 && GlobalSelectionSystem().countSelected() > 0; }
     );
     _popupMenu->addSeparator();
     _popupMenu->addItem(

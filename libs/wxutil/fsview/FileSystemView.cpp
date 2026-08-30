@@ -60,6 +60,20 @@ FileSystemView::FileSystemView(wxWindow* parent, const TreeModel::Ptr& model, lo
 
     // Use the TreeModel's full string search function
     AddSearchColumn(Columns().filename);
+
+    SetupTreeModelFilter();
+}
+
+void FileSystemView::SetupTreeModelFilter()
+{
+    _treeModelFilter.reset(new TreeModelFilter(_treeStore));
+
+    _treeModelFilter->SetVisibleFunc([this](TreeModel::Row& row)
+    {
+        return IsTreeModelRowOrAnyChildVisible(row);
+    });
+
+    AssociateModel(_treeModelFilter.get());
 }
 
 const fsview::TreeColumns& FileSystemView::Columns()
@@ -144,6 +158,103 @@ void FileSystemView::ExpandPath(const std::string& relativePath)
     Expand(_treeStore->FindString(relativePath, Columns().vfspath));
 }
 
+bool FileSystemView::SetFilterText(const wxString& filterText)
+{
+    _filterText = filterText.Lower();
+
+    auto item = GetSelection();
+
+    UpdateTreeVisibility();
+
+    if (item.IsOk() && _treeModelFilter->ItemIsVisible(item))
+    {
+        TreeModel::Row row(item, *GetModel());
+
+        if (!_filterText.empty() && !TreeModel::RowContainsString(row, _filterText, _colsToSearch, true))
+        {
+            return JumpToFirstFilterMatch();
+        }
+
+        Select(item);
+        EnsureVisible(item);
+        return true;
+    }
+
+    return JumpToFirstFilterMatch();
+}
+
+bool FileSystemView::JumpToFirstFilterMatch()
+{
+    if (_filterText.empty()) return false;
+
+    auto item = _treeModelFilter->FindNextString(_filterText, _colsToSearch);
+
+    if (item.IsOk())
+    {
+        JumpToSearchMatch(item);
+        return true;
+    }
+
+    return false;
+}
+
+void FileSystemView::JumpToNextFilterMatch()
+{
+    if (_filterText.empty()) return;
+
+    auto item = _treeModelFilter->FindNextString(_filterText, _colsToSearch, GetSelection());
+
+    if (item.IsOk())
+    {
+        JumpToSearchMatch(item);
+    }
+}
+
+void FileSystemView::JumpToPrevFilterMatch()
+{
+    if (_filterText.empty()) return;
+
+    auto item = _treeModelFilter->FindPrevString(_filterText, _colsToSearch, GetSelection());
+
+    if (item.IsOk())
+    {
+        JumpToSearchMatch(item);
+    }
+}
+
+void FileSystemView::UpdateTreeVisibility()
+{
+    if (_treeModelFilter)
+    {
+        _treeModelFilter->Cleared();
+    }
+}
+
+bool FileSystemView::IsTreeModelRowOrAnyChildVisible(TreeModel::Row& row)
+{
+    if (_filterText.empty()) return true;
+
+    if (TreeModel::RowContainsString(row, _filterText, _colsToSearch, true))
+    {
+        return true;
+    }
+
+    wxDataViewItemArray children;
+    _treeStore->GetChildren(row.getItem(), children);
+
+    for (const auto& child : children)
+    {
+        TreeModel::Row childRow(child, *_treeStore);
+
+        if (IsTreeModelRowOrAnyChildVisible(childRow))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::string FileSystemView::GetSelectedPath()
 {
     wxDataViewItem item = GetSelection();
@@ -219,7 +330,7 @@ void FileSystemView::OnTreeStorePopulationFinished(TreeModel::PopulationFinished
         preselectItem = _treeStore->FindString(_preselectPath, Columns().vfspath);
     }
 
-    AssociateModel(_treeStore.get());
+    SetupTreeModelFilter();
 
     if (preselectItem.IsOk())
     {

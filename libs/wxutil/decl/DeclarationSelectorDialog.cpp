@@ -101,7 +101,7 @@ int DeclarationSelectorDialog::ShowModal()
 
     HandleTreeViewSelectionChanged();
 
-    _selector->FocusTreeView();
+    _selector->FocusFilterEntry();
 
     return DialogBase::ShowModal();
 }

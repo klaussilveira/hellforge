@@ -81,7 +81,7 @@ void rotateSelected(const Quaternion& rotation)
 
 	GlobalSceneGraph().foreachNode(scene::freezeTransformableNode);
 
-	GlobalSelectionSystem().lockPivot();
+	GlobalSelectionSystem().preservePivotPosition();
 }
 
 // greebo: see header for documentation

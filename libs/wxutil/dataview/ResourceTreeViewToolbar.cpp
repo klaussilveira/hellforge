@@ -15,9 +15,10 @@ namespace
     constexpr int APPLY_FILTER_TEXT_DELAY_MSEC = 250;
 }
 
-ResourceTreeViewToolbar::ResourceTreeViewToolbar(wxWindow* parent, ResourceTreeView* treeView) :
+ResourceTreeViewToolbar::ResourceTreeViewToolbar(wxWindow* parent, TreeView* treeView) :
     wxPanel(parent, wxID_ANY),
     _treeView(nullptr),
+    _resourceTreeView(nullptr),
     _filterEntry(nullptr),
     _showAll(nullptr),
     _showFavourites(nullptr),
@@ -101,9 +102,10 @@ void ResourceTreeViewToolbar::EnableFavouriteManagement(bool enable)
     _showFavourites->Show(enable);
 }
 
-void ResourceTreeViewToolbar::AssociateToTreeView(ResourceTreeView* treeView)
+void ResourceTreeViewToolbar::AssociateToTreeView(TreeView* treeView)
 {
     _treeView = treeView;
+    _resourceTreeView = dynamic_cast<ResourceTreeView*>(treeView);
 
     if (_treeView != nullptr)
     {
@@ -124,6 +126,12 @@ void ResourceTreeViewToolbar::ClearFilter()
     }
 
     _signalFilterTextChanged.emit("");
+}
+
+void ResourceTreeViewToolbar::FocusFilterEntry()
+{
+    _filterEntry->SetFocus();
+    _filterEntry->SelectAll();
 }
 
 std::string ResourceTreeViewToolbar::GetFilterText() const
@@ -207,9 +215,9 @@ void ResourceTreeViewToolbar::HandleFilterEntryChanged()
 
 void ResourceTreeViewToolbar::_onFilterButtonToggled(wxCommandEvent& ev)
 {
-    if (_treeView == nullptr) return;
+    if (_resourceTreeView == nullptr) return;
 
-    _treeView->SetTreeMode(_showAll->GetValue() ?
+    _resourceTreeView->SetTreeMode(_showAll->GetValue() ?
         ResourceTreeView::TreeMode::ShowAll :
         ResourceTreeView::TreeMode::ShowFavourites);
 
@@ -227,9 +235,9 @@ void ResourceTreeViewToolbar::_onTreeViewFilterTextCleared(wxCommandEvent& ev)
 
 void ResourceTreeViewToolbar::UpdateFromTreeView()
 {
-    if (_treeView == nullptr) return;
+    if (_resourceTreeView == nullptr) return;
 
-    auto mode = _treeView->GetTreeMode();
+    auto mode = _resourceTreeView->GetTreeMode();
     _showAll->SetValue(mode == ResourceTreeView::TreeMode::ShowAll);
     _showFavourites->SetValue(mode == ResourceTreeView::TreeMode::ShowFavourites);
 }

@@ -380,7 +380,7 @@ void TranslatablePivot::translate(const Vector3& translation)
 	_pivot.applyTranslation(translation);
 
 	// User is placing the pivot manually, so let's keep it that way
-	_pivot.setUserLocked(true);
+	_pivot.anchorToCurrentPosition();
 }
 
 }

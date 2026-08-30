@@ -206,11 +206,20 @@ entityDef func_static
 	"noclipmodel"						"0"
 }
 
-entityDef fixed_size_entity 
+entityDef fixed_size_entity
 {
 	"editor_color"					"0 1 0"
 	"editor_mins"					"-32 -32 -32"
 	"editor_maxs"					"32 32 32"
+
+	"spawnclass"					"idStaticEntity"
+}
+
+entityDef offset_box_entity
+{
+	"editor_color"					"0 1 0"
+	"editor_mins"					"-16 -16 0"
+	"editor_maxs"					"16 16 68"
 
 	"spawnclass"					"idStaticEntity"
 }

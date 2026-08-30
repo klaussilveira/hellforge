@@ -18,3 +18,14 @@ textures/c_1024x512
 {
 	diffusemap textures/a_1024x512
 }
+
+textures/celtic_ornament_leak
+{
+	qer_editorimage textures/a_1024x512
+
+	{
+		blend	diffusemap
+		map		textures/a_1024x512
+		scale	1, 0.25
+	}
+}

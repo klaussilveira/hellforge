@@ -9,7 +9,6 @@ namespace textool
 void TextureToolManipulationPivot::updateFromSelection()
 {
     _needsRecalculation = false;
-    _userLocked = false;
 
     // Check the centerpoint of all selected items
     AABB bounds;

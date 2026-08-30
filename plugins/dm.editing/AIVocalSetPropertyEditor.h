@@ -9,6 +9,7 @@ namespace ui
 namespace
 {
 	const std::string DEF_VOCAL_SET_KEY = "def_vocal_set";
+	const std::string DEF_VOCAL_SET_DRUNK_KEY = "def_vocal_set_drunk";
 }
 
 class AIVocalSetPropertyEditor final :

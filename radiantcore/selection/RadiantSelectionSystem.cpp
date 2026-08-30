@@ -6,6 +6,7 @@
 #include "iselectiongroup.h"
 #include "iradiant.h"
 #include "ipreferencesystem.h"
+#include "registry/registry.h"
 #include "selection/SelectionPool.h"
 #include "module/StaticModule.h"
 #include "brush/csg/CSG.h"
@@ -203,13 +204,19 @@ void RadiantSelectionSystem::pivotChanged()
     SceneChangeNotify();
 }
 
-void RadiantSelectionSystem::lockPivot()
+void RadiantSelectionSystem::preservePivotPosition()
 {
-	_pivot.setUserLocked(true);
+	if (getSelectionMode() != SelectionMode::Component &&
+		registry::getValue<bool>(algorithm::RKEY_FREE_OBJECT_ROTATION))
+	{
+		return;
+	}
+
+	_pivot.anchorToCurrentPosition();
 }
 
 void RadiantSelectionSystem::pivotChangedSelection(const ISelectable& selectable) {
-    _pivot.setUserLocked(false);
+    _pivot.clearOffset();
     pivotChanged();
 }
 
@@ -328,9 +335,7 @@ void RadiantSelectionSystem::setActiveManipulator(std::size_t manipulatorId)
     }
 
 	_activeManipulator = found->second;
-
-	// Release the user lock when switching manipulators
-	_pivot.setUserLocked(false);
+	_pivot.clearOffset();
 
 	pivotChanged();
 }
@@ -342,9 +347,7 @@ void RadiantSelectionSystem::setActiveManipulator(IManipulator::Type manipulator
 		if (manipulator->getType() == manipulatorType)
 		{
 			_activeManipulator = manipulator;
-
-			// Release the user lock when switching manipulators
-			_pivot.setUserLocked(false);
+			_pivot.clearOffset();
 
 			pivotChanged();
 			return;
@@ -421,10 +424,10 @@ void RadiantSelectionSystem::onSelectedChanged(const scene::INodePtr& node, cons
 
     _requestWorkZoneRecalculation = true;
 
-	// When everything is deselected, release the pivot user lock
+	// When everything is deselected, the pivot offset is meaningless
 	if (_selection.empty())
 	{
-		_pivot.setUserLocked(false);
+		_pivot.clearOffset();
 	}
 }
 
@@ -460,7 +463,7 @@ void RadiantSelectionSystem::onComponentSelection(const scene::INodePtr& node, c
 
 	if (_componentSelection.empty())
 	{
-		_pivot.setUserLocked(false);
+		_pivot.clearOffset();
 	}
 }
 
@@ -847,6 +850,13 @@ void RadiantSelectionSystem::onManipulationEnd()
     }
 
     pivotChanged();
+
+    // The rotation must not move the pivot, otherwise it will drift away like crazy
+    if (activeManipulator->getType() == IManipulator::Rotate)
+    {
+        preservePivotPosition();
+    }
+
     activeManipulator->setSelected(false);
 
     GlobalSceneGraph().sceneChanged();
@@ -1061,6 +1071,7 @@ void RadiantSelectionSystem::initialiseModule(const IApplicationContext& ctx)
 
 void RadiantSelectionSystem::shutdownModule()
 {
+    _undoEventConnection.disconnect();
     _selectionFocusPool.clear();
 
     // greebo: Unselect everything so that no references to scene::Nodes
@@ -1454,6 +1465,24 @@ void RadiantSelectionSystem::onMapEvent(IMap::MapEvent ev)
         _selectionFocusPool.clear();
 		setSelectedAll(false);
 		setSelectedAllComponents(false);
+	}
+
+	if (ev == IMap::MapLoaded)
+	{
+		_undoEventConnection.disconnect();
+		_undoEventConnection = GlobalUndoSystem().signal_undoEvent().connect(
+			sigc::mem_fun(this, &RadiantSelectionSystem::onUndoEvent)
+		);
+	}
+}
+
+void RadiantSelectionSystem::onUndoEvent(IUndoSystem::EventType type, const std::string& operationName)
+{
+	if (type == IUndoSystem::EventType::OperationUndone ||
+		type == IUndoSystem::EventType::OperationRedone)
+	{
+		_pivot.clearOffset();
+		pivotChanged();
 	}
 }
 

@@ -16,6 +16,8 @@
 #include <string>
 #include <wx/tglbtn.h>
 
+namespace wxutil { class ResourceTreeViewToolbar; }
+
 namespace ui
 {
 
@@ -63,6 +65,7 @@ private:
 
     // Main tree view with model hierarchy
 	ModelTreeView* _treeView = nullptr;
+    wxutil::ResourceTreeViewToolbar* _treeViewToolbar = nullptr;
     wxToggleButton* _showSkinsBtn = nullptr;
 
     // The model name which the info panels are currently displaying info for

@@ -18,6 +18,8 @@ class wxCheckBox;
 class wxSizer;
 class wxRadioButton;
 
+namespace wxutil { class ResourceTreeViewToolbar; }
+
 namespace ui
 {
 
@@ -46,6 +48,7 @@ private:
 
 	// Main tree view with the folder hierarchy
 	wxutil::FileSystemView* _treeView = nullptr;
+	wxutil::ResourceTreeViewToolbar* _treeViewToolbar = nullptr;
 
 	// The window position tracker
 	wxutil::WindowPosition _position;
@@ -81,7 +84,7 @@ private:
 	static PrefabSelectorPtr& InstancePtr();
 
 	// Helper functions to configure GUI components
-	void setupTreeView(wxWindow* parent);
+	wxWindow* setupTreeView(wxWindow* parent);
     void setupPathSelector(wxSizer* parentSizer);
 
 	// Populate the tree view with prefabs

@@ -18,7 +18,8 @@ class ResourceTreeViewToolbar :
     public wxPanel
 {
 private:
-    ResourceTreeView* _treeView;
+    TreeView* _treeView;
+    ResourceTreeView* _resourceTreeView;
 
     wxTextCtrl* _filterEntry;
 
@@ -36,7 +37,7 @@ private:
     sigc::signal<void(const std::string&)> _signalFilterTextChanged;
 
 public:
-    ResourceTreeViewToolbar(wxWindow* parent, ResourceTreeView* treeView = nullptr);
+    ResourceTreeViewToolbar(wxWindow* parent, TreeView* treeView = nullptr);
 
     // Return the sizer for packing items in the left half of the toolbar
     wxSizer* GetLeftSizer();
@@ -46,9 +47,11 @@ public:
 
     void EnableFavouriteManagement(bool enable);
 
-    void AssociateToTreeView(ResourceTreeView* treeView);
+    void AssociateToTreeView(TreeView* treeView);
 
     void ClearFilter();
+
+    void FocusFilterEntry();
 
     // Returns the current filter text
     std::string GetFilterText() const;
