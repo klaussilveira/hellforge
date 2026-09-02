@@ -183,6 +183,11 @@
 		<displayFolderKey value="editor_displayFolder" />
 	</entityChooser>
 
+	<modelBrowser>
+		<hidden match="_coll\.ase$" />
+		<hidden match="_lod[0-9]+\.[a-z0-9]+$" />
+	</modelBrowser>
+
 	<entityInspector>
 		<property match="origin" category="Basic" type="vector3">The origin of this object in 3D space</property>
 		<property match="classname" category="Basic" type="classname">The classname of this entity</property>

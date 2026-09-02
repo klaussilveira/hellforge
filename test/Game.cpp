@@ -1,4 +1,5 @@
 #include "RadiantTest.h"
+#include "HiddenModelFilter.h"
 #include "string/split.h"
 
 namespace test
@@ -83,6 +84,39 @@ TEST_F(GameTest, GetOptionalFeatures)
     // Only Dark Mod should have the "hot_reload" feature
     EXPECT_TRUE((*tdm)->hasFeature("hot_reload"));
     EXPECT_FALSE((*q3)->hasFeature("hot_reload"));
+}
+
+TEST_F(GameTest, HiddenModelPatterns)
+{
+    auto games = GlobalGameManager().getSortedGameList();
+
+    auto hellcore = std::find_if(games.begin(), games.end(), [](game::IGamePtr g) {
+        return g->getName() == "HellCore";
+    });
+    ASSERT_TRUE(hellcore != games.end());
+
+    auto nodes = (*hellcore)->getLocalXPath(game::HiddenModelFilter::XPATH);
+    ASSERT_EQ(nodes.size(), 2u) << "hellcore.game should hide the _coll and _lod siblings";
+
+    game::HiddenModelFilter filter(nodes);
+
+    EXPECT_TRUE(filter.isHidden("asylum/armchair_coll.ase"));
+    EXPECT_TRUE(filter.isHidden("asylum/armchair_lod1.ase"));
+    EXPECT_TRUE(filter.isHidden("props/christmas_gifts_02_lod12.ase"));
+
+    EXPECT_FALSE(filter.isHidden("asylum/armchair.ase"));
+    EXPECT_FALSE(filter.isHidden("policedept/paper_clip.ase"));
+    EXPECT_FALSE(filter.isHidden("topdown/fence_collumn_01.ase"));
+    EXPECT_FALSE(filter.isHidden("props/human_collar_01.ase"));
+
+    // A game that declares no patterns hides nothing
+    auto q3 = std::find_if(games.begin(), games.end(), [](game::IGamePtr g) {
+        return g->getName() == "Quake 3";
+    });
+    ASSERT_TRUE(q3 != games.end());
+
+    game::HiddenModelFilter noPatterns((*q3)->getLocalXPath(game::HiddenModelFilter::XPATH));
+    EXPECT_FALSE(noPatterns.isHidden("asylum/armchair_coll.ase"));
 }
 
 }

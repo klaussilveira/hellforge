@@ -23,6 +23,7 @@
 #include "ipreferencesystem.h"
 #include "registry/registry.h"
 #include "ui/iuserinterface.h"
+#include "HiddenModelFilter.h"
 #include "os/path.h"
 #include "string/case_conv.h"
 #include "string/split.h"
@@ -514,10 +515,13 @@ void AssetBrowserPanel::populateAssets()
     string::split(allowedExtensions,
         GlobalGameManager().currentGame()->getKeyValue("modeltypes"), " ");
 
+    game::HiddenModelFilter hiddenModels;
+
     GlobalFileSystem().forEachFile("models/", "*",
         [&](const vfs::FileInfo& fileInfo)
         {
             if (fileInfo.visibility != vfs::Visibility::NORMAL) return;
+            if (hiddenModels.isHidden(fileInfo.name)) return;
 
             auto extension = string::to_lower_copy(os::getExtension(fileInfo.name));
 

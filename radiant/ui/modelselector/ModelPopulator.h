@@ -5,6 +5,7 @@
 #include "iregistry.h"
 #include "igame.h"
 #include "EventRateLimiter.h"
+#include "HiddenModelFilter.h"
 
 #include "ifilesystem.h"
 #include "ieclass.h"
@@ -41,6 +42,9 @@ private:
 
 	std::set<std::string> _allowedExtensions;
 
+	// Generated siblings the game keeps out of its model lists
+	game::HiddenModelFilter _hiddenModels;
+
 public:
 
 	// Constructor sets the populator
@@ -72,7 +76,8 @@ protected:
             [&](const vfs::FileInfo& fileInfo)
             {
                 // Only add visible models
-                if (fileInfo.visibility == vfs::Visibility::NORMAL)
+                if (fileInfo.visibility == vfs::Visibility::NORMAL &&
+                    !_hiddenModels.isHidden(fileInfo.name))
                 {
                     visitModelFile(MODELS_FOLDER + fileInfo.name, populator);
                 }
