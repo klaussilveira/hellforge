@@ -937,6 +937,52 @@ TEST_F(LayerTest, RemovingFromLayerMarksMapAsModified)
     performMoveOrAddToLayerTest(LayerAction::RemoveFromLayer);
 }
 
+TEST_F(LayerTest, AddSelectionToActiveLayer)
+{
+    loadMap("general_purpose.mapx");
+
+    auto& layerManager = GlobalMapModule().getRoot()->getLayerManager();
+    auto layerId = layerManager.getLayerID("Second Layer");
+    EXPECT_NE(layerId, -1);
+
+    auto brush = algorithm::findFirstBrushWithMaterial(
+        GlobalMapModule().findOrInsertWorldspawn(), "textures/numbers/1");
+    EXPECT_TRUE(brush);
+    EXPECT_EQ(brush->getLayers(), scene::LayerList{ 0 }) << "Brush should be in the default layer";
+
+    layerManager.setActiveLayer(layerId);
+    Node_setSelected(brush, true);
+
+    GlobalCommandSystem().executeCommand("AddSelectionToActiveLayer");
+
+    EXPECT_EQ(brush->getLayers(), scene::LayerList({ 0, layerId })) <<
+        "Brush should have been added to the active layer";
+    EXPECT_TRUE(GlobalMapModule().isModified());
+}
+
+TEST_F(LayerTest, MoveSelectionToActiveLayer)
+{
+    loadMap("general_purpose.mapx");
+
+    auto& layerManager = GlobalMapModule().getRoot()->getLayerManager();
+    auto layerId = layerManager.getLayerID("Second Layer");
+    EXPECT_NE(layerId, -1);
+
+    auto brush = algorithm::findFirstBrushWithMaterial(
+        GlobalMapModule().findOrInsertWorldspawn(), "textures/numbers/1");
+    EXPECT_TRUE(brush);
+    EXPECT_EQ(brush->getLayers(), scene::LayerList{ 0 }) << "Brush should be in the default layer";
+
+    layerManager.setActiveLayer(layerId);
+    Node_setSelected(brush, true);
+
+    GlobalCommandSystem().executeCommand("MoveSelectionToActiveLayer");
+
+    EXPECT_EQ(brush->getLayers(), scene::LayerList{ layerId }) <<
+        "Brush should have been moved to the active layer";
+    EXPECT_TRUE(GlobalMapModule().isModified());
+}
+
 TEST_F(LayerTest, SettingParentLayerMarksMapAsModified)
 {
     loadMap("general_purpose.mapx");

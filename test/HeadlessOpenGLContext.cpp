@@ -212,6 +212,16 @@ public:
                 throw std::runtime_error("Failed to make current");
             }
         }
+
+        // Initialise the openGL function pointers
+        auto err = glewInit();
+
+        if (err != GLEW_OK)
+        {
+            // glewInit failed
+            rError() << "GLEW error: " << reinterpret_cast<const char*>(glewGetErrorString(err));
+            throw std::runtime_error("Failed to initialise GLEW");
+        }
     }
 
 	~HeadlessOpenGLContext()

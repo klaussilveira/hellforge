@@ -568,6 +568,17 @@ void UserInterfaceModule::registerUICommands()
 
     GlobalCommandSystem().addCommand("clear", [](const auto&) { radiant::ClearConsoleMessage::Send(); });
 
+    GlobalCommandSystem().addCommand("ReloadAll", [](const cmd::ArgumentList&)
+    {
+        for (const auto& command : { "ReloadDecls", "ReloadImages", "RefreshModels", "ReloadScripts", "ReloadReadables" })
+        {
+            if (GlobalCommandSystem().commandExists(command))
+            {
+                GlobalCommandSystem().executeCommand(command);
+            }
+        }
+    });
+
     GlobalCommandSystem().addCommand("ChooseAndTogglePointfile",
                                      [](const cmd::ArgumentList&)
                                      { PointFileChooser::chooseAndToggle(); });

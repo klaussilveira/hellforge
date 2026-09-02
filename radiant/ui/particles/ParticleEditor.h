@@ -5,6 +5,7 @@
 #include "ui/idialogmanager.h"
 #include "wxutil/XmlResourceBasedWidget.h"
 #include "wxutil/preview/ParticlePreview.h"
+#include "wxutil/dataview/DeclarationTreeView.h"
 #include "wxutil/dataview/TreeView.h"
 #include "wxutil/WindowPosition.h"
 #include "wxutil/PanedPosition.h"
@@ -23,21 +24,21 @@ class ParticleEditor :
 {
 private:
     // List of particle system defs
-    wxutil::TreeModel::Ptr _defList;
-	wxutil::TreeView* _defView;
+    wxutil::DeclarationTreeView::Columns _defColumns;
+    wxutil::DeclarationTreeView* _defView;
 
     // List of stages in the current particle def
     wxutil::TreeModel::Ptr _stageList;
-	wxutil::TreeView* _stageView;
+    wxutil::TreeView* _stageView;
 
     wxutil::ParticlePreviewPtr _preview;
 
     // The position/size memoriser
     wxutil::WindowPosition _windowPosition;
-	wxutil::PanedPosition _panedPosition;
+    wxutil::PanedPosition _panedPosition;
 
-    // The currently selected rows in the model
-    wxDataViewItem _selectedDefIter;
+    // The currently selected particle def and the selected stage row
+    std::string _selectedDefName;
     wxDataViewItem _selectedStageIter;
 
     // The particle definition we're working on
@@ -55,14 +56,14 @@ public:
      */
     static void DisplayDialog(const cmd::ArgumentList& args);
 
-	int ShowModal();
+    int ShowModal();
 
 protected:
-	// Override DialogBase
+    // Override DialogBase
     bool _onDeleteEvent();
 
 private:
-	void handleDefSelChanged();
+    void handleDefSelChanged();
     void handleStageSelChanged();
 
     // callbacks
@@ -71,7 +72,7 @@ private:
     void _onStageSelChanged(wxDataViewEvent& ev);
 
     void _onNewParticle(wxCommandEvent& ev);
-	void _onSaveParticle(wxCommandEvent& ev);
+    void _onSaveParticle(wxCommandEvent& ev);
     void _onCloneCurrentParticle(wxCommandEvent& ev);
     void setSaveButtonsSensitivity(bool sensitive);
 
@@ -96,11 +97,11 @@ private:
     // A pointer-to-member function typedef
     typedef void (ParticleEditor::*MemberMethod)(wxCommandEvent& ev);
 
-	// Replace the given wxSpinCtrl with a wxSpinCtrlDouble
-	wxSpinCtrlDouble* convertToSpinCtrlDouble(const std::string& name, double min, double max, double increment, int digits = 2);
+    // Replace the given wxSpinCtrl with a wxSpinCtrlDouble
+    wxSpinCtrlDouble* convertToSpinCtrlDouble(const std::string& name, double min, double max, double increment, int digits = 2);
 
     // Connect a spin button to call the given member method
-	void connectSpinner(const std::string& name, MemberMethod func);
+    void connectSpinner(const std::string& name, MemberMethod func);
 
     void _onShaderControlsChanged(wxCommandEvent& ev);
     void _onCountTimeControlsChanged(wxCommandEvent& ev);
@@ -150,8 +151,7 @@ private:
     // Returns the current value of the given spin button as float/int
     float getSpinButtonValueAsFloat(const std::string& widgetName);
     int getSpinButtonValueAsInt(const std::string& widgetName);
-	std::string getParticleNameFromIter(const wxDataViewItem& item);
-	void setSpinCtrlValue(const std::string& name, double value);
+    void setSpinCtrlValue(const std::string& name, double value);
 };
 
 } // namespace
