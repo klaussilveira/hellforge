@@ -115,7 +115,7 @@ std::vector<StaticModelSurfacePtr> PicoModelLoader::CreateSurfaces(picoModel_t* 
 
 std::string PicoModelLoader::CleanupShaderName(const std::string& inName)
 {
-    const std::string baseFolder = "base";	//FIXME: should be from game.xml
+    const std::string baseFolder = GlobalGameManager().currentGame()->getKeyValue("basegame");
     std::size_t basePos;
 
     std::string mapName = string::replace_all_copy(inName, "\\", "/");

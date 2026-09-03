@@ -10,7 +10,7 @@
   engine_linux="hellcore"
   engine_macos="hellcore.app"
   prefix=".hellcore"
-  basegame="base"
+  basegame="data"
   basegamename="HellCore"
   unknowngamename="Custom HellCore modification"
   archivetypes="pk4"
