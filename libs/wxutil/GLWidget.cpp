@@ -131,7 +131,7 @@ void GLWidget::OnPaint(wxPaintEvent& WXUNUSED(event))
 	}
 }
 
-bool GLWidget::captureImage(wxImage& image, int maxWidth)
+bool GLWidget::MakeCurrent()
 {
 	if (!IsShownOnScreen()) return false;
 
@@ -146,6 +146,13 @@ bool GLWidget::captureImage(wxImage& image, int maxWidth)
 		auto wxContext = std::static_pointer_cast<GLContext>(context);
 		SetCurrent(wxContext->get());
 	}
+
+	return true;
+}
+
+bool GLWidget::captureImage(wxImage& image, int maxWidth)
+{
+	if (!MakeCurrent()) return false;
 
 	// Render the scene to the back buffer
 	if (!_renderCallback())

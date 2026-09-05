@@ -37,6 +37,8 @@ public:
 	wxSize GetGLViewportSize() const;
 	wxSize GetGLViewportSize(const wxSize& logicalSize) const;
 
+	bool MakeCurrent();
+
 	// Render the scene to the back buffer and save as PNG.
 	// Must be called on the main thread. Returns true on success.
 	bool captureToFile(const std::string& filename, int maxWidth = 0);

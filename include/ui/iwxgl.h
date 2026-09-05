@@ -20,6 +20,8 @@ public:
 
     /// Notifies the GL module that a GLWidget has been destroyed
     virtual void unregisterGLWidget(wxutil::GLWidget* widget) = 0;
+
+    virtual bool makeContextCurrent() = 0;
 };
 
 }

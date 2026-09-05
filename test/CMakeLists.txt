@@ -86,6 +86,7 @@ add_executable(drtest
                TextureManipulation.cpp
                TestOrthoViewManager.cpp
                TextureTool.cpp
+               ThumbnailView.cpp
                Transformation.cpp
                TrimTool.cpp
                UndoRedo.cpp

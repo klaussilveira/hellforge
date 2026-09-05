@@ -12,9 +12,12 @@
 #include "irender.h"
 
 #include "../FreezePointer.h"
+#include "../GLFrameBuffer.h"
 #include "render/NopRenderView.h"
 #include "render/CamRenderer.h"
 
+class AABB;
+class wxImage;
 class wxToolBarToolBase;
 
 namespace wxutil
@@ -39,7 +42,9 @@ class RenderPreview :
     private XmlResourceBasedWidget
 {
     void connectToolbarSignals();
+    void ensureInitialised();
     bool drawPreview();
+    void renderScene(int width, int height, bool drawOverlays);
     void onGLScroll(wxMouseEvent& ev);
     void onGLMouseRelease(wxMouseEvent& ev);
     void onGLMotionDelta(int x, int y, unsigned int mouseState);
@@ -87,6 +92,8 @@ private:
 
     render::CamRenderer::HighlightShaders _shaders;
 
+    GLFrameBuffer _frameBuffer;
+
     bool _enableLightingModeAtStart = false;
 
 protected:
@@ -128,6 +135,10 @@ protected:
 
 protected:
     GLWidget* getGLWidget();
+
+    bool renderToImage(wxImage& image, int size);
+
+    void frameBounds(const AABB& bounds, const Vector3& angles, float padding);
 
     const scene::GraphPtr& getScene();
 

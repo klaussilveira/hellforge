@@ -5,16 +5,19 @@
 #include <cstdlib>
 #include <set>
 
+#include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/control.h>
 #include <wx/dcbuffer.h>
 #include <wx/dnd.h>
+#include <wx/menu.h>
 #include <wx/scrolwin.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
 
 #include "i18n.h"
+#include "icameraview.h"
 #include "ideclmanager.h"
 #include "ieclass.h"
 #include "ifilesystem.h"
@@ -26,12 +29,14 @@
 #include "HiddenModelFilter.h"
 #include "os/path.h"
 #include "string/case_conv.h"
+#include "string/convert.h"
 #include "string/split.h"
 
 #include "AssetDropTarget.h"
 #include "AssetTypes.h"
 #include "ThumbnailCache.h"
 #include "ThumbnailPreview.h"
+#include "ThumbnailViewStore.h"
 
 namespace ui
 {
@@ -43,10 +48,18 @@ constexpr int TILE_PADDING = 6;
 constexpr int LABEL_HEIGHT = 16;
 constexpr int DRAG_THRESHOLD = 6;
 constexpr int DEFAULT_THUMBNAIL_SIZE = 128;
-constexpr float DEFAULT_THUMBNAIL_ZOOM = 2.8f;
+constexpr float DEFAULT_THUMBNAIL_PADDING = 1.1f;
+constexpr int THUMBNAIL_SUPERSAMPLE = 2;
+constexpr double ORBIT_SPEED = 0.6;
+
+constexpr int MENU_USE_PREVIEW_ANGLE = wxID_HIGHEST + 1;
+constexpr int MENU_RESET_VIEW = wxID_HIGHEST + 2;
+constexpr int MENU_REBUILD = wxID_HIGHEST + 3;
+constexpr int MENU_REBUILD_ALL = wxID_HIGHEST + 4;
 
 const char* const RKEY_THUMBNAIL_SIZE = "user/ui/assetBrowser/thumbnailSize";
-const char* const RKEY_THUMBNAIL_ZOOM = "user/ui/assetBrowser/thumbnailZoom";
+const char* const RKEY_THUMBNAIL_PADDING = "user/ui/assetBrowser/thumbnailPadding";
+const char* const RKEY_SHOW_PREVIEW = "user/ui/assetBrowser/showPreview";
 
 struct AssetTile
 {
@@ -74,6 +87,8 @@ public:
         Bind(wxEVT_SIZE, &AssetBrowserGrid::onSize, this);
         Bind(wxEVT_LEFT_DOWN, &AssetBrowserGrid::onLeftDown, this);
         Bind(wxEVT_LEFT_UP, &AssetBrowserGrid::onLeftUp, this);
+        Bind(wxEVT_RIGHT_DOWN, &AssetBrowserGrid::onRightDown, this);
+        Bind(wxEVT_RIGHT_UP, &AssetBrowserGrid::onRightUp, this);
         Bind(wxEVT_MOTION, &AssetBrowserGrid::onMotion, this);
     }
 
@@ -90,6 +105,7 @@ public:
         _tiles = std::move(tiles);
         _selected = -1;
         _dragIndex = -1;
+        _orbitIndex = -1;
 
         updateLayout();
         Scroll(0, 0);
@@ -225,7 +241,7 @@ private:
             dc.SetPen(wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNSHADOW)));
             dc.DrawRectangle(thumbX, thumbY, _thumbSize, _thumbSize);
 
-            _cache.request(tile.key,
+            _cache.request(tile.key, _owner.getCacheVariant(tile.key),
                 tile.type == assetType::Model ? tile.name : std::string());
         }
 
@@ -266,8 +282,58 @@ private:
         _dragIndex = -1;
     }
 
+    void onRightDown(wxMouseEvent& ev)
+    {
+        int index = hitTest(ev.GetPosition());
+
+        if (index == -1) return;
+
+        _selected = index;
+        _orbitIndex = index;
+        _orbitStart = ev.GetPosition();
+        _orbiting = false;
+
+        Refresh();
+
+        _canOrbit = _owner.showSelectedInPreview();
+    }
+
+    void onRightUp(wxMouseEvent&)
+    {
+        if (_orbitIndex == -1) return;
+
+        int index = _orbitIndex;
+        _orbitIndex = -1;
+
+        if (_orbiting)
+        {
+            _orbiting = false;
+            _owner.commitThumbnailView(_tiles[index].key);
+            return;
+        }
+
+        _owner.showTileMenu(_tiles[index].key);
+    }
+
     void onMotion(wxMouseEvent& ev)
     {
+        if (ev.Dragging() && ev.RightIsDown() && _orbitIndex != -1 && _canOrbit)
+        {
+            auto delta = ev.GetPosition() - _orbitStart;
+
+            if (!_orbiting && std::abs(delta.x) < DRAG_THRESHOLD && std::abs(delta.y) < DRAG_THRESHOLD)
+            {
+                return;
+            }
+
+            _orbiting = true;
+            _orbitStart = ev.GetPosition();
+
+            _owner.orbitPreview(delta.x * ORBIT_SPEED, delta.y * ORBIT_SPEED);
+
+            return;
+        }
+
         if (ev.Dragging() && ev.LeftIsDown() && _dragIndex != -1)
         {
             auto delta = ev.GetPosition() - _dragStart;
@@ -310,13 +376,18 @@ private:
     int _thumbSize = DEFAULT_THUMBNAIL_SIZE;
     int _selected = -1;
     int _dragIndex = -1;
+    int _orbitIndex = -1;
     int _tooltipIndex = -1;
+    bool _orbiting = false;
+    bool _canOrbit = false;
     wxPoint _dragStart;
+    wxPoint _orbitStart;
 };
 
 AssetBrowserPanel::AssetBrowserPanel(wxWindow* parent) :
     DockablePanel(parent),
-    _cache(new ThumbnailCache)
+    _cache(new ThumbnailCache),
+    _views(new ThumbnailViewStore)
 {
     SetSizer(new wxBoxSizer(wxVERTICAL));
 
@@ -330,8 +401,12 @@ AssetBrowserPanel::AssetBrowserPanel(wxWindow* parent) :
     _filterBox = new wxTextCtrl(this, wxID_ANY);
     _filterBox->SetHint(_("Filter..."));
 
+    _showPreview = new wxCheckBox(this, wxID_ANY, _("Show Preview"));
+    _showPreview->SetValue(registry::getValue<bool>(RKEY_SHOW_PREVIEW, true));
+
     controls->Add(_modeChoice, 0, wxALIGN_CENTER_VERTICAL);
     controls->Add(_filterBox, 1, wxEXPAND | wxLEFT, 6);
+    controls->Add(_showPreview, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 6);
 
     _grid = new AssetBrowserGrid(this, *_cache, *this);
 
@@ -344,6 +419,9 @@ AssetBrowserPanel::AssetBrowserPanel(wxWindow* parent) :
 
     _modeChoice->Bind(wxEVT_CHOICE, &AssetBrowserPanel::onModeChanged, this);
     _filterBox->Bind(wxEVT_TEXT, &AssetBrowserPanel::onFilterChanged, this);
+    _showPreview->Bind(wxEVT_CHECKBOX, &AssetBrowserPanel::onShowPreviewToggled, this);
+
+    applyPreviewVisibility();
 
     _thumbnailLoadedConn = _cache->signal_thumbnailLoaded().connect(
         [this](const std::string& key) { if (_grid->isKeyVisible(key)) _grid->Refresh(); });
@@ -366,7 +444,7 @@ AssetBrowserPanel::AssetBrowserPanel(wxWindow* parent) :
     _thumbnailSizeConn = GlobalRegistry().signalForKey(RKEY_THUMBNAIL_SIZE).connect(
         [this]() { onThumbnailSettingsChanged(); });
 
-    _thumbnailZoomConn = GlobalRegistry().signalForKey(RKEY_THUMBNAIL_ZOOM).connect(
+    _thumbnailPaddingConn = GlobalRegistry().signalForKey(RKEY_THUMBNAIL_PADDING).connect(
         [this]() { onThumbnailSettingsChanged(); });
 }
 
@@ -377,7 +455,7 @@ AssetBrowserPanel::~AssetBrowserPanel()
     _vfsInitialisedConn.disconnect();
     _entityDefsReloadedConn.disconnect();
     _thumbnailSizeConn.disconnect();
-    _thumbnailZoomConn.disconnect();
+    _thumbnailPaddingConn.disconnect();
 }
 
 void AssetBrowserPanel::constructPreferences()
@@ -387,15 +465,15 @@ void AssetBrowserPanel::constructPreferences()
         registry::setValue(RKEY_THUMBNAIL_SIZE, DEFAULT_THUMBNAIL_SIZE);
     }
 
-    if (GlobalRegistry().get(RKEY_THUMBNAIL_ZOOM).empty())
+    if (GlobalRegistry().get(RKEY_THUMBNAIL_PADDING).empty())
     {
-        registry::setValue(RKEY_THUMBNAIL_ZOOM, DEFAULT_THUMBNAIL_ZOOM);
+        registry::setValue(RKEY_THUMBNAIL_PADDING, DEFAULT_THUMBNAIL_PADDING);
     }
 
     auto& page = GlobalPreferenceSystem().getPage(_("Asset Browser"));
 
     page.appendSpinner(_("Thumbnail Size"), RKEY_THUMBNAIL_SIZE, 32, 256, 0);
-    page.appendSpinner(_("Thumbnail Camera Distance"), RKEY_THUMBNAIL_ZOOM, 1, 10, 1);
+    page.appendSpinner(_("Thumbnail Padding"), RKEY_THUMBNAIL_PADDING, 1, 3, 2);
 }
 
 void AssetBrowserPanel::applyThumbnailSettings()
@@ -403,16 +481,18 @@ void AssetBrowserPanel::applyThumbnailSettings()
     int size = registry::getValue<int>(RKEY_THUMBNAIL_SIZE, DEFAULT_THUMBNAIL_SIZE);
     size = std::max(32, std::min(256, size));
 
-    float zoom = registry::getValue<float>(RKEY_THUMBNAIL_ZOOM, DEFAULT_THUMBNAIL_ZOOM);
+    float padding = registry::getValue<float>(RKEY_THUMBNAIL_PADDING, DEFAULT_THUMBNAIL_PADDING);
 
-    if (zoom < 1.0f)
+    if (padding < 1.0f)
     {
-        zoom = DEFAULT_THUMBNAIL_ZOOM;
+        padding = DEFAULT_THUMBNAIL_PADDING;
     }
+
+    _thumbnailSize = size;
 
     _cache->setThumbnailSize(size);
     _grid->setThumbnailSize(size);
-    _preview->setDefaultCamDistanceFactor(zoom);
+    _preview->setPadding(padding);
 }
 
 void AssetBrowserPanel::onThumbnailSettingsChanged()
@@ -476,18 +556,18 @@ void AssetBrowserPanel::onIdle()
 
         wxImage image;
 
-        if (!_preview->showAsset(type, name))
+        if (!showAssetInPreview(type, name, key))
         {
             _cache->markFailed(key);
         }
-        else if (!_preview->captureImage(image))
+        else if (!_preview->captureImage(image, _thumbnailSize * THUMBNAIL_SUPERSAMPLE))
         {
             _cache->pushRenderKeyFront(key);
             return;
         }
         else
         {
-            _cache->storeRendered(key, image);
+            _cache->storeRendered(key, getCacheVariant(key), image);
         }
 
         if (type == assetType::Model)
@@ -581,16 +661,132 @@ void AssetBrowserPanel::applyFilter()
     _grid->setTiles(std::move(tiles));
 }
 
-void AssetBrowserPanel::showSelectedInPreview()
+bool AssetBrowserPanel::showSelectedInPreview()
 {
-    if (_cache->hasPendingRenders()) return;
+    if (!_showPreview->GetValue()) return false;
+
+    if (_cache->hasPendingRenders()) return false;
 
     const auto* tile = _grid->getSelectedTile();
 
-    if (tile != nullptr)
+    if (tile == nullptr) return false;
+
+    return showAssetInPreview(tile->type, tile->name, tile->key);
+}
+
+bool AssetBrowserPanel::showAssetInPreview(const std::string& type, const std::string& name,
+    const std::string& key)
+{
+    _previewKey.clear();
+
+    if (!_preview->showAsset(type, name)) return false;
+
+    const auto* angles = _views->find(key);
+
+    if (angles != nullptr)
     {
-        _preview->showAsset(tile->type, tile->name);
+        _preview->setAssetViewAngles(*angles);
     }
+
+    _previewKey = key;
+
+    return true;
+}
+
+std::string AssetBrowserPanel::getCacheVariant(const std::string& key) const
+{
+    const auto* angles = _views->find(key);
+
+    if (angles == nullptr) return {};
+
+    return string::to_string((*angles)[camera::CAMERA_PITCH]) + "|"
+        + string::to_string((*angles)[camera::CAMERA_YAW]);
+}
+
+void AssetBrowserPanel::orbitPreview(double deltaYaw, double deltaPitch)
+{
+    auto angles = _preview->getAssetViewAngles();
+
+    angles[camera::CAMERA_YAW] += deltaYaw;
+    angles[camera::CAMERA_PITCH] = std::max(-89.0,
+        std::min(89.0, angles[camera::CAMERA_PITCH] + deltaPitch));
+
+    _preview->setAssetViewAngles(angles);
+}
+
+void AssetBrowserPanel::commitThumbnailView(const std::string& key)
+{
+    if (_previewKey != key) return;
+
+    _views->set(key, _preview->getAssetViewAngles());
+    _cache->rerender(key);
+
+    requestIdleCallback();
+}
+
+void AssetBrowserPanel::showTileMenu(const std::string& key)
+{
+    wxMenu menu;
+
+    if (_previewKey == key)
+    {
+        menu.Append(MENU_USE_PREVIEW_ANGLE, _("Use Preview Angle"));
+    }
+
+    menu.Append(MENU_RESET_VIEW, _("Reset Thumbnail View"));
+    menu.AppendSeparator();
+    menu.Append(MENU_REBUILD, _("Rebuild Thumbnail"));
+    menu.Append(MENU_REBUILD_ALL, _("Rebuild All Thumbnails"));
+
+    menu.Bind(wxEVT_MENU, [this, key](wxCommandEvent& ev) { onTileMenuItem(key, ev.GetId()); });
+
+    _grid->PopupMenu(&menu);
+}
+
+void AssetBrowserPanel::onTileMenuItem(const std::string& key, int id)
+{
+    switch (id)
+    {
+    case MENU_USE_PREVIEW_ANGLE:
+        commitThumbnailView(key);
+        break;
+
+    case MENU_RESET_VIEW:
+        _views->remove(key);
+        _cache->rerender(key);
+        requestIdleCallback();
+        break;
+
+    case MENU_REBUILD:
+        _cache->rerender(key);
+        requestIdleCallback();
+        break;
+
+    case MENU_REBUILD_ALL:
+        _cache->clearAll();
+        _grid->Refresh();
+        break;
+    }
+}
+
+void AssetBrowserPanel::applyPreviewVisibility()
+{
+    bool visible = _showPreview->GetValue();
+
+    GetSizer()->Show(_preview->getWidget(), visible);
+    GetSizer()->Layout();
+
+    if (visible)
+    {
+        showSelectedInPreview();
+    }
+}
+
+void AssetBrowserPanel::onShowPreviewToggled(wxCommandEvent&)
+{
+    registry::setValue(RKEY_SHOW_PREVIEW, _showPreview->GetValue());
+
+    applyPreviewVisibility();
 }
 
 void AssetBrowserPanel::onModeChanged(wxCommandEvent&)

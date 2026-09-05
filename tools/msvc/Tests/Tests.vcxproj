@@ -223,6 +223,7 @@
     <ClCompile Include="..\..\..\test\TestOrthoViewManager.cpp" />
     <ClCompile Include="..\..\..\test\TextureManipulation.cpp" />
     <ClCompile Include="..\..\..\test\TextureTool.cpp" />
+    <ClCompile Include="..\..\..\test\ThumbnailView.cpp" />
     <ClCompile Include="..\..\..\test\Transformation.cpp" />
     <ClCompile Include="..\..\..\test\UndoRedo.cpp" />
     <ClCompile Include="..\..\..\test\VFS.cpp" />

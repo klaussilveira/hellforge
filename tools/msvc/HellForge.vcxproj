@@ -233,6 +233,7 @@
     <ClCompile Include="..\..\radiant\ui\assetbrowser\AssetDropTarget.cpp" />
     <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailCache.cpp" />
     <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailPreview.cpp" />
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailViewStore.cpp" />
     <ClCompile Include="..\..\radiant\ui\animationpreview\AnimationPreview.cpp" />
     <ClCompile Include="..\..\radiant\ui\animationpreview\MD5AnimationChooser.cpp" />
     <ClCompile Include="..\..\radiant\ui\animationpreview\MD5AnimationViewer.cpp" />
@@ -483,6 +484,13 @@
     <ClInclude Include="..\..\radiant\ui\aas\AasVisualisationPanel.h" />
     <ClInclude Include="..\..\radiant\ui\aas\RenderableAasFile.h" />
     <ClInclude Include="..\..\radiant\ui\array\ArrayDialog.h" />
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetBrowserControl.h" />
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetBrowserPanel.h" />
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetDropTarget.h" />
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetTypes.h" />
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\ThumbnailCache.h" />
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\ThumbnailPreview.h" />
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\ThumbnailViewStore.h" />
     <ClInclude Include="..\..\radiant\ui\animationpreview\AnimationPreview.h" />
     <ClInclude Include="..\..\radiant\ui\animationpreview\MD5AnimationChooser.h" />
     <ClInclude Include="..\..\radiant\ui\animationpreview\MD5AnimationViewer.h" />

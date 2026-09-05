@@ -33,6 +33,16 @@ void WxGLWidgetManager::unregisterGLWidget(wxutil::GLWidget* widget)
 	}
 }
 
+bool WxGLWidgetManager::makeContextCurrent()
+{
+	for (auto* widget : _wxGLWidgets)
+	{
+		if (widget->MakeCurrent()) return true;
+	}
+
+	return false;
+}
+
 std::string WxGLWidgetManager::getName() const
 {
 	static std::string _name(MODULE_WXGLWIDGET_MANAGER);

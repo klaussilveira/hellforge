@@ -6,6 +6,7 @@
 #include "icameraview.h"
 #include "iscenegraphfactory.h"
 #include "irendersystemfactory.h"
+#include "ui/iwxgl.h"
 
 #include "math/AABB.h"
 #include "util/ScopedBoolLock.h"
@@ -16,6 +17,7 @@
 #include "render/SceneRenderWalker.h"
 #include "wxutil/menu/FilterPopupMenu.h"
 
+#include "../GLFrameBuffer.h"
 #include "../GLWidget.h"
 #include <wx/sizer.h>
 #include <wx/menu.h>
@@ -24,7 +26,10 @@
 #include "../Bitmap.h"
 
 #include <fmt/format.h>
+#include <algorithm>
+#include <cstring>
 #include <functional>
+#include <vector>
 
 namespace wxutil
 {
@@ -370,6 +375,42 @@ void RenderPreview::updateModelViewMatrix()
     _modelView = calculateModelViewMatrix();
 }
 
+void RenderPreview::frameBounds(const AABB& bounds, const Vector3& angles, float padding)
+{
+    setViewAngles(angles);
+
+    if (_previewWidth <= 0 || _previewHeight <= 0) return;
+
+    auto rotation = Matrix4::getIdentity();
+    rotation.rotateByEulerXYZDegrees(Vector3(0, angles[camera::CAMERA_PITCH], -angles[camera::CAMERA_YAW]));
+    rotation.multiplyBy(camera::g_radiant2opengl);
+
+    auto right = rotation.transformDirection(Vector3(1, 0, 0));
+    auto up = rotation.transformDirection(Vector3(0, 1, 0));
+    auto forward = rotation.transformDirection(Vector3(0, 0, -1));
+
+    double tanHorizontal = tan(degrees_to_radians(PREVIEW_FOV * 0.5)) / padding;
+    double tanVertical = tanHorizontal * _previewHeight / _previewWidth;
+
+    const auto& extents = bounds.getExtents();
+    double distance = NEAR_CLIP_PLANE * 2;
+
+    for (int corner = 0; corner < 8; ++corner)
+    {
+        Vector3 offset(
+            corner & 1 ? extents.x() : -extents.x(),
+            corner & 2 ? extents.y() : -extents.y(),
+            corner & 4 ? extents.z() : -extents.z());
+
+        double depth = offset.dot(forward);
+
+        distance = std::max(distance, fabs(offset.dot(right)) / tanHorizontal - depth);
+        distance = std::max(distance, fabs(offset.dot(up)) / tanVertical - depth);
+    }
+
+    setViewOrigin(bounds.getOrigin() - forward * distance);
+}
+
 void RenderPreview::startPlayback()
 {
     if (_timer.IsRunning()) {
@@ -446,24 +487,73 @@ RenderStateFlags RenderPreview::getRenderFlagsWireframe()
            RENDER_LINE_SMOOTH;
 }
 
+void RenderPreview::ensureInitialised()
+{
+    if (_initialised) return;
+
+    initialisePreview();
+
+    if (!canDrawGrid())
+    {
+        auto* utilToolbar = findNamedObject<wxToolBar>(_mainPanel, "RenderPreviewUtilToolbar");
+        utilToolbar->DeleteTool(getToolBarToolByLabel(utilToolbar, "gridButton")->GetId());
+    }
+}
+
 bool RenderPreview::drawPreview()
 {
     if (_renderingInProgress) return false; // avoid double-entering this method
 
-    if (!_initialised)
-    {
-        initialisePreview();
-
-        // Since we shouldn't call the virtual canDrawGrid() in the constructor
-        // adjust the tool bar here.
-        if (!canDrawGrid())
-        {
-            auto* utilToolbar = findNamedObject<wxToolBar>(_mainPanel, "RenderPreviewUtilToolbar");
-            utilToolbar->DeleteTool(getToolBarToolByLabel(utilToolbar, "gridButton")->GetId());
-        }
-    }
+    ensureInitialised();
 
     util::ScopedBoolLock lock(_renderingInProgress);
+
+    wxSize viewportSize = _glWidget->GetGLViewportSize();
+    renderScene(viewportSize.GetWidth(), viewportSize.GetHeight(), true);
+
+    return true;
+}
+
+bool RenderPreview::renderToImage(wxImage& image, int size)
+{
+    if (_renderingInProgress) return false;
+
+    if (!_glWidget->MakeCurrent() && !GlobalWxGlWidgetManager().makeContextCurrent()) return false;
+
+    ensureInitialised();
+
+    util::ScopedBoolLock lock(_renderingInProgress);
+
+    if (!_frameBuffer.bind(size)) return false;
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    renderScene(size, size, false);
+
+    std::vector<unsigned char> pixels(static_cast<std::size_t>(size) * size * 3);
+
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+
+    _frameBuffer.unbind();
+
+    image.Create(size, size, false);
+
+    auto* target = image.GetData();
+    int rowBytes = size * 3;
+
+    for (int row = 0; row < size; ++row)
+    {
+        memcpy(target + row * rowBytes, pixels.data() + (size - 1 - row) * rowBytes, rowBytes);
+    }
+
+    return true;
+}
+
+void RenderPreview::renderScene(int width, int height, bool drawOverlays)
+{
+    _previewWidth = width;
+    _previewHeight = height;
 
     _renderSystem->startFrame();
 
@@ -475,8 +565,7 @@ bool RenderPreview::drawPreview()
         _glFont = GlobalOpenGL().getFont(fontStyle, fontSize);
     }
 
-    wxSize viewportSize = _glWidget->GetGLViewportSize();
-    glViewport(0, 0, viewportSize.GetWidth(), viewportSize.GetHeight());
+    glViewport(0, 0, width, height);
 
     // Set up the render and clear the drawing area in any case
     glDepthMask(GL_TRUE);
@@ -499,15 +588,19 @@ bool RenderPreview::drawPreview()
     if (!onPreRender())
     {
         // a return value of false means to cancel rendering
-        drawInfoText();
-        return true; // swap buffers
+        if (drawOverlays)
+        {
+            drawInfoText();
+        }
+
+        return;
     }
 
     // Set up the camera
-    Matrix4 projection = camera::calculateProjectionMatrix(NEAR_CLIP_PLANE, FAR_CLIP_PLANE, PREVIEW_FOV, _previewWidth, _previewHeight);
+    Matrix4 projection = camera::calculateProjectionMatrix(NEAR_CLIP_PLANE, FAR_CLIP_PLANE, PREVIEW_FOV, width, height);
 
     // Keep the modelview matrix in the volumetest class up to date
-    _view.construct(projection, getModelViewMatrix(), _previewWidth, _previewHeight);
+    _view.construct(projection, getModelViewMatrix(), width, height);
     _view.setViewer(_viewOrigin);
 
     // Set the projection and modelview matrices
@@ -543,12 +636,13 @@ bool RenderPreview::drawPreview()
     // Give subclasses an opportunity to render their own on-screen stuff
     onPostRender();
 
-    // Draw the render time
-    drawInfoText();
+    if (drawOverlays)
+    {
+        // Draw the render time
+        drawInfoText();
+    }
 
     _renderSystem->endFrame();
-
-    return true;
 }
 
 void RenderPreview::renderWireFrame()

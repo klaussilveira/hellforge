@@ -28,8 +28,10 @@ public:
     void setThumbnailSize(int size);
 
     const wxBitmap* find(const std::string& key);
-    void request(const std::string& key, const std::string& sourceVfsPath = std::string());
+    void request(const std::string& key, const std::string& variant,
+        const std::string& sourceVfsPath = std::string());
     void dropPending(const std::string& key);
+    void rerender(const std::string& key);
     void markFailed(const std::string& key);
     void invalidate();
     void clearAll();
@@ -37,7 +39,7 @@ public:
     std::string popNextRenderKey();
     void pushRenderKeyFront(const std::string& key);
     bool hasPendingRenders() const;
-    void storeRendered(const std::string& key, const wxImage& image);
+    void storeRendered(const std::string& key, const std::string& variant, const wxImage& image);
 
     sigc::signal<void, const std::string&>& signal_thumbnailLoaded();
     sigc::signal<void>& signal_renderRequested();
@@ -49,13 +51,14 @@ private:
 
         Type type = Type::Load;
         std::string key;
+        std::string variant;
         wxImage image;
         std::string sourcePath;
         int generation = 0;
     };
 
     void workerLoop();
-    std::string cacheFileForKey(const std::string& key) const;
+    std::string cacheFileForKey(const std::string& key, const std::string& variant) const;
     bool cachedFileIsStale(const std::string& sourceVfsPath, const std::string& cacheFile) const;
     wxImage scaleToThumbnail(wxImage image) const;
     void queueJob(Job job);

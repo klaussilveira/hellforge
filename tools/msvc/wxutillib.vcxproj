@@ -174,6 +174,7 @@
     <ClInclude Include="..\..\libs\wxutil\fsview\FileSystemView.h" />
     <ClInclude Include="..\..\libs\wxutil\fsview\Populator.h" />
     <ClInclude Include="..\..\libs\wxutil\GLContext.h" />
+    <ClInclude Include="..\..\libs\wxutil\GLFrameBuffer.h" />
     <ClInclude Include="..\..\libs\wxutil\GLWidget.h" />
     <ClInclude Include="..\..\libs\wxutil\Icon.h" />
     <ClInclude Include="..\..\libs\wxutil\IConv.h" />

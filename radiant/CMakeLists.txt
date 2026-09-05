@@ -38,6 +38,7 @@ add_executable(hellforge
                ui/assetbrowser/AssetDropTarget.cpp
                ui/assetbrowser/ThumbnailCache.cpp
                ui/assetbrowser/ThumbnailPreview.cpp
+               ui/assetbrowser/ThumbnailViewStore.cpp
                ui/brush/CreateTrimDialog.cpp
                ui/brush/FindBrush.cpp
                ui/brush/QuerySidesDialog.cpp

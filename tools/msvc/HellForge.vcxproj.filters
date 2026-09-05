@@ -586,6 +586,9 @@
     <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailPreview.cpp">
       <Filter>src\ui\assetbrowser</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\assetbrowser\ThumbnailViewStore.cpp">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\ui\filters\FilterUserInterface.cpp">
       <Filter>src\ui\filters</Filter>
     </ClCompile>
@@ -1757,6 +1760,27 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\entitylist\EntityListControl.h">
       <Filter>src\ui\entitylist</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetBrowserControl.h">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetBrowserPanel.h">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetDropTarget.h">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\AssetTypes.h">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\ThumbnailCache.h">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\ThumbnailPreview.h">
+      <Filter>src\ui\assetbrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\assetbrowser\ThumbnailViewStore.h">
+      <Filter>src\ui\assetbrowser</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\aas\AasFileControl.h">
       <Filter>src\ui\aas</Filter>

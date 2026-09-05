@@ -15,6 +15,7 @@ private:
 public:
 	void registerGLWidget(wxutil::GLWidget* widget) override;
 	void unregisterGLWidget(wxutil::GLWidget* widget) override;
+	bool makeContextCurrent() override;
 
 	// RegisterableModule implementation
 	std::string getName() const override;

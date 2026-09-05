@@ -16,6 +16,7 @@ namespace ui
 namespace
 {
 
+constexpr int CACHE_VERSION = 2;
 constexpr int EVENT_LOADED = 1;
 constexpr int EVENT_NEEDS_RENDER = 2;
 
@@ -72,18 +73,30 @@ const wxBitmap* ThumbnailCache::find(const std::string& key)
     return found != _bitmaps.end() ? &found->second : nullptr;
 }
 
-void ThumbnailCache::request(const std::string& key, const std::string& sourceVfsPath)
+void ThumbnailCache::request(const std::string& key, const std::string& variant,
+    const std::string& sourceVfsPath)
 {
     if (_bitmaps.count(key) > 0 || _pending.count(key) > 0 || _failed.count(key) > 0) return;
 
     _pending.insert(key);
 
-    queueJob({ Job::Type::Load, key, wxImage(), sourceVfsPath, _generation });
+    queueJob({ Job::Type::Load, key, variant, wxImage(), sourceVfsPath, _generation });
 }
 
 void ThumbnailCache::dropPending(const std::string& key)
 {
     _pending.erase(key);
+}
+
+void ThumbnailCache::rerender(const std::string& key)
+{
+    _bitmaps.erase(key);
+    _failed.erase(key);
+    _pending.insert(key);
+
+    _renderQueue.push_back(key);
+
+    _renderRequested.emit();
 }
 
 void ThumbnailCache::markFailed(const std::string& key)
@@ -135,9 +148,10 @@ bool ThumbnailCache::hasPendingRenders() const
     return !_renderQueue.empty();
 }
 
-void ThumbnailCache::storeRendered(const std::string& key, const wxImage& image)
+void ThumbnailCache::storeRendered(const std::string& key, const std::string& variant,
+    const wxImage& image)
 {
-    queueJob({ Job::Type::Save, key, image.Copy(), std::string(), _generation });
+    queueJob({ Job::Type::Save, key, variant, image.Copy(), std::string(), _generation });
 }
 
 sigc::signal<void, const std::string&>& ThumbnailCache::signal_thumbnailLoaded()
@@ -183,7 +197,7 @@ void ThumbnailCache::workerLoop()
             continue;
         }
 
-        auto file = cacheFileForKey(job.key);
+        auto file = cacheFileForKey(job.key, job.variant);
 
         if (job.type == Job::Type::Save)
         {
@@ -212,9 +226,9 @@ void ThumbnailCache::workerLoop()
     }
 }
 
-std::string ThumbnailCache::cacheFileForKey(const std::string& key) const
+std::string ThumbnailCache::cacheFileForKey(const std::string& key, const std::string& variant) const
 {
-    return _cacheDir + fnv1aHex(key) + ".png";
+    return _cacheDir + fnv1aHex(std::to_string(CACHE_VERSION) + "|" + key + "|" + variant) + ".png";
 }
 
 bool ThumbnailCache::cachedFileIsStale(const std::string& sourceVfsPath, const std::string& cacheFile) const

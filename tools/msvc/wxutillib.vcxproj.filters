@@ -84,6 +84,7 @@
     <ClInclude Include="..\..\libs\wxutil\FileChooser.h" />
     <ClInclude Include="..\..\libs\wxutil\FreezePointer.h" />
     <ClInclude Include="..\..\libs\wxutil\GLWidget.h" />
+    <ClInclude Include="..\..\libs\wxutil\GLFrameBuffer.h" />
     <ClInclude Include="..\..\libs\wxutil\IConv.h" />
     <ClInclude Include="..\..\libs\wxutil\ScopeTimer.h" />
     <ClInclude Include="..\..\libs\wxutil\event\KeyEventFilter.h">

@@ -2,38 +2,73 @@
 
 #include "ieclass.h"
 #include "ientity.h"
+#include "imodel.h"
 #include "ishaders.h"
+#include "model/BestViewSolver.h"
 #include "scene/EntityNode.h"
-#include "wxutil/GLWidget.h"
 
 #include "AssetTypes.h"
 
 namespace ui
 {
 
+namespace
+{
+
+const model::IModel* findModel(const scene::INodePtr& node)
+{
+    const model::IModel* result = nullptr;
+
+    node->foreachNode([&](const scene::INodePtr& child)
+    {
+        auto modelNode = Node_getModel(child);
+
+        if (!modelNode) return true;
+
+        result = &modelNode->getIModel();
+        return false;
+    });
+
+    return result;
+}
+
+}
+
 ThumbnailPreview::ThumbnailPreview(wxWindow* parent) :
-    EntityPreview(parent)
+    EntityPreview(parent),
+    _assetViewAngles(model::getDefaultViewAngles())
 {}
 
 bool ThumbnailPreview::showAsset(const std::string& type, const std::string& name)
 {
     try
     {
+        EntityNodePtr entity;
+
         if (type == assetType::Model)
         {
-            auto entity = GlobalEntityModule().createEntity(
+            entity = GlobalEntityModule().createEntity(
                 GlobalEntityClassManager().findClass("func_static"));
 
             entity->getEntity().setKeyValue("model", name);
-            setEntity(entity);
-            return true;
+        }
+        else
+        {
+            auto eclass = GlobalEntityClassManager().findClass(name);
+
+            if (!eclass) return false;
+
+            entity = GlobalEntityModule().createEntity(eclass);
         }
 
-        auto eclass = GlobalEntityClassManager().findClass(name);
+        setEntity(entity);
 
-        if (!eclass) return false;
+        auto* assetModel = findModel(entity);
 
-        setEntity(GlobalEntityModule().createEntity(eclass));
+        _assetViewAngles = assetModel != nullptr
+            ? model::calculateBestViewAngles(*assetModel)
+            : model::getDefaultViewAngles();
+
         return true;
     }
     catch (const std::runtime_error&)
@@ -42,7 +77,7 @@ bool ThumbnailPreview::showAsset(const std::string& type, const std::string& nam
     }
 }
 
-bool ThumbnailPreview::captureImage(wxImage& image)
+bool ThumbnailPreview::captureImage(wxImage& image, int size)
 {
     auto collisionMaterial = GlobalMaterialManager().getMaterial("textures/common/collision");
     bool collisionWasVisible = collisionMaterial && collisionMaterial->isVisible();
@@ -52,7 +87,7 @@ bool ThumbnailPreview::captureImage(wxImage& image)
         collisionMaterial->setVisible(false);
     }
 
-    bool result = getGLWidget()->captureImage(image);
+    bool result = renderToImage(image, size);
 
     if (collisionWasVisible)
     {
@@ -60,6 +95,23 @@ bool ThumbnailPreview::captureImage(wxImage& image)
     }
 
     return result;
+}
+
+void ThumbnailPreview::setPadding(float padding)
+{
+    _padding = padding;
+}
+
+const Vector3& ThumbnailPreview::getAssetViewAngles() const
+{
+    return _assetViewAngles;
+}
+
+void ThumbnailPreview::setAssetViewAngles(const Vector3& angles)
+{
+    _assetViewAngles = angles;
+
+    queueSceneUpdate();
 }
 
 bool ThumbnailPreview::canDrawGrid()
@@ -71,10 +123,7 @@ void ThumbnailPreview::setupInitialViewPosition()
 {
     if (!getEntity()) return;
 
-    double distance = getSceneBounds().getRadius() * _defaultCamDistanceFactor;
-
-    setViewOrigin(getSceneBounds().getOrigin() + Vector3(1, 1, 1) * distance);
-    setViewAngles(Vector3(34, 135, 0));
+    frameBounds(getSceneBounds(), _assetViewAngles, _padding);
 }
 
 }

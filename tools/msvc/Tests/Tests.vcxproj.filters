@@ -67,6 +67,7 @@
       <Filter>math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\test\TextureTool.cpp" />
+    <ClCompile Include="..\..\..\test\ThumbnailView.cpp" />
     <ClCompile Include="..\..\..\test\Grid.cpp" />
     <ClCompile Include="..\..\..\test\TextureManipulation.cpp" />
     <ClCompile Include="..\..\..\test\EntityInspector.cpp" />

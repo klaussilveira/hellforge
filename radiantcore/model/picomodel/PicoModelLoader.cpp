@@ -19,6 +19,8 @@ namespace model {
 
 namespace
 {
+    const std::string ASE_EXPORT_BASE_FOLDER = "base";
+
 	size_t picoInputStreamReam(void* inputStream, unsigned char* buffer, size_t length)
     {
 		return reinterpret_cast<InputStream*>(inputStream)->read(buffer, length);
@@ -115,7 +117,7 @@ std::vector<StaticModelSurfacePtr> PicoModelLoader::CreateSurfaces(picoModel_t* 
 
 std::string PicoModelLoader::CleanupShaderName(const std::string& inName)
 {
-    const std::string baseFolder = GlobalGameManager().currentGame()->getKeyValue("basegame");
+    std::string baseFolder = GlobalGameManager().currentGame()->getKeyValue("basegame");
     std::size_t basePos;
 
     std::string mapName = string::replace_all_copy(inName, "\\", "/");
@@ -129,7 +131,14 @@ std::string PicoModelLoader::CleanupShaderName(const std::string& inName)
     {
         // Take off the everything before "base/", and everything after
         // the first period if it exists (i.e. strip off ".tga")
-        basePos = mapName.find(baseFolder);
+        basePos = baseFolder.empty() ? std::string::npos : mapName.find(baseFolder);
+
+        if (basePos == std::string::npos)
+        {
+            baseFolder = ASE_EXPORT_BASE_FOLDER;
+            basePos = mapName.find(baseFolder);
+        }
+
         if (basePos == std::string::npos)
         {
             // Unrecognised shader path, no base folder.
