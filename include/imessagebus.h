@@ -60,6 +60,7 @@ public:
         FocusMaterialRequest,
         TextureToolRequest,
         MapConversionRequest,
+        WadImportRequest,
 
         UserDefinedMessagesGoHigherThanThis = 999,
     };

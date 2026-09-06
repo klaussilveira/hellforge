@@ -114,6 +114,14 @@
     <ClCompile Include="..\..\radiantcore\map\format\primitiveparsers\Quake1BrushDef.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake1MapFormat.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\ValveVmfFormat.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\DoomWadFormat.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\WadImportSettings.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\doom\DoomBinaryLoader.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\doom\DoomBrushBuilder.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\doom\DoomLightPlacer.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\doom\SectorGeometry.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\doom\UdmfLoader.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\doom\WadFile.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake3MapFormat.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake3MapReader.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake4MapFormat.cpp" />

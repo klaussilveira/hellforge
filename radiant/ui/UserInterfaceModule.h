@@ -10,6 +10,7 @@
 #include "LongRunningOperationHandler.h"
 #include "FileSelectionRequestHandler.h"
 #include "mapconversion/MapConversionRequestHandler.h"
+#include "wadimport/WadImportRequestHandler.h"
 #include "FileOverwriteConfirmationHandler.h"
 #include "FileSaveConfirmationHandler.h"
 #include "AutoSaveRequestHandler.h"
@@ -51,6 +52,7 @@ private:
 	std::unique_ptr<AutoSaveRequestHandler> _autoSaveRequestHandler;
 	std::unique_ptr<FileSelectionRequestHandler> _fileSelectionRequestHandler;
 	std::unique_ptr<MapConversionRequestHandler> _mapConversionRequestHandler;
+	std::unique_ptr<WadImportRequestHandler> _wadImportRequestHandler;
 	std::unique_ptr<FileOverwriteConfirmationHandler> _fileOverwriteConfirmationHandler;
 	std::unique_ptr<FileSaveConfirmationHandler> _fileSaveConfirmationHandler;
 	std::unique_ptr<statusbar::ShaderClipboardStatus> _shaderClipboardStatus;

@@ -943,6 +943,9 @@
     <ClCompile Include="..\..\radiant\ui\mapconversion\MapConversionDialog.cpp">
       <Filter>src\ui\mapconversion</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\wadimport\WadImportDialog.cpp">
+      <Filter>src\ui\wadimport</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\ui\osm\OsmImporterDialog.cpp">
       <Filter>src\ui\osm</Filter>
     </ClCompile>

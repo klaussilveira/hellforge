@@ -51,7 +51,7 @@ public:
     {
         rMessage() << "Open file " << path << " from filesystem...";
 
-        _stream.open(path);
+        _stream.open(path, std::ios::in | std::ios::binary);
 
         if (!_stream)
         {

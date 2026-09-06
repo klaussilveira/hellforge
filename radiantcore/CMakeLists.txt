@@ -109,6 +109,14 @@ add_library(radiantcore MODULE
             map/format/Quake1MapFormat.cpp
             map/format/ConversionMap.cpp
             map/format/ValveVmfFormat.cpp
+            map/format/DoomWadFormat.cpp
+            map/format/WadImportSettings.cpp
+            map/format/doom/DoomBinaryLoader.cpp
+            map/format/doom/DoomBrushBuilder.cpp
+            map/format/doom/DoomLightPlacer.cpp
+            map/format/doom/SectorGeometry.cpp
+            map/format/doom/UdmfLoader.cpp
+            map/format/doom/WadFile.cpp
             map/format/Quake3MapFormat.cpp
             map/format/Quake3MapReader.cpp
             map/format/Quake4MapFormat.cpp

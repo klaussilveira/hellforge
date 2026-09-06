@@ -91,6 +91,11 @@ const std::map<std::string, std::string> BASE_ENTITY_MAP = {
 	{ "info_player_coop", "info_player_start" },
 	{ "info_player_terrorist", "info_player_start" },
 	{ "info_player_counterterrorist", "info_player_start" },
+	{ "doom_player_1_start", "info_player_start" },
+	{ "doom_player_2_start", "info_player_start" },
+	{ "doom_player_3_start", "info_player_start" },
+	{ "doom_player_4_start", "info_player_start" },
+	{ "doom_deathmatch_start", "info_player_start" },
 	{ "light", "light" },
 	{ "light_spot", "light" },
 	{ "light_environment", "light" },
@@ -307,7 +312,9 @@ void MapConversionDialog::buildKnownMaps()
 	{
 		for (const char* key : {
 			"info_player_start", "info_player_deathmatch", "info_player_coop",
-			"info_player_terrorist", "info_player_counterterrorist"
+			"info_player_terrorist", "info_player_counterterrorist",
+			"doom_player_1_start", "doom_player_2_start", "doom_player_3_start",
+			"doom_player_4_start", "doom_deathmatch_start"
 		})
 		{
 			_knownEntities[key] = playerStart;

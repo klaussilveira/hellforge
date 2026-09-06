@@ -122,6 +122,9 @@
     <Filter Include="src\map\format\primitiveparsers">
       <UniqueIdentifier>{14d01f25-2d8c-4df6-b0ee-14629a2d13ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\map\format\doom">
+      <UniqueIdentifier>{22c52b05-945c-4178-974a-8a1484976f76}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\model\md5">
       <UniqueIdentifier>{29be273d-ab50-438d-b093-68823b761c71}</UniqueIdentifier>
     </Filter>
@@ -312,6 +315,30 @@
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\map\format\ValveVmfFormat.cpp">
       <Filter>src\map\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\DoomWadFormat.cpp">
+      <Filter>src\map\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\WadImportSettings.cpp">
+      <Filter>src\map\format</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\doom\DoomBinaryLoader.cpp">
+      <Filter>src\map\format\doom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\doom\DoomBrushBuilder.cpp">
+      <Filter>src\map\format\doom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\doom\DoomLightPlacer.cpp">
+      <Filter>src\map\format\doom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\doom\SectorGeometry.cpp">
+      <Filter>src\map\format\doom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\doom\UdmfLoader.cpp">
+      <Filter>src\map\format\doom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\doom\WadFile.cpp">
+      <Filter>src\map\format\doom</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\map\format\primitiveparsers\Quake1BrushDef.cpp">
       <Filter>src\map\format\primitiveparsers</Filter>

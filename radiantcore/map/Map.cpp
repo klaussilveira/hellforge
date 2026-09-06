@@ -54,6 +54,9 @@
 #include "messages/NotificationMessage.h"
 #include "messages/MapConversionRequest.h"
 #include "format/ConversionMap.h"
+#include "format/WadImportSettings.h"
+#include "format/DoomWadFormat.h"
+#include "messages/WadImportRequest.h"
 
 #include "ibrush.h"
 #include "ipatch.h"
@@ -194,6 +197,7 @@ void Map::loadMapResourceFromLocation(const MapLocation& location)
     }
 
     ConversionMap::clear();
+    WadImportSettings::clear();
 
     applyEntityMappingsTo(_resource->getRootNode());
 
@@ -248,7 +252,7 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
     _pendingEntitiesToSkip.clear();
 
     static const std::set<std::string> externalFormats = {
-        "Quake 1", "Quake 2", "Valve 220", "Valve VMF"
+        "Quake 1", "Quake 2", "Valve 220", "Valve VMF", "Doom WAD"
     };
 
     if (externalFormats.find(formatName) == externalFormats.end())
@@ -258,6 +262,16 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
 
     std::set<std::string> sourceTextures;
     std::set<std::string> sourceEntities;
+
+    if (formatName == "Doom WAD")
+    {
+        if (!offerWadImportOptions(mapPath)) return;
+
+        doom::scanWadMap(mapPath, WadImportSettings::getMapName(), sourceTextures, sourceEntities);
+
+        offerNameMapping(formatName, sourceTextures, sourceEntities);
+        return;
+    }
 
     bool isVmf = (formatName == "Valve VMF");
 
@@ -328,6 +342,45 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
         }
     }
 
+    offerNameMapping(formatName, sourceTextures, sourceEntities);
+}
+
+bool Map::offerWadImportOptions(const std::string& mapPath)
+{
+    auto mapNames = doom::getWadMapNames(mapPath);
+
+    if (mapNames.empty())
+    {
+        return false;
+    }
+
+    radiant::WadImportRequest request(mapPath, mapNames, WadImportSettings::DEFAULT_SCALE,
+        WadImportSettings::DEFAULT_LIGHT_SPACING);
+    GlobalRadiantCore().getMessageBus().sendMessage(request);
+
+    if (!request.isHandled())
+    {
+        WadImportSettings::set(mapNames.front(), WadImportSettings::DEFAULT_SCALE,
+            WadImportSettings::DEFAULT_LIGHT_SPACING);
+        return true;
+    }
+
+    if (!request.getResult().accepted)
+    {
+        WadImportSettings::cancel();
+        return false;
+    }
+
+    const auto& result = request.getResult();
+
+    WadImportSettings::set(result.mapName, result.scale, result.lightSpacing);
+
+    return true;
+}
+
+void Map::offerNameMapping(const std::string& formatName,
+    const std::set<std::string>& sourceTextures, const std::set<std::string>& sourceEntities)
+{
     if (sourceTextures.empty() && sourceEntities.empty())
     {
         return;
@@ -926,6 +979,7 @@ bool Map::import(const std::string& filename, const MapFormatPtr& format)
     }
 
     ConversionMap::clear();
+    WadImportSettings::clear();
 
     return success;
 }

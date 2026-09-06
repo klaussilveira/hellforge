@@ -304,6 +304,9 @@ private:
     std::set<std::string> _pendingEntitiesToSkip;
 
     void offerMapConversion(const std::string& formatName, const std::string& mapPath);
+    bool offerWadImportOptions(const std::string& mapPath);
+    void offerNameMapping(const std::string& formatName,
+        const std::set<std::string>& sourceTextures, const std::set<std::string>& sourceEntities);
     void applyEntityMappingsTo(const scene::IMapRootNodePtr& root);
 };
 

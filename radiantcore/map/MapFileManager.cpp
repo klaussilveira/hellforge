@@ -15,6 +15,7 @@ void MapFileManager::registerFileTypes()
 	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Quake 1"), "map", "*.map", "", "Quake 1"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Quake 2"), "map", "*.map", "", "Quake 2"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Valve VMF"), "vmf", "*.vmf", "", "Valve VMF"));
+	GlobalFiletypes().registerPattern(filetype::TYPE_MAP, FileTypePattern(_("Doom WAD"), "wad", "*.wad", "", "Doom WAD"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_REGION, FileTypePattern(_("Region"), "reg", "*.reg"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_PREFAB, FileTypePattern(_("Portable Prefab"), "pfbx", "*.pfbx"));
 	GlobalFiletypes().registerPattern(filetype::TYPE_PREFAB, FileTypePattern(_("Prefab"), "pfb", "*.pfb"));

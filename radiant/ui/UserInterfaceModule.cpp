@@ -245,6 +245,7 @@ void UserInterfaceModule::initialiseModule(const IApplicationContext& ctx)
 	_autoSaveRequestHandler.reset(new AutoSaveRequestHandler);
 	_fileSelectionRequestHandler.reset(new FileSelectionRequestHandler);
 	_mapConversionRequestHandler.reset(new MapConversionRequestHandler);
+	_wadImportRequestHandler.reset(new WadImportRequestHandler);
     _fileOverwriteConfirmationHandler.reset(new FileOverwriteConfirmationHandler);
     _fileSaveConfirmationHandler.reset(new FileSaveConfirmationHandler);
 
@@ -408,6 +409,7 @@ void UserInterfaceModule::shutdownModule()
     _fileOverwriteConfirmationHandler.reset();
 	_fileSelectionRequestHandler.reset();
 	_mapConversionRequestHandler.reset();
+	_wadImportRequestHandler.reset();
 	_autoSaveRequestHandler.reset();
 	_shaderClipboardStatus.reset();
     _mapStatisticsStatus.reset();

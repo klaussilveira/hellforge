@@ -20,6 +20,14 @@ add_executable(drtest
                DeclManager.cpp
                DefBlockSyntaxParser.cpp
                DefTokenisers.cpp
+               DoomWadImport.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/ConversionMap.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/DoomBinaryLoader.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/DoomBrushBuilder.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/DoomLightPlacer.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/SectorGeometry.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/UdmfLoader.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/WadFile.cpp
                Entity.cpp
                EntityClass.cpp
                EntityInspector.cpp
