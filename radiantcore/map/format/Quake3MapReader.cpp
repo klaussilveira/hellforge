@@ -9,6 +9,7 @@
 #include "i18n.h"
 #include <fmt/format.h>
 
+#include "ConversionMap.h"
 #include "primitiveparsers/BrushDef.h"
 #include "primitiveparsers/BrushDef3.h"
 #include "primitiveparsers/PatchDef2.h"
@@ -143,7 +144,7 @@ scene::INodePtr Quake3MapReader::createEntity(const EntityKeyValues& keyValues)
          i != keyValues.end();
          ++i)
     {
-        node->getEntity().setKeyValue(i->first, i->second);
+        node->getEntity().setKeyValue(i->first, ConversionMap::scaleSpatialValue(i->first, i->second));
     }
 
     return node;

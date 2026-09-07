@@ -243,15 +243,13 @@ void CameraBrushCreatorTool::clampToPreventOverlap(const Vector3& anchor,
 
         for (int axis = 0; axis < 3; axis++)
         {
-            // Skip this axis if the anchor sits on a face of this brush —
-            // that means we started construction on this surface and should
-            // be allowed to grow away from it.
+            // Skip this axis if the anchor sits on a face of this brush
             double eps = 0.1;
             if (std::abs(anchor[axis] - nbMin[axis]) < eps ||
                 std::abs(anchor[axis] - nbMax[axis]) < eps)
                 continue;
 
-            // Only clamp the edge that's being dragged (away from anchor)
+            // Only clamp the edge that is being dragged
             if (anchor[axis] <= nbMin[axis] && maxs[axis] > nbMin[axis])
             {
                 maxs[axis] = nbMin[axis]; // stop at brush's min face

@@ -8,6 +8,8 @@
 #include <set>
 #include <string>
 
+class wxSpinCtrlDouble;
+
 namespace ui
 {
 
@@ -16,6 +18,8 @@ class MapConversionDialog : public wxutil::DialogBase
 public:
 	struct MappingResult
 	{
+		bool accepted = false;
+		double scale = 1.0;
 		std::map<std::string, std::string> textureMappings;
 		std::map<std::string, std::string> entityMappings;
 		std::set<std::string> entitiesToSkip;
@@ -24,7 +28,8 @@ public:
 	static MappingResult RunDialog(wxWindow* parent,
 		const std::string& formatName,
 		const std::set<std::string>& sourceTextures,
-		const std::set<std::string>& sourceEntities);
+		const std::set<std::string>& sourceEntities,
+		double defaultScale);
 
 private:
 	struct TextureColumns : public wxutil::TreeModel::ColumnRecord
@@ -62,13 +67,14 @@ private:
 	wxutil::TreeView* _texView;
 	wxutil::TreeModel* _entStore;
 	wxutil::TreeView* _entView;
+	wxSpinCtrlDouble* _scaleEntry;
 
 	std::map<std::string, std::string> _knownTextures;
 	std::map<std::string, std::string> _knownEntities;
 
 	MappingResult _result;
 
-	MapConversionDialog(wxWindow* parent, const std::string& formatName);
+	MapConversionDialog(wxWindow* parent, const std::string& formatName, double defaultScale);
 
 	void buildKnownMaps();
 

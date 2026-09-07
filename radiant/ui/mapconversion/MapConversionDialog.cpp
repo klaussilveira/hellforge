@@ -15,6 +15,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/filedlg.h>
+#include <wx/spinctrl.h>
 
 #include <fstream>
 
@@ -173,8 +174,9 @@ std::string stripPrefix(const std::string& name)
 
 }
 
-MapConversionDialog::MapConversionDialog(wxWindow* parent, const std::string& formatName) :
-	DialogBase(fmt::format("Convert {} Map", formatName), parent)
+MapConversionDialog::MapConversionDialog(wxWindow* parent, const std::string& formatName, double defaultScale) :
+	DialogBase(fmt::format("Convert {} Map", formatName), parent),
+	_scaleEntry(nullptr)
 {
 	buildKnownMaps();
 
@@ -184,6 +186,27 @@ MapConversionDialog::MapConversionDialog(wxWindow* parent, const std::string& fo
 		fmt::format("The loaded map uses the {} format.\n"
 		"You can remap textures and entities to match the current game.", formatName));
 	mainSizer->Add(infoLabel, 0, wxALL, 10);
+
+	if (defaultScale != 1.0)
+	{
+		auto* scaleSizer = new wxBoxSizer(wxHORIZONTAL);
+
+		scaleSizer->Add(new wxStaticText(this, wxID_ANY, _("Scale:")), 0,
+			wxALIGN_CENTER_VERTICAL | wxRIGHT, 12);
+
+		_scaleEntry = new wxSpinCtrlDouble(this, wxID_ANY);
+		_scaleEntry->SetRange(0.1, 16.0);
+		_scaleEntry->SetIncrement(0.05);
+		_scaleEntry->SetDigits(4);
+		_scaleEntry->SetValue(defaultScale);
+		scaleSizer->Add(_scaleEntry, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 12);
+
+		scaleSizer->Add(new wxStaticText(this, wxID_ANY,
+			fmt::format(_("The default matches the {0} player eye height to 68 units."), formatName)),
+			0, wxALIGN_CENTER_VERTICAL);
+
+		mainSizer->Add(scaleSizer, 0, wxLEFT | wxRIGHT | wxBOTTOM, 10);
+	}
 
 	auto* notebook = new wxNotebook(this, wxID_ANY);
 
@@ -565,6 +588,13 @@ void MapConversionDialog::onOK(wxCommandEvent& ev)
 		}
 	});
 
+	_result.accepted = true;
+
+	if (_scaleEntry != nullptr)
+	{
+		_result.scale = _scaleEntry->GetValue();
+	}
+
 	EndModal(wxID_OK);
 }
 
@@ -577,9 +607,10 @@ MapConversionDialog::MappingResult MapConversionDialog::RunDialog(
 	wxWindow* parent,
 	const std::string& formatName,
 	const std::set<std::string>& sourceTextures,
-	const std::set<std::string>& sourceEntities)
+	const std::set<std::string>& sourceEntities,
+	double defaultScale)
 {
-	MapConversionDialog dlg(parent, formatName);
+	MapConversionDialog dlg(parent, formatName, defaultScale);
 	dlg.populate(sourceTextures, sourceEntities);
 
 	if (dlg.ShowModal() == wxID_OK)

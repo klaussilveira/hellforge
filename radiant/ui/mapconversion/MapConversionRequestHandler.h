@@ -33,12 +33,12 @@ private:
 			nullptr,
 			request.getFormatName(),
 			request.getSourceTextures(),
-			request.getSourceEntities());
+			request.getSourceEntities(),
+			request.getDefaultScale());
 
 		radiant::MapConversionRequest::Result msgResult;
-		msgResult.accepted = !result.textureMappings.empty() ||
-							  !result.entityMappings.empty() ||
-							  !result.entitiesToSkip.empty();
+		msgResult.accepted = result.accepted;
+		msgResult.scale = result.scale;
 		msgResult.textureMappings = std::move(result.textureMappings);
 		msgResult.entityMappings = std::move(result.entityMappings);
 		msgResult.entitiesToSkip = std::move(result.entitiesToSkip);

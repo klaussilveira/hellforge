@@ -807,7 +807,7 @@ Vector3 PolygonTool::projectOntoConstructionPlane(const Ray& ray) const
 
     if (distance <= 0 || !std::isfinite(distance))
     {
-        // Ray parallel or pointing away — return last known position
+        // Ray parallel or pointing away
         return _currentMousePos;
     }
 

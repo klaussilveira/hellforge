@@ -3,6 +3,7 @@
 
 #include "BrushDef.h"
 
+#include "../ConversionMap.h"
 #include "../Quake3Utils.h"
 #include "string/convert.h"
 #include "imap.h"
@@ -51,6 +52,8 @@ scene::INodePtr BrushDefParser::parse(parser::DefTokeniser& tok) const
 
 	IBrush& brush = brushNode->getIBrush();
 
+	auto scale = ConversionMap::getScale();
+
 	tok.assertNextToken("{");
 
 	// Parse face tokens until a closing brace is encountered
@@ -69,7 +72,7 @@ scene::INodePtr BrushDefParser::parse(parser::DefTokeniser& tok) const
 			double x = string::to_float(tok.nextToken());
 			double y = string::to_float(tok.nextToken());
 			double z = string::to_float(tok.nextToken());
-			Vector3 p1(x, y, z);
+			Vector3 p1 = Vector3(x, y, z) * scale;
 
 			tok.assertNextToken(")");
 			tok.assertNextToken("(");
@@ -77,7 +80,7 @@ scene::INodePtr BrushDefParser::parse(parser::DefTokeniser& tok) const
 			x = string::to_float(tok.nextToken());
 			y = string::to_float(tok.nextToken());
 			z = string::to_float(tok.nextToken());
-			Vector3 p2(x, y, z);
+			Vector3 p2 = Vector3(x, y, z) * scale;
 
 			tok.assertNextToken(")");
 			tok.assertNextToken("(");
@@ -85,7 +88,7 @@ scene::INodePtr BrushDefParser::parse(parser::DefTokeniser& tok) const
 			x = string::to_float(tok.nextToken());
 			y = string::to_float(tok.nextToken());
 			z = string::to_float(tok.nextToken());
-			Vector3 p3(x, y, z);
+			Vector3 p3 = Vector3(x, y, z) * scale;
 
 			tok.assertNextToken(")");
 
@@ -109,6 +112,11 @@ scene::INodePtr BrushDefParser::parse(parser::DefTokeniser& tok) const
 			tok.assertNextToken(")");
 
 			tok.assertNextToken(")");
+
+			texdef.xx() /= scale;
+			texdef.yx() /= scale;
+			texdef.xy() /= scale;
+			texdef.yy() /= scale;
 
 			// Parse Shader, brushDef has an implicit "textures/" not written to the map
 			std::string shader = GlobalTexturePrefix_get() + tok.nextToken();
@@ -172,6 +180,8 @@ scene::INodePtr LegacyBrushDefParser::parse(parser::DefTokeniser& tok) const
 
 	IBrush& brush = brushNode->getIBrush();
 
+	auto scale = ConversionMap::getScale();
+
 	// Parse face tokens until a closing brace is encountered
 	while (1)
 	{
@@ -188,7 +198,7 @@ scene::INodePtr LegacyBrushDefParser::parse(parser::DefTokeniser& tok) const
 			double x = string::to_float(tok.nextToken());
 			double y = string::to_float(tok.nextToken());
 			double z = string::to_float(tok.nextToken());
-			Vector3 p1(x, y, z);
+			Vector3 p1 = Vector3(x, y, z) * scale;
 
 			tok.assertNextToken(")");
 			tok.assertNextToken("(");
@@ -196,7 +206,7 @@ scene::INodePtr LegacyBrushDefParser::parse(parser::DefTokeniser& tok) const
 			x = string::to_float(tok.nextToken());
 			y = string::to_float(tok.nextToken());
 			z = string::to_float(tok.nextToken());
-			Vector3 p2(x, y, z);
+			Vector3 p2 = Vector3(x, y, z) * scale;
 
 			tok.assertNextToken(")");
 			tok.assertNextToken("(");
@@ -204,7 +214,7 @@ scene::INodePtr LegacyBrushDefParser::parse(parser::DefTokeniser& tok) const
 			x = string::to_float(tok.nextToken());
 			y = string::to_float(tok.nextToken());
 			z = string::to_float(tok.nextToken());
-			Vector3 p3(x, y, z);
+			Vector3 p3 = Vector3(x, y, z) * scale;
 
 			tok.assertNextToken(")");
 
@@ -234,6 +244,9 @@ scene::INodePtr LegacyBrushDefParser::parse(parser::DefTokeniser& tok) const
             {
                 ssr.scale[1] = 0.5;
             }
+
+            ssr.scale[0] *= scale;
+            ssr.scale[1] *= scale;
 
             auto texdef = calculateTextureMatrix(shader, plane.normal(), ssr);
 

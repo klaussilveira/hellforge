@@ -1272,7 +1272,7 @@ JsonValue McpPlugin::deleteBrushes(const JsonValue& params)
 {
     std::string entityName = params["entity"].getString();
 
-    // Collect indices to delete — supports "indices" array or "from"/"to" range
+    // Collect indices to delete
     std::vector<int> indices;
     if (params.has("indices") && params["indices"].isArray())
     {

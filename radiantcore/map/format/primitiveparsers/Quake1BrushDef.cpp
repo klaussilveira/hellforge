@@ -31,17 +31,17 @@ Vector3 parsePoint(parser::DefTokeniser& tok)
 	return Vector3(x, y, z);
 }
 
-Plane3 parsePlane(parser::DefTokeniser& tok)
+Plane3 parsePlane(parser::DefTokeniser& tok, double scale)
 {
-	Vector3 p1 = parsePoint(tok);
+	Vector3 p1 = parsePoint(tok) * scale;
 	tok.assertNextToken(")");
 	tok.assertNextToken("(");
 
-	Vector3 p2 = parsePoint(tok);
+	Vector3 p2 = parsePoint(tok) * scale;
 	tok.assertNextToken(")");
 	tok.assertNextToken("(");
 
-	Vector3 p3 = parsePoint(tok);
+	Vector3 p3 = parsePoint(tok) * scale;
 	tok.assertNextToken(")");
 
 	return Plane3(p3, p2, p1);
@@ -119,6 +119,8 @@ scene::INodePtr Quake1BrushDefParser::parse(parser::DefTokeniser& tok) const
 
 	IBrush& brush = brushNode->getIBrush();
 
+	auto scale = ConversionMap::getScale();
+
 	while (1)
 	{
 		std::string token = tok.nextToken();
@@ -129,7 +131,7 @@ scene::INodePtr Quake1BrushDefParser::parse(parser::DefTokeniser& tok) const
 		}
 		else if (token == "(")
 		{
-			Plane3 plane = parsePlane(tok);
+			Plane3 plane = parsePlane(tok, scale);
 
 			std::string shader = resolveTextureName(tok.nextToken());
 
@@ -142,6 +144,9 @@ scene::INodePtr Quake1BrushDefParser::parse(parser::DefTokeniser& tok) const
 
 			if (ssr.scale[0] == 0) ssr.scale[0] = 1;
 			if (ssr.scale[1] == 0) ssr.scale[1] = 1;
+
+			ssr.scale[0] *= scale;
+			ssr.scale[1] *= scale;
 
 			auto texdef = ssrToTextureMatrix(shader, plane.normal(), ssr);
 
@@ -173,6 +178,8 @@ scene::INodePtr Valve220BrushDefParser::parse(parser::DefTokeniser& tok) const
 
 	IBrush& brush = brushNode->getIBrush();
 
+	auto scale = ConversionMap::getScale();
+
 	while (1)
 	{
 		std::string token = tok.nextToken();
@@ -183,7 +190,7 @@ scene::INodePtr Valve220BrushDefParser::parse(parser::DefTokeniser& tok) const
 		}
 		else if (token == "(")
 		{
-			Plane3 plane = parsePlane(tok);
+			Plane3 plane = parsePlane(tok, scale);
 
 			std::string shader = resolveTextureName(tok.nextToken());
 
@@ -213,7 +220,7 @@ scene::INodePtr Valve220BrushDefParser::parse(parser::DefTokeniser& tok) const
 			Vector3 vAxis(vx, vy, vz);
 
 			auto texdef = calculateTextureMatrix(shader, plane.normal(),
-				uAxis, vAxis, shiftU, shiftV, scaleU, scaleV);
+				uAxis, vAxis, shiftU, shiftV, scaleU * scale, scaleV * scale);
 
 			brush.addFace(plane, texdef, shader);
 		}
@@ -268,6 +275,8 @@ scene::INodePtr Quake2BrushDefParser::parse(parser::DefTokeniser& tok) const
 
 	IBrush& brush = brushNode->getIBrush();
 
+	auto scale = ConversionMap::getScale();
+
 	while (1)
 	{
 		std::string token = tok.nextToken();
@@ -278,7 +287,7 @@ scene::INodePtr Quake2BrushDefParser::parse(parser::DefTokeniser& tok) const
 		}
 		else if (token == "(")
 		{
-			Plane3 plane = parsePlane(tok);
+			Plane3 plane = parsePlane(tok, scale);
 
 			std::string shader = resolveTextureName(tok.nextToken());
 
@@ -291,6 +300,9 @@ scene::INodePtr Quake2BrushDefParser::parse(parser::DefTokeniser& tok) const
 
 			if (ssr.scale[0] == 0) ssr.scale[0] = 1;
 			if (ssr.scale[1] == 0) ssr.scale[1] = 1;
+
+			ssr.scale[0] *= scale;
+			ssr.scale[1] *= scale;
 
 			std::string next = tok.peek();
 			if (next != "(" && next != "}")

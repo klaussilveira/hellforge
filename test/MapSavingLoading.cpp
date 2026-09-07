@@ -14,6 +14,7 @@
 #include "messages/ApplicationShutdownRequest.h"
 #include "messages/FileSelectionRequest.h"
 #include "messages/FileOverwriteConfirmation.h"
+#include "messages/MapConversionRequest.h"
 #include "messages/MapFileOperation.h"
 #include "messages/FileSaveConfirmation.h"
 #include "messages/NotificationMessage.h"
@@ -25,6 +26,7 @@
 #include "testutil/FileSelectionHelper.h"
 #include "testutil/FileSaveConfirmationHelper.h"
 #include "registry/registry.h"
+#include "map/format/ConversionMap.h"
 #include "testutil/TemporaryFile.h"
 
 using namespace std::chrono_literals;
@@ -1660,6 +1662,169 @@ TEST_F(MapSavingTest, EscapeCharactersInEntityKeyValues)
     // Exact same
     string::replace_all_copy(savedContent, "\r\n", "\n"); // normalise line breaks
     EXPECT_EQ(savedContent, mapContent) << "Failed to serialise quoted entity key values";
+}
+
+namespace
+{
+
+class MapConversionHelper
+{
+private:
+    std::size_t _msgSubscription;
+    double _scale;
+
+public:
+    MapConversionHelper(double scale) :
+        _scale(scale)
+    {
+        _msgSubscription = GlobalRadiantCore().getMessageBus().addListener(
+            radiant::IMessage::Type::MapConversionRequest,
+            radiant::TypeListener<radiant::MapConversionRequest>(
+                [this](radiant::MapConversionRequest& msg)
+        {
+            radiant::MapConversionRequest::Result result;
+            result.accepted = true;
+            result.scale = _scale;
+
+            msg.setResult(result);
+            msg.setHandled(true);
+        }));
+    }
+
+    ~MapConversionHelper()
+    {
+        GlobalRadiantCore().getMessageBus().removeListener(_msgSubscription);
+    }
+};
+
+const char* const QUAKE1_TEST_MAP = R"(
+{
+"classname" "worldspawn"
+{
+( 0 208 64 ) ( 0 -16 64 ) ( 0 -16 48 ) a_1024x512 0 0 0 1 1
+( 240 64 64 ) ( 0 64 64 ) ( 0 64 48 ) a_1024x512 0 0 0 1 1
+( 64 -16 128 ) ( 64 208 128 ) ( 64 208 112 ) a_1024x512 0 0 0 1 1
+( 0 0 64 ) ( 240 0 64 ) ( 240 0 48 ) a_1024x512 0 0 0 1 1
+( 0 -16 64 ) ( 0 208 64 ) ( 240 208 64 ) a_1024x512 0 0 0 1 1
+( 192 208 0 ) ( -48 208 0 ) ( -48 -16 0 ) a_1024x512 0 0 0 1 1
+}
+}
+{
+"classname" "light"
+"name" "scaled_light"
+"origin" "32 48 16"
+"light_radius" "100 100 100"
+}
+)";
+
+const char* const VALVE220_TEST_MAP = R"(
+{
+"classname" "worldspawn"
+{
+( 0 208 64 ) ( 0 -16 64 ) ( 0 -16 48 ) a_1024x512 [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1
+( 240 64 64 ) ( 0 64 64 ) ( 0 64 48 ) a_1024x512 [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1
+( 64 -16 128 ) ( 64 208 128 ) ( 64 208 112 ) a_1024x512 [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1
+( 0 0 64 ) ( 240 0 64 ) ( 240 0 48 ) a_1024x512 [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1
+( 0 -16 64 ) ( 0 208 64 ) ( 240 208 64 ) a_1024x512 [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1
+( 192 208 0 ) ( -48 208 0 ) ( -48 -16 0 ) a_1024x512 [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1
+}
+}
+)";
+
+}
+
+class MapImportTest :
+    public MapFileTestBase
+{
+protected:
+    void importWithScale(const std::string& contents, const std::string& filename,
+        const std::string& formatName, double scale)
+    {
+        fs::path mapPath = _context.getTemporaryDataPath();
+        mapPath /= filename;
+        TemporaryFile tempFile(mapPath.string(), contents);
+
+        auto format = GlobalMapFormatManager().getMapFormatByName(formatName);
+        EXPECT_TRUE(format) << "Map format not registered: " << formatName;
+
+        FileSelectionHelper responder(mapPath.string(), format);
+        MapConversionHelper conversion(scale);
+
+        GlobalCommandSystem().executeCommand("ImportMap");
+    }
+
+    IFace* getTopFaceOfImportedBrush()
+    {
+        auto worldspawn = GlobalMapModule().findOrInsertWorldspawn();
+        auto brushNode = algorithm::findFirstBrushWithMaterial(worldspawn, "textures/a_1024x512");
+
+        EXPECT_TRUE(brushNode) << "Couldn't locate the imported brush";
+
+        return algorithm::findBrushFaceWithNormal(Node_getIBrush(brushNode), Vector3(0, 0, 1));
+    }
+};
+
+TEST_F(MapImportTest, defaultScaleMatchesPlayerEyeHeights)
+{
+    EXPECT_NEAR(map::ConversionMap::getDefaultScale("Quake 1"), 68.0 / 46.0, 1e-9);
+    EXPECT_NEAR(map::ConversionMap::getDefaultScale("Quake 2"), 68.0 / 46.0, 1e-9);
+    EXPECT_NEAR(map::ConversionMap::getDefaultScale("Quake 3"), 68.0 / 50.0, 1e-9);
+    EXPECT_NEAR(map::ConversionMap::getDefaultScale("Valve 220"), 68.0 / 64.0, 1e-9);
+    EXPECT_NEAR(map::ConversionMap::getDefaultScale("Valve VMF"), 68.0 / 64.0, 1e-9);
+
+    EXPECT_EQ(map::ConversionMap::getDefaultScale("Doom 3"), 1.0);
+    EXPECT_EQ(map::ConversionMap::getDefaultScale("Doom WAD"), 1.0);
+}
+
+TEST_F(MapImportTest, importQuake1MapWithoutScale)
+{
+    importWithScale(QUAKE1_TEST_MAP, "quake1_unscaled.map", "Quake 1", 1.0);
+
+    auto face = getTopFaceOfImportedBrush();
+    EXPECT_TRUE(face != nullptr) << "No brush plane is facing upwards?";
+
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(0, 0, 64), Vector2(0, 0)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(64, 0, 64), Vector2(0.0625, 0)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(64, 64, 64), Vector2(0.0625, -0.125)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(0, 64, 64), Vector2(0, -0.125)));
+
+    auto light = algorithm::getEntityByName(GlobalMapModule().getRoot(), "scaled_light");
+    EXPECT_TRUE(light) << "Couldn't locate the imported light";
+
+    EXPECT_EQ(light->tryGetEntity()->getKeyValue("origin"), "32 48 16");
+    EXPECT_EQ(light->tryGetEntity()->getKeyValue("light_radius"), "100 100 100");
+}
+
+TEST_F(MapImportTest, importQuake1MapWithScale)
+{
+    importWithScale(QUAKE1_TEST_MAP, "quake1_scaled.map", "Quake 1", 2.0);
+
+    auto face = getTopFaceOfImportedBrush();
+    EXPECT_TRUE(face != nullptr) << "No brush plane is facing upwards?";
+
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(0, 0, 128), Vector2(0, 0)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(128, 0, 128), Vector2(0.0625, 0)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(128, 128, 128), Vector2(0.0625, -0.125)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(0, 128, 128), Vector2(0, -0.125)));
+
+    auto light = algorithm::getEntityByName(GlobalMapModule().getRoot(), "scaled_light");
+    EXPECT_TRUE(light) << "Couldn't locate the imported light";
+
+    EXPECT_EQ(light->tryGetEntity()->getKeyValue("origin"), "64 96 32");
+    EXPECT_EQ(light->tryGetEntity()->getKeyValue("light_radius"), "200 200 200");
+}
+
+TEST_F(MapImportTest, importValve220MapWithScale)
+{
+    importWithScale(VALVE220_TEST_MAP, "valve220_scaled.map", "Valve 220", 2.0);
+
+    auto face = getTopFaceOfImportedBrush();
+    EXPECT_TRUE(face != nullptr) << "No brush plane is facing upwards?";
+
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(0, 0, 128), Vector2(0, 0)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(128, 0, 128), Vector2(0.0625, 0)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(128, 128, 128), Vector2(0.0625, -0.125)));
+    EXPECT_TRUE(algorithm::faceHasVertex(face, Vector3(0, 128, 128), Vector2(0, -0.125)));
 }
 
 }

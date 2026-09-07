@@ -248,11 +248,13 @@ void Map::assignRenderSystem(const scene::IMapRootNodePtr& root)
 
 void Map::offerMapConversion(const std::string& formatName, const std::string& mapPath)
 {
+    ConversionMap::clear();
+
     _pendingEntityMappings.clear();
     _pendingEntitiesToSkip.clear();
 
     static const std::set<std::string> externalFormats = {
-        "Quake 1", "Quake 2", "Valve 220", "Valve VMF", "Doom WAD"
+        "Quake 1", "Quake 2", "Quake 3", "Valve 220", "Valve VMF", "Doom WAD"
     };
 
     if (externalFormats.find(formatName) == externalFormats.end())
@@ -335,7 +337,7 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
                 if (pos > texStart)
                 {
                     std::string tex = trimmed.substr(texStart, pos - texStart);
-                    if (!tex.empty() && tex != "(")
+                    if (!tex.empty() && tex != "(" && tex != ")")
                         sourceTextures.insert(tex);
                 }
             }
@@ -386,11 +388,13 @@ void Map::offerNameMapping(const std::string& formatName,
         return;
     }
 
-    radiant::MapConversionRequest request(formatName, sourceTextures, sourceEntities);
+    radiant::MapConversionRequest request(formatName, sourceTextures, sourceEntities,
+        ConversionMap::getDefaultScale(formatName));
     GlobalRadiantCore().getMessageBus().sendMessage(request);
 
     if (request.isHandled() && request.getResult().accepted)
     {
+        ConversionMap::setScale(request.getResult().scale);
         ConversionMap::set(request.getResult().textureMappings);
         _pendingEntityMappings = request.getResult().entityMappings;
         _pendingEntitiesToSkip = request.getResult().entitiesToSkip;

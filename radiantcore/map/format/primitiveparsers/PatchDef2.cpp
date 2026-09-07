@@ -3,6 +3,7 @@
 
 #include "PatchDef2.h"
 
+#include "../ConversionMap.h"
 #include "imap.h"
 #include "ipatch.h"
 #include "parser/DefTokeniser.h"
@@ -65,6 +66,17 @@ scene::INodePtr PatchDef2Parser::parse(parser::DefTokeniser& tok) const
 
 	// Parse Patch Matrix
 	parseMatrix(tok, patch);
+
+	if (auto scale = ConversionMap::getScale(); scale != 1.0)
+	{
+		for (std::size_t c = 0; c < patch.getWidth(); c++)
+		{
+			for (std::size_t r = 0; r < patch.getHeight(); r++)
+			{
+				patch.ctrlAt(r, c).vertex *= scale;
+			}
+		}
+	}
 
 	// Parse Footer
 	tok.assertNextToken("}");

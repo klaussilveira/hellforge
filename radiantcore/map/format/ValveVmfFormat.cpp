@@ -71,7 +71,7 @@ std::pair<float, float> getTextureDimensions(const std::string& shader)
 	return { w, h };
 }
 
-Plane3 parsePlaneString(const std::string& str)
+Plane3 parsePlaneString(const std::string& str, double scale)
 {
 	double x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
@@ -81,9 +81,9 @@ Plane3 parsePlaneString(const std::string& str)
 		throw parser::ParseException("VMF: failed to parse plane: " + str);
 	}
 
-	Vector3 p1(x1, y1, z1);
-	Vector3 p2(x2, y2, z2);
-	Vector3 p3(x3, y3, z3);
+	Vector3 p1(x1 * scale, y1 * scale, z1 * scale);
+	Vector3 p2(x2 * scale, y2 * scale, z2 * scale);
+	Vector3 p3(x3 * scale, y3 * scale, z3 * scale);
 
 	return Plane3(p3, p2, p1);
 }
@@ -279,6 +279,8 @@ scene::INodePtr ValveVmfReader::parseSolid(parser::DefTokeniser& tok)
 
 	IBrush& brush = brushNode->getIBrush();
 
+	auto scale = ConversionMap::getScale();
+
 	while (tok.hasMoreTokens())
 	{
 		std::string token = tok.nextToken();
@@ -324,7 +326,7 @@ scene::INodePtr ValveVmfReader::parseSolid(parser::DefTokeniser& tok)
 
 				if (!planeStr.empty() && !uaxisStr.empty() && !vaxisStr.empty())
 				{
-					Plane3 plane = parsePlaneString(planeStr);
+					Plane3 plane = parsePlaneString(planeStr, scale);
 
 					std::string shader = resolveTextureName(material);
 
@@ -338,7 +340,7 @@ scene::INodePtr ValveVmfReader::parseSolid(parser::DefTokeniser& tok)
 					if (scaleV == 0) scaleV = 1;
 
 					auto texdef = calculateTextureMatrix(shader, plane.normal(),
-						uAxis, vAxis, shiftU, shiftV, scaleU, scaleV);
+						uAxis, vAxis, shiftU, shiftV, scaleU * scale, scaleV * scale);
 
 					brush.addFace(plane, texdef, shader);
 				}
@@ -384,7 +386,7 @@ scene::INodePtr ValveVmfReader::createEntity(const EntityKeyValues& keyValues)
 		i != keyValues.end();
 		++i)
 	{
-		node->getEntity().setKeyValue(i->first, i->second);
+		node->getEntity().setKeyValue(i->first, ConversionMap::scaleSpatialValue(i->first, i->second));
 	}
 
 	return node;
