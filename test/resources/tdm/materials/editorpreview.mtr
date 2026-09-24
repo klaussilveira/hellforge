@@ -1,0 +1,47 @@
+// Materials covering the stage that drives the editor preview pass
+
+// A translucent material whose visible color is a blend stage, preceded by
+// bump and specular stages
+textures/parsertest/editorpreview/bumpspecularblend
+{
+    glass
+    qer_editorimage textures/a_1024x512
+    translucent
+    twosided
+    bumpmap textures/numbers/1
+    specularmap textures/numbers/2
+    {
+        blend blend
+        map textures/a_1024x512
+        alpha 0.588
+    }
+}
+
+// A material consisting of a single blend stage
+textures/parsertest/editorpreview/pureblend
+{
+    qer_editorimage textures/a_1024x512
+    {
+        blend blend
+        map textures/a_1024x512
+    }
+}
+
+// A material with DBS stages but no blend stage
+textures/parsertest/editorpreview/bumpspecularonly
+{
+    qer_editorimage textures/a_1024x512
+    bumpmap textures/numbers/1
+    specularmap textures/numbers/2
+}
+
+// A regular diffuse material with an additive blend stage on top
+textures/parsertest/editorpreview/diffuseandblend
+{
+    qer_editorimage textures/a_1024x512
+    diffusemap textures/numbers/1
+    {
+        blend add
+        map textures/numbers/2
+    }
+}

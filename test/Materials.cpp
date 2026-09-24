@@ -9,6 +9,7 @@
 #include "string/join.h"
 #include "math/MatrixUtils.h"
 #include "materials/FrobStageSetup.h"
+#include "materials/LayerLookup.h"
 #include "testutil/TemporaryFile.h"
 
 namespace test
@@ -366,6 +367,72 @@ TEST_F(MaterialsTest, PbrMaterialWithoutEditorImage)
 
     auto layers = getAllLayers(material);
     EXPECT_EQ(material->getEditorImage(), layers.at(0)->getTexture());
+}
+
+TEST_F(MaterialsTest, EditorPreviewBlendStageFollowsBumpAndSpecular)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/editorpreview/bumpspecularblend");
+    EXPECT_TRUE(material);
+
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(layers.size(), 3);
+    EXPECT_EQ(layers.at(0)->getType(), IShaderLayer::BUMP);
+    EXPECT_EQ(layers.at(1)->getType(), IShaderLayer::SPECULAR);
+    EXPECT_EQ(layers.at(2)->getType(), IShaderLayer::BLEND);
+
+    EXPECT_FALSE(shaders::findFirstLayerOfType(material, IShaderLayer::DIFFUSE))
+        << "This material has no diffusemap";
+
+    auto blendLayer = shaders::findFirstLayerOfType(material, IShaderLayer::BLEND);
+    EXPECT_EQ(blendLayer, layers.at(2)) << "The bumpmap is the first layer, but not the blend stage";
+
+    EXPECT_EQ(blendLayer->getBlendFunc().src, GL_SRC_ALPHA);
+    EXPECT_EQ(blendLayer->getBlendFunc().dest, GL_ONE_MINUS_SRC_ALPHA);
+
+    EXPECT_EQ(blendLayer->getTexture(), material->getEditorImage())
+        << "The blend stage carries the image the editor is supposed to show";
+    EXPECT_NE(layers.at(0)->getTexture(), material->getEditorImage())
+        << "The normal map must never be used as editor image";
+}
+
+TEST_F(MaterialsTest, EditorPreviewBlendStageOfPureBlendMaterial)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/editorpreview/pureblend");
+    EXPECT_TRUE(material);
+
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(layers.size(), 1);
+
+    EXPECT_FALSE(shaders::findFirstLayerOfType(material, IShaderLayer::DIFFUSE));
+    EXPECT_EQ(shaders::findFirstLayerOfType(material, IShaderLayer::BLEND), layers.at(0));
+}
+
+TEST_F(MaterialsTest, EditorPreviewWithoutAnyBlendStage)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/editorpreview/bumpspecularonly");
+    EXPECT_TRUE(material);
+
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(layers.size(), 2);
+
+    EXPECT_FALSE(shaders::findFirstLayerOfType(material, IShaderLayer::DIFFUSE));
+    EXPECT_FALSE(shaders::findFirstLayerOfType(material, IShaderLayer::BLEND))
+        << "There is no stage the editor pass could take a blend mode from";
+
+    EXPECT_NE(layers.at(0)->getTexture(), material->getEditorImage())
+        << "The normal map must never be used as editor image";
+}
+
+TEST_F(MaterialsTest, EditorPreviewDiffuseAndBlendStagesAreDistinguished)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/parsertest/editorpreview/diffuseandblend");
+    EXPECT_TRUE(material);
+
+    auto layers = getAllLayers(material);
+    EXPECT_EQ(layers.size(), 2);
+
+    EXPECT_EQ(shaders::findFirstLayerOfType(material, IShaderLayer::DIFFUSE), layers.at(0));
+    EXPECT_EQ(shaders::findFirstLayerOfType(material, IShaderLayer::BLEND), layers.at(1));
 }
 
 TEST_F(MaterialsTest, EnumerateMaterialLayers)

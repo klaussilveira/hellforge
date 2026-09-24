@@ -12,6 +12,7 @@
 #include "ifilter.h"
 #include "irender.h"
 #include "texturelib.h"
+#include "materials/LayerLookup.h"
 #include "registry/registry.h"
 
 #include <algorithm>
@@ -33,24 +34,6 @@ namespace
     {
         auto texture = layer->getTexture();
         return texture ? texture : getDefaultInteractionTexture(layer->getType());
-    }
-
-    IShaderLayer::Ptr findFirstLayerOfType(const MaterialPtr& material, IShaderLayer::Type type)
-    {
-        IShaderLayer::Ptr found;
-
-        material->foreachLayer([&](const IShaderLayer::Ptr& layer)
-        {
-            if (layer->getType() == type)
-            {
-                found = layer;
-                return false;
-            }
-
-            return true;
-        });
-
-        return found;
     }
 }
 
@@ -540,22 +523,21 @@ void OpenGLShader::determineBlendModeForEditorPass(OpenGLState& pass, const ISha
         applyAlphaTestToPass(pass, diffuseLayer->getAlphaTest());
     }
 
-    // If this is a purely blend material (no DBS layers), set the editor blend
-    // mode from the first layer.
+    // Get the blend mode of the first blended stage
 	// greebo: Hack to let "shader not found" textures be handled as diffusemaps
-    if (!diffuseLayer && _material->getNumLayers() > 0 && _material->getName() != "_default")
+    auto blendLayer = shaders::findFirstLayerOfType(_material, IShaderLayer::BLEND);
+    if (!diffuseLayer && blendLayer && _material->getName() != "_default")
     {
 		pass.setRenderFlag(RENDER_BLEND);
 		pass.clearRenderFlag(RENDER_LIGHTING);
 		pass.setDepthFunc(GL_LEQUAL);
 		pass.setSortPosition(OpenGLState::SORT_TRANSLUCENT);
 
-		auto layer = _material->getLayer(0);
-		BlendFunc bf = layer->getBlendFunc();
+		BlendFunc bf = blendLayer->getBlendFunc();
 		pass.m_blend_src = bf.src;
 		pass.m_blend_dst = bf.dest;
 
-		auto layerTex = layer->getTexture();
+		auto layerTex = blendLayer->getTexture();
 		if (layerTex)
 		{
 			pass.texture0 = layerTex->getGLTexNum();
@@ -641,7 +623,7 @@ void OpenGLShader::constructEditorPreviewPassFromMaterial()
 
     // If there's a diffuse stage's, link it to this shader pass to inherit
     // settings like scale and translate
-    previewPass.stage0 = findFirstLayerOfType(_material, IShaderLayer::DIFFUSE);
+    previewPass.stage0 = shaders::findFirstLayerOfType(_material, IShaderLayer::DIFFUSE);
 
     // Evaluate the expressions of the diffuse stage once to be able to get a meaningful alphatest value
     if (previewPass.stage0)
