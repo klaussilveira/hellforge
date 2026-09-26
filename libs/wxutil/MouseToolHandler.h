@@ -35,6 +35,7 @@ public:
     void onGLMouseButtonPress(wxMouseEvent& ev);
     void onGLMouseButtonRelease(wxMouseEvent& ev);
     void onGLMouseMove(wxMouseEvent& ev);
+    void onGLMouseLeave(wxMouseEvent& ev);
     void onGLCapturedMouseMove(int x, int y, unsigned int mouseState);
 
     void handleCaptureLost(const ui::MouseToolPtr& tool);

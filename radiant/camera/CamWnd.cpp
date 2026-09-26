@@ -116,6 +116,7 @@ CamWnd::CamWnd(wxWindow* parent, CameraWndManager& owner) :
 	_wxGLWidget->Bind(wxEVT_AUX2_DOWN, &CamWnd::onGLMouseButtonPress, this);
 	_wxGLWidget->Bind(wxEVT_AUX2_DCLICK, &CamWnd::onGLMouseButtonPress, this);
 	_wxGLWidget->Bind(wxEVT_AUX2_UP, &CamWnd::onGLMouseButtonRelease, this);
+    _wxGLWidget->Bind(wxEVT_LEAVE_WINDOW, &CamWnd::onGLMouseLeave, this);
 
     // Now add the handlers for the non-freelook mode, the events are activated by this
     addHandlersMove();
@@ -1793,6 +1794,11 @@ void CamWnd::onGLMouseMove(wxMouseEvent& ev)
         clearLockedFace();
 
     MouseToolHandler::onGLMouseMove(ev);
+}
+
+void CamWnd::onGLMouseLeave(wxMouseEvent& ev)
+{
+    MouseToolHandler::onGLMouseLeave(ev);
 }
 
 void CamWnd::handleGLMouseMoveFreeMoveDelta(int x, int y, unsigned int state)

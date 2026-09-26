@@ -274,6 +274,12 @@
     <ClCompile Include="..\..\radiant\camera\tools\DecalShooterTool.cpp">
       <Filter>src\camera\tools</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiant\camera\tools\PlayerClearanceAlgorithm.cpp">
+      <Filter>src\camera\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\camera\tools\PlayerClearanceTool.cpp">
+      <Filter>src\camera\tools</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiant\camera\CameraHintOverlay.cpp">
       <Filter>src\camera</Filter>
     </ClCompile>
@@ -1225,6 +1231,9 @@
       <Filter>src\camera\tools</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\camera\tools\DecalShooterTool.h">
+      <Filter>src\camera\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\camera\tools\PlayerClearanceTool.h">
       <Filter>src\camera\tools</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\camera\tools\ShaderClipboardTools.h">

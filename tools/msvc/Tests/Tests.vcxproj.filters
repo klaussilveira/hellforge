@@ -50,6 +50,8 @@
       <Filter>math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\test\TerrainGenerator.cpp" />
+    <ClCompile Include="..\..\..\test\PlayerClearance.cpp" />
+    <ClCompile Include="..\..\..\radiant\camera\tools\PlayerClearanceAlgorithm.cpp" />
     <ClCompile Include="..\..\..\test\TerrainSculpt.cpp" />
     <ClCompile Include="..\..\..\radiant\selection\TerrainSculptAlgorithm.cpp" />
     <ClCompile Include="..\..\..\test\VertexPaint.cpp" />

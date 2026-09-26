@@ -59,6 +59,9 @@ public:
     virtual void onMouseCaptureLost(IInteractiveView& view)
     {}
 
+    virtual void onMouseLeave(IInteractiveView& view)
+    {}
+
     // Some tools might want to receive mouseMove events even when they
     // are not active, to send feedback to the user before the buttons
     // are pressed. The Clipper tool uses this to change the mouse cursor

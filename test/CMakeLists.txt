@@ -79,6 +79,8 @@ add_executable(drtest
                ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.offset.cpp
                ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.rectclip.cpp
                ${CMAKE_SOURCE_DIR}/libs/clipper2/clipper.triangulation.cpp
+               PlayerClearance.cpp
+               ${CMAKE_SOURCE_DIR}/radiant/camera/tools/PlayerClearanceAlgorithm.cpp
                RoofGenerator.cpp
                StairsGenerator.cpp
                StrokeGeometry.cpp

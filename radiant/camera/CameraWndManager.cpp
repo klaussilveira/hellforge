@@ -18,6 +18,7 @@
 #include "tools/PanViewTool.h"
 #include "tools/DecalShooterTool.h"
 #include "tools/CameraBrushCreatorTool.h"
+#include "tools/PlayerClearanceTool.h"
 
 #include <functional>
 
@@ -106,6 +107,12 @@ void CameraWndManager::registerCommands()
 
 	GlobalEventManager().addRegistryToggle("ToggleCameraGrid", RKEY_CAMERA_GRID_ENABLED);
 	GlobalEventManager().addRegistryToggle("ToggleShadowMapping", RKEY_ENABLE_SHADOW_MAPPING);
+
+	GlobalEventManager().addToggle("TogglePlayerClearance", [this](bool enabled)
+	{
+		_playerClearanceTool->setEnabled(enabled);
+		update();
+	});
 
 	GlobalCommandSystem().addCommand("CaptureCamera",
 		[this](const cmd::ArgumentList& args) {
@@ -547,6 +554,9 @@ void CameraWndManager::initialiseModule(const IApplicationContext& ctx)
     toolGroup.registerMouseTool(std::make_shared<DecalShooterTool>());
     toolGroup.registerMouseTool(std::make_shared<CameraBrushCreatorTool>());
 
+    _playerClearanceTool = std::make_shared<PlayerClearanceTool>();
+    toolGroup.registerMouseTool(_playerClearanceTool);
+
     GlobalUserInterface().registerControl(std::make_shared<CameraControl>(*this));
 
     GlobalMainFrame().signal_MainFrameConstructed().connect([&]()
@@ -561,6 +571,8 @@ void CameraWndManager::shutdownModule()
     GlobalUserInterface().unregisterControl(UserControl::Camera);
 
 	CamWnd::releaseStates();
+
+	_playerClearanceTool->setEnabled(false);
 
 	_cameras.clear();
 }

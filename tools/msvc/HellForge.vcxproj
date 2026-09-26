@@ -189,6 +189,8 @@
     <ClCompile Include="..\..\radiant\camera\CameraWndManager.cpp" />
     <ClCompile Include="..\..\radiant\camera\tools\CameraBrushCreatorTool.cpp" />
     <ClCompile Include="..\..\radiant\camera\tools\DecalShooterTool.cpp" />
+    <ClCompile Include="..\..\radiant\camera\tools\PlayerClearanceAlgorithm.cpp" />
+    <ClCompile Include="..\..\radiant\camera\tools\PlayerClearanceTool.cpp" />
     <ClCompile Include="..\..\radiant\camera\tools\FaceIntersectionFinder.cpp" />
     <ClCompile Include="..\..\radiant\clipboard\ClipboardModule.cpp" />
     <ClCompile Include="..\..\radiant\eventmanager\Accelerator.cpp" />
@@ -445,6 +447,7 @@
     <ClInclude Include="..\..\radiant\camera\tools\ShaderClipboardTools.h" />
     <ClInclude Include="..\..\radiant\camera\tools\CameraBrushCreatorTool.h" />
     <ClInclude Include="..\..\radiant\camera\tools\DecalShooterTool.h" />
+    <ClInclude Include="..\..\radiant\camera\tools\PlayerClearanceTool.h" />
     <ClInclude Include="..\..\radiant\camera\tools\FaceIntersectionFinder.h" />
     <ClInclude Include="..\..\radiant\clipboard\ClipboardModule.h" />
     <ClInclude Include="..\..\radiant\eventmanager\Accelerator.h" />

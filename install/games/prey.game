@@ -150,6 +150,15 @@
 		<guiSmallFontLimit value="0.15" />
 		<guiMediumFontLimit value="0.30" />
 	</defaults>
+
+	<player>
+		<width value="32" />
+		<standHeight value="74" />
+		<crouchHeight value="38" />
+		<standViewHeight value="68" />
+		<crouchViewHeight value="32" />
+		<minWalkNormal value="0.7" />
+	</player>
 	<entityChooser>
 		<displayFolderKey value="editor_displayFolder" />
 	</entityChooser>

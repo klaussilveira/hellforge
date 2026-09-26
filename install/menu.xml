@@ -92,6 +92,8 @@
 			<menuSeparator />
 			<menuItem name="cameraNextLeak" caption="Next leak spot" command="NextLeakSpot" />
 			<menuItem name="cameraPreviousLeak" caption="Previous leak spot" command="PrevLeakSpot" />
+			<menuSeparator />
+			<menuItem name="cameraPlayerClearance" caption="Player Clearance" command="TogglePlayerClearance" />
 		</subMenu>
 
 		<subMenu name="orthographic" caption="Orthographic">

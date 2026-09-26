@@ -143,6 +143,19 @@ void MouseToolHandler::onGLMouseMove(wxMouseEvent& ev)
     }
 }
 
+void MouseToolHandler::onGLMouseLeave(wxMouseEvent& ev)
+{
+    GlobalMouseToolManager().getGroup(_type).foreachMouseTool([&] (const ui::MouseToolPtr& tool)
+    {
+        if (!tool->alwaysReceivesMoveEvents())
+        {
+            return;
+        }
+
+        tool->onMouseLeave(getInteractiveView());
+    });
+}
+
 void MouseToolHandler::onGLCapturedMouseMove(int x, int y, unsigned int mouseState)
 {
     sendMoveEventToInactiveTools(x, y);

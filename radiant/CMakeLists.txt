@@ -6,6 +6,8 @@ add_executable(hellforge
                camera/tools/CameraBrushCreatorTool.cpp
                camera/tools/DecalShooterTool.cpp
                camera/tools/FaceIntersectionFinder.cpp
+               camera/tools/PlayerClearanceAlgorithm.cpp
+               camera/tools/PlayerClearanceTool.cpp
                clipboard/ClipboardModule.cpp
                eventmanager/Accelerator.cpp
                eventmanager/EventManager.cpp

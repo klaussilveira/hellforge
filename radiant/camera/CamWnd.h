@@ -282,6 +282,7 @@ private:
     void onGLMouseButtonPress(wxMouseEvent& ev);
     void onGLMouseButtonRelease(wxMouseEvent& ev);
     void onGLMouseMove(wxMouseEvent& ev);
+    void onGLMouseLeave(wxMouseEvent& ev);
 
     // Mouse motion callback used in freelook mode only, processes deltas
     void handleGLMouseMoveFreeMoveDelta(int x, int y, unsigned int state);

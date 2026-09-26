@@ -12,6 +12,8 @@ class wxWindow;
 namespace ui
 {
 
+class PlayerClearanceTool;
+
 /**
  * greebo: This is the gateway class to access the currently active CamWindow
  *
@@ -37,6 +39,8 @@ private:
     // Brush creation modifier keys
     unsigned int _brushSquareModifierFlags;
     unsigned int _brushHeightModifierFlags;
+
+    std::shared_ptr<PlayerClearanceTool> _playerClearanceTool;
 
 public:
 	// Constructor
