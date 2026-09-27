@@ -1,0 +1,19 @@
+Version 2
+// entity 0
+{
+"classname" "worldspawn"
+}
+// entity 1
+{
+"classname" "func_static"
+"name" "doorway_kit_frame"
+"model" "models/ase/testcube.ase"
+"origin" "0 0 16"
+}
+// entity 2
+{
+"classname" "func_static"
+"name" "doorway_kit_leaf"
+"model" "models/ase/testcube.ase"
+"origin" "1.15 -27.65 16.63"
+}

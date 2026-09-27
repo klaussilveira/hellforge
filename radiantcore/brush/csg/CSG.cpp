@@ -1,8 +1,10 @@
 #include "CSG.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <map>
+#include <sstream>
 
 #include "i18n.h"
 #include "itextstream.h"
@@ -10,7 +12,9 @@
 #include "igrid.h"
 #include "iselection.h"
 #include "imap.h"
+#include "itransformable.h"
 #include "scene/Entity.h"
+#include "scene/EntityNode.h"
 
 #include "scenelib.h"
 #include "shaderlib.h"
@@ -24,6 +28,8 @@
 #include "brush/BrushNode.h"
 #include "brush/BrushVisit.h"
 #include "selection/algorithm/Primitives.h"
+#include "selection/algorithm/Transformation.h"
+#include "string/convert.h"
 #include "scene/PrefabBoundsAccumulator.h"
 #include "messages/NotificationMessage.h"
 #include "command/ExecutionNotPossible.h"
@@ -1066,7 +1072,12 @@ namespace
 {
 
 const double WALL_FACE_ALIGNMENT = 0.999;
+const double MODEL_AXIS_ALIGNMENT = 0.7071;
 const double CUTTER_MARGIN = 1.0;
+const double LINING_TOLERANCE = 0.25;
+const double LINING_REACH = 1.5;
+const double LINING_COVERAGE = 0.9;
+const double LINING_CLEARANCE = 0.5;
 
 struct WallSlab
 {
@@ -1266,6 +1277,25 @@ BrushNodePtr createOpeningCutter(const polygon::Ring& ring, const OpeningFrame& 
     return brushNode;
 }
 
+bool readOpeningRect(const scene::INodePtr& node, double rect[4])
+{
+    auto entityNode = std::dynamic_pointer_cast<EntityNode>(node);
+
+    if (!entityNode)
+    {
+        return false;
+    }
+
+    std::istringstream stream(entityNode->getEntity().getKeyValue("opening_rect"));
+
+    if (!(stream >> rect[0] >> rect[1] >> rect[2] >> rect[3]))
+    {
+        return false;
+    }
+
+    return rect[0] < rect[1] && rect[2] < rect[3];
+}
+
 bool subtractCutters(const BrushNodePtr& target, const BrushPtrVector& cutters,
     bool preserveTexture)
 {
@@ -1350,8 +1380,7 @@ bool carveOpeningForEntity(const scene::INodePtr& entity, const scene::INodePtr&
 
     worldspawn->foreachNode([&](const scene::INodePtr& node)
     {
-        if (Node_isBrush(node) && node->visible() && !Node_isSelected(node) &&
-            node->worldAABB().intersects(bounds))
+        if (Node_isBrush(node) && node->visible() && node->worldAABB().intersects(bounds))
         {
             candidates.emplace_back(std::dynamic_pointer_cast<BrushNode>(node));
         }
@@ -1364,37 +1393,73 @@ bool carveOpeningForEntity(const scene::INodePtr& entity, const scene::INodePtr&
         return false;
     }
 
-    BrushNodePtr reference;
+    const Matrix4& modelToWorld = finder.getNode()->localToWorld();
+
+    OpeningFrame frame;
+    OpeningSolution solution;
     WallSlab referenceSlab;
+    double rect[4] = {};
+    bool kitLined = readOpeningRect(entity, rect);
 
-    for (const BrushNodePtr& candidate : candidates)
+    if (kitLined)
     {
-        WallSlab slab = findThinnestSlab(candidate->getBrush());
+        frame.origin = modelToWorld.translation();
+        frame.normal = modelToWorld.xCol3().getNormalised();
+        frame.run = modelToWorld.yCol3().getNormalised();
+        frame.up = modelToWorld.zCol3().getNormalised();
 
-        if (!slab.valid || (reference && slab.thickness >= referenceSlab.thickness))
+        solution.valid = true;
+    }
+    else
+    {
+        const AABB& modelBounds = finder.getModel()->getIModel().localAABB();
+        std::size_t thinIndex = 0;
+
+        for (std::size_t i = 1; i < 3; ++i)
         {
-            continue;
+            if (modelBounds.extents[i] < modelBounds.extents[thinIndex])
+            {
+                thinIndex = i;
+            }
         }
 
-        reference = candidate;
-        referenceSlab = slab;
+        const Vector3 modelAxes[] = { modelToWorld.xCol3(), modelToWorld.yCol3(), modelToWorld.zCol3() };
+        Vector3 thinAxis = modelAxes[thinIndex].getNormalised();
+        BrushNodePtr reference;
+
+        for (const BrushNodePtr& candidate : candidates)
+        {
+            WallSlab slab = findThinnestSlab(candidate->getBrush());
+
+            if (!slab.valid || std::abs(slab.normal.dot(thinAxis)) < MODEL_AXIS_ALIGNMENT)
+            {
+                continue;
+            }
+
+            if (reference && slab.thickness >= referenceSlab.thickness)
+            {
+                continue;
+            }
+
+            reference = candidate;
+            referenceSlab = slab;
+        }
+
+        if (!reference)
+        {
+            return false;
+        }
+
+        Vector3 centre = bounds.getOrigin();
+        Vector3 origin =
+            centre - referenceSlab.normal * (centre.dot(referenceSlab.normal) - referenceSlab.mid);
+
+        frame = buildOpeningFrame(referenceSlab.normal, origin,
+            -referenceSlab.thickness * 0.5, referenceSlab.thickness * 0.5);
+
+        OpeningSettings settings;
+        solution = solveOpening(finder.getModel()->getIModel(), modelToWorld, frame, settings);
     }
-
-    if (!reference)
-    {
-        return false;
-    }
-
-    Vector3 centre = bounds.getOrigin();
-    Vector3 origin =
-        centre - referenceSlab.normal * (centre.dot(referenceSlab.normal) - referenceSlab.mid);
-
-    OpeningFrame frame = buildOpeningFrame(referenceSlab.normal, origin,
-        -referenceSlab.thickness * 0.5, referenceSlab.thickness * 0.5);
-
-    OpeningSettings settings;
-    OpeningSolution solution = solveOpening(finder.getModel()->getIModel(),
-        finder.getNode()->localToWorld(), frame, settings);
 
     if (!solution.valid)
     {
@@ -1427,31 +1492,177 @@ bool carveOpeningForEntity(const scene::INodePtr& entity, const scene::INodePtr&
     }
 
     double originDistance = frame.origin.dot(frame.normal);
+    double depthLow = low - originDistance;
+    double depthHigh = high - originDistance;
+    double throughBack = depthLow - CUTTER_MARGIN;
+    double throughFront = depthHigh + CUTTER_MARGIN;
 
-    BrushPtrVector cutters;
-
-    for (const polygon::Ring& piece : solution.pieces)
+    struct Recess
     {
-        BrushNodePtr cutter = createOpeningCutter(piece, frame,
-            low - originDistance - CUTTER_MARGIN, high - originDistance + CUTTER_MARGIN,
-            texdef_name_default());
+        double hole[4];
+        double back;
+        double front;
+    };
 
-        if (cutter && !cutter->getBrush().empty())
+    auto holeRing = [](const double hole[4])
+    {
+        polygon::Ring ring;
+        ring.push_back(Vector2(hole[0], hole[2]));
+        ring.push_back(Vector2(hole[1], hole[2]));
+        ring.push_back(Vector2(hole[1], hole[3]));
+        ring.push_back(Vector2(hole[0], hole[3]));
+        return ring;
+    };
+
+    std::vector<Recess> recesses;
+    double through[4] = { rect[0], rect[1], rect[2], rect[3] };
+
+    if (kitLined)
+    {
+        const struct
         {
-            cutters.push_back(cutter);
+            Vector3 axis;
+            double offset;
+            double inward;
+            Vector3 along;
+            double alongLow;
+            double alongHigh;
+        } sides[] = {
+            { frame.run, rect[0], 1, frame.up, rect[2], rect[3] },
+            { frame.run, rect[1], -1, frame.up, rect[2], rect[3] },
+            { frame.up, rect[2], 1, frame.run, rect[0], rect[1] },
+            { frame.up, rect[3], -1, frame.run, rect[0], rect[1] },
+        };
+
+        for (std::size_t i = 0; i < 4; ++i)
+        {
+            const auto& side = sides[i];
+
+            OpeningFrame plane;
+            plane.origin = frame.origin + side.axis * side.offset;
+            plane.normal = side.axis * side.inward;
+            plane.run = side.along;
+            plane.up = frame.normal;
+
+            double liningLow = depthLow;
+            double liningHigh = depthHigh;
+            double flush = measurePlaneCoverage(finder.getModel()->getIModel(), modelToWorld,
+                plane, side.alongLow, side.alongHigh, liningLow, liningHigh,
+                LINING_TOLERANCE, LINING_TOLERANCE);
+
+            if (flush <= 0)
+            {
+                continue;
+            }
+
+            double coverage = measurePlaneCoverage(finder.getModel()->getIModel(), modelToWorld,
+                plane, side.alongLow, side.alongHigh, liningLow, liningHigh,
+                LINING_TOLERANCE, LINING_REACH);
+
+            if (coverage < LINING_COVERAGE)
+            {
+                continue;
+            }
+
+            double back = liningLow <= depthLow + LINING_TOLERANCE ? throughBack : liningLow;
+            double front = liningHigh >= depthHigh - LINING_TOLERANCE ? throughFront : liningHigh;
+            double edge = rect[i] - side.inward * LINING_CLEARANCE;
+
+            if (back == throughBack && front == throughFront)
+            {
+                through[i] = edge;
+                continue;
+            }
+
+            Recess* shared = nullptr;
+
+            for (Recess& recess : recesses)
+            {
+                if (std::abs(recess.back - back) <= LINING_TOLERANCE &&
+                    std::abs(recess.front - front) <= LINING_TOLERANCE)
+                {
+                    shared = &recess;
+                    break;
+                }
+            }
+
+            if (!shared)
+            {
+                recesses.push_back({ { rect[0], rect[1], rect[2], rect[3] }, back, front });
+                shared = &recesses.back();
+            }
+
+            shared->hole[i] = edge;
+            shared->back = std::min(shared->back, back);
+            shared->front = std::max(shared->front, front);
         }
     }
 
-    if (cutters.empty())
-    {
-        return false;
-    }
-
-    bool preserveTexture = registry::getValue<bool>(RKEY_CSG_SUBTRACT_PRESERVE_TEXTURE);
+    bool preserveTexture = kitLined || registry::getValue<bool>(RKEY_CSG_SUBTRACT_PRESERVE_TEXTURE);
     bool carvedAny = false;
 
     for (const BrushNodePtr& target : targets)
     {
+        double brushLow = 0;
+        double brushHigh = 0;
+
+        brushExtentAlongAxis(target->getBrush(), frame.normal, brushLow, brushHigh);
+        brushLow -= originDistance;
+        brushHigh -= originDistance;
+
+        std::vector<polygon::Ring> rings = solution.pieces;
+        std::vector<const Recess*> steps;
+
+        if (kitLined)
+        {
+            double hole[4] = { through[0], through[1], through[2], through[3] };
+
+            for (const Recess& recess : recesses)
+            {
+                if (recess.back >= brushHigh || recess.front <= brushLow)
+                {
+                    continue;
+                }
+
+                if (recess.back > brushLow + LINING_TOLERANCE || recess.front < brushHigh - LINING_TOLERANCE)
+                {
+                    steps.push_back(&recess);
+                    continue;
+                }
+
+                hole[0] = std::min(hole[0], recess.hole[0]);
+                hole[1] = std::max(hole[1], recess.hole[1]);
+                hole[2] = std::min(hole[2], recess.hole[2]);
+                hole[3] = std::max(hole[3], recess.hole[3]);
+            }
+
+            rings.assign(1, holeRing(hole));
+        }
+
+        BrushPtrVector cutters;
+
+        for (const polygon::Ring& piece : rings)
+        {
+            BrushNodePtr cutter = createOpeningCutter(piece, frame, throughBack, throughFront,
+                texdef_name_default());
+
+            if (cutter && !cutter->getBrush().empty())
+            {
+                cutters.push_back(cutter);
+            }
+        }
+
+        for (const Recess* recess : steps)
+        {
+            BrushNodePtr cutter = createOpeningCutter(holeRing(recess->hole), frame,
+                recess->back, recess->front, texdef_name_default());
+
+            if (cutter && !cutter->getBrush().empty())
+            {
+                cutters.push_back(cutter);
+            }
+        }
+
         if (subtractCutters(target, cutters, preserveTexture))
         {
             ++report.brushesCarved;
@@ -1498,6 +1709,12 @@ void carveSelectedEntityOpenings(const cmd::ArgumentList& args)
         throw cmd::ExecutionNotPossible(_("Carve: No entities selected."));
     }
 
+    std::stable_partition(entities.begin(), entities.end(), [](const scene::INodePtr& entity)
+    {
+        double rect[4];
+        return readOpeningRect(entity, rect);
+    });
+
     UndoableCommand undo("carveEntityOpening");
 
     scene::INodePtr worldspawn = GlobalMapModule().findOrInsertWorldspawn();
@@ -1533,6 +1750,141 @@ void carveSelectedEntityOpenings(const cmd::ArgumentList& args)
             << " the reveal open: the model is " << report.shallowestModel
             << " units deep, the wall is " << report.thickestWall << "." << std::endl;
     }
+
+    SceneChangeNotify();
+}
+
+void placeSelectedOpeningOnWall(const cmd::ArgumentList& args)
+{
+    Vector3 point = args[0].getVector3();
+    Vector3 normal = args[1].getVector3();
+    bool useNormal = normal.getLengthSquared() > 0;
+
+    scene::INodePtr kit;
+
+    GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+    {
+        double rect[4];
+
+        if (!kit && Node_isEntity(node) && readOpeningRect(node, rect))
+        {
+            kit = node;
+        }
+    });
+
+    if (!kit)
+    {
+        return;
+    }
+
+    OpeningModelFinder finder;
+    kit->traverseChildren(finder);
+
+    if (!finder.getModel())
+    {
+        return;
+    }
+
+    scene::INodePtr worldspawn = GlobalMapModule().getWorldspawn();
+
+    if (!worldspawn)
+    {
+        return;
+    }
+
+    const Matrix4& kitToWorld = finder.getNode()->localToWorld();
+    Vector3 kitOrigin = kitToWorld.translation();
+    Vector3 kitAxis = kitToWorld.xCol3().getNormalised();
+
+    BrushNodePtr wall;
+    WallSlab wallSlab;
+
+    worldspawn->foreachNode([&](const scene::INodePtr& node)
+    {
+        if (!Node_isBrush(node) || !node->visible())
+        {
+            return true;
+        }
+
+        const AABB& bounds = node->worldAABB();
+        Vector3 distance = point - bounds.getOrigin();
+        Vector3 reach = bounds.getExtents() + Vector3(0.1, 0.1, 0.1);
+
+        if (std::abs(distance.x()) > reach.x() || std::abs(distance.y()) > reach.y() ||
+            (useNormal && std::abs(distance.z()) > reach.z()))
+        {
+            return true;
+        }
+
+        BrushNodePtr brushNode = std::dynamic_pointer_cast<BrushNode>(node);
+        WallSlab slab = findThinnestSlab(brushNode->getBrush());
+
+        if (!slab.valid || std::abs(slab.normal.z()) > 1 - WALL_FACE_ALIGNMENT)
+        {
+            return true;
+        }
+
+        if (useNormal && std::abs(slab.normal.dot(normal)) < WALL_FACE_ALIGNMENT)
+        {
+            return true;
+        }
+
+        if (!wall || slab.thickness < wallSlab.thickness)
+        {
+            wall = brushNode;
+            wallSlab = slab;
+        }
+
+        return true;
+    });
+
+    if (!wall)
+    {
+        return;
+    }
+
+    double low = 0;
+    double high = 0;
+    double bottom = 0;
+    double top = 0;
+
+    brushExtentAlongAxis(wall->getBrush(), wallSlab.normal, low, high);
+    brushExtentAlongAxis(wall->getBrush(), Vector3(0, 0, 1), bottom, top);
+
+    Vector3 facing = useNormal ? normal : wallSlab.normal;
+
+    if (!useNormal && facing.dot(kitAxis) < 0)
+    {
+        facing = -facing;
+    }
+
+    Vector3 target = point.getSnapped(GlobalGrid().getGridSize());
+    target -= wallSlab.normal * (target.dot(wallSlab.normal) - (low + high) * 0.5);
+    target.z() = bottom + string::convert<double>(
+        std::dynamic_pointer_cast<EntityNode>(kit)->getEntity().getKeyValue("opening_sill"), 0.0);
+
+    double yaw = std::atan2(facing.y(), facing.x()) - std::atan2(kitAxis.y(), kitAxis.x());
+
+    UndoableCommand undo("placeOpeningOnWall");
+
+    if (std::abs(std::remainder(yaw, 2 * math::PI)) > 0.0001)
+    {
+        Quaternion rotation = Quaternion::createForZ(yaw);
+
+        GlobalSelectionSystem().foreachSelected([&](const scene::INodePtr& node)
+        {
+            ITransformablePtr transformable = scene::node_cast<ITransformable>(node);
+
+            if (transformable)
+            {
+                transformable->setType(TRANSFORM_PRIMITIVE);
+                transformable->setRotation(rotation, kitOrigin, node->localToWorld());
+                transformable->freezeTransform();
+            }
+        });
+    }
+
+    selection::algorithm::translateSelected(target - kitOrigin);
 
     SceneChangeNotify();
 }
@@ -1712,6 +2064,9 @@ void registerCommands()
         [] { return GlobalSelectionSystem().getSelectionInfo().componentCount > 0; });
     GlobalCommandSystem().addWithCheck("CarveEntityOpening", carveSelectedEntityOpenings,
         [] { return GlobalSelectionSystem().getSelectionInfo().entityCount > 0; });
+    GlobalCommandSystem().addWithCheck("PlaceOpeningOnWall", placeSelectedOpeningOnWall,
+        [] { return GlobalSelectionSystem().getSelectionInfo().entityCount > 0; },
+        { cmd::ARGTYPE_VECTOR3, cmd::ARGTYPE_VECTOR3 });
 }
 
 } // namespace algorithm

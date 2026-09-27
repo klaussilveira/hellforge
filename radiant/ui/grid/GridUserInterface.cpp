@@ -58,7 +58,7 @@ void GridUserInterface::initialiseModule(const IApplicationContext& ctx)
 	);
 
 	// Add a Toggle element for each grid size, such that the Menu items can bind to it
-	for (int size = GRID_0125; size <= GRID_M_8; size++)
+	for (int size = GRID_0125; size <= GRID_M_10; size++)
 	{
 		GridSize gridSize = static_cast<GridSize>(size);
 

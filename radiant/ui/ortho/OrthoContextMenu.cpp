@@ -295,10 +295,15 @@ void OrthoContextMenu::callbackAddPrefab()
 
     if (!result.prefabPath.empty())
     {
+        UndoableCommand undo("insertPrefab");
+
         // Pass the call to the map algorithm and give the lastPoint coordinate as argument
         GlobalCommandSystem().executeCommand(
             LOAD_PREFAB_AT_CMD, {result.prefabPath, _lastPoint, result.insertAsGroup}
         );
+
+        GlobalCommandSystem().executeCommand("PlaceOpeningOnWall",
+            cmd::ArgumentList{ _lastPoint, Vector3(0, 0, 0) });
     }
 }
 

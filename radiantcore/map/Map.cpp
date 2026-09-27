@@ -1206,7 +1206,10 @@ void Map::loadPrefabAt(const cmd::ArgumentList& args)
 
         if (recalculatePrefabOrigin)
         {
-            auto prefabCenter = accumulator.getBounds().getOrigin().getSnapped(GlobalGrid().getGridSize());
+            const AABB& prefabBounds = accumulator.getBounds();
+            auto prefabCenter = prefabBounds.contains(AABB(Vector3(0, 0, 0), Vector3(0, 0, 0)))
+                ? Vector3(0, 0, 0)
+                : prefabBounds.getOrigin().getSnapped(GlobalGrid().getGridSize());
 
             // Switch texture lock off so the texture stays glued to the prefab during placement
             bool prevTexLockState = GlobalBrush().textureLockEnabled();

@@ -54,6 +54,10 @@ OpeningSolution solveOpening(const model::IModel& model, const Matrix4& modelToW
 OpeningFrame buildOpeningFrame(const Vector3& normal, const Vector3& pointOnMidPlane,
     double back, double front);
 
+double measurePlaneCoverage(const model::IModel& model, const Matrix4& modelToWorld,
+    const OpeningFrame& plane, double lowU, double highU, double& lowV, double& highV,
+    double behind, double ahead);
+
 } // namespace algorithm
 
 } // namespace brush

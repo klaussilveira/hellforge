@@ -638,33 +638,60 @@ void OrthoView::drawGrid()
     double step, minor_step, stepx, stepy;
     step = minor_step = stepx = stepy = baseStep;
 
-    int minor_power = basePower;
-
-    while (minor_step * _scale <= 4.0f) // make sure minor grid spacing is at least 4 pixels on the screen
+    if (grid::isMetric(GlobalGrid().getActiveGridSize()))
     {
-        ++minor_power;
-        minor_step *= 2;
+        while (minor_step * _scale <= 4.0f)
+        {
+            minor_step = grid::getNextMetricStep(minor_step);
+        }
+
+        step = grid::UNITS_PER_METER;
+
+        while (step <= minor_step || step * _scale <= 32.0f)
+        {
+            step *= 10.0;
+        }
+
+        while (stepx * _scale <= 32.0f)
+        {
+            stepx = grid::getNextMetricStep(stepx);
+        }
+
+        while (stepy * _scale <= 32.0f)
+        {
+            stepy = grid::getNextMetricStep(stepy);
+        }
+    }
+    else
+    {
+        int minor_power = basePower;
+
+        while (minor_step * _scale <= 4.0f) // make sure minor grid spacing is at least 4 pixels on the screen
+        {
+            ++minor_power;
+            minor_step *= 2;
+        }
+
+        int power = minor_power;
+
+        while (power % 3 != 0 || step * _scale <= 32.0f) // make sure major grid spacing is at least 32 pixels on the screen
+        {
+            ++power;
+            step = baseStep * double(two_to_the_power(power - basePower));
+        }
+
+        while (stepx * _scale <= 32.0f) // text step x must be at least 32
+        {
+            stepx *= 2;
+        }
+
+        while (stepy * _scale <= 32.0f) // text step y must be at least 32
+        {
+            stepy *= 2;
+        }
     }
 
-    int power = minor_power;
-
-    while (power % 3 != 0 || step * _scale <= 32.0f) // make sure major grid spacing is at least 32 pixels on the screen
-    {
-        ++power;
-        step = baseStep * double(two_to_the_power(power - basePower));
-    }
-
-    int mask = (1 << (power - minor_power)) - 1;
-
-    while (stepx * _scale <= 32.0f) // text step x must be at least 32
-    {
-        stepx *= 2;
-    }
-
-    while (stepy * _scale <= 32.0f) // text step y must be at least 32
-    {
-        stepy *= 2;
-    }
+    int minorPerMajor = static_cast<int>(std::lround(step / minor_step));
 
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_1D);
@@ -813,7 +840,7 @@ void OrthoView::drawGrid()
                     int i = 0;
                     for (double x = xb ; x < xe ; x += cur_step, ++i)
                     {
-                        if (gf == 1 || (i & mask) != 0) // greebo: No mask check for major grid
+                        if (gf == 1 || (i % minorPerMajor) != 0) // greebo: No mask check for major grid
                         {
                             glVertex2d (x, yb);
                             glVertex2d (x, ye);
@@ -824,7 +851,7 @@ void OrthoView::drawGrid()
 
                     for (double y = yb ; y < ye ; y += cur_step, ++i)
                     {
-                        if (gf == 1 || (i & mask) != 0) // greebo: No mask check for major grid
+                        if (gf == 1 || (i % minorPerMajor) != 0) // greebo: No mask check for major grid
                         {
                             glVertex2d (xb, y);
                             glVertex2d (xe, y);

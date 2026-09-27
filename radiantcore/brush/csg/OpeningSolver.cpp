@@ -692,6 +692,76 @@ OpeningFrame buildOpeningFrame(const Vector3& normal, const Vector3& pointOnMidP
     return frame;
 }
 
+double measurePlaneCoverage(const model::IModel& model, const Matrix4& modelToWorld,
+    const OpeningFrame& plane, double lowU, double highU, double& lowV, double& highV,
+    double behind, double ahead)
+{
+    std::vector<LocalTriangle> onPlane;
+    double liningLow = std::numeric_limits<double>::max();
+    double liningHigh = std::numeric_limits<double>::lowest();
+
+    for (const LocalTriangle& triangle : collectTriangles(model, modelToWorld, plane))
+    {
+        if (std::min({ triangle.a.z(), triangle.b.z(), triangle.c.z() }) >= -behind &&
+            std::max({ triangle.a.z(), triangle.b.z(), triangle.c.z() }) <= ahead)
+        {
+            onPlane.push_back(triangle);
+            liningLow = std::min({ liningLow, triangle.a.y(), triangle.b.y(), triangle.c.y() });
+            liningHigh = std::max({ liningHigh, triangle.a.y(), triangle.b.y(), triangle.c.y() });
+        }
+    }
+
+    lowV = std::max(lowV, liningLow);
+    highV = std::min(highV, liningHigh);
+
+    double spanU = highU - lowU;
+    double spanV = highV - lowV;
+
+    if (onPlane.empty() || spanU <= 0 || spanV <= 0)
+    {
+        return 0;
+    }
+
+    std::size_t cellsU = std::min<std::size_t>(static_cast<std::size_t>(std::ceil(spanU)), 256);
+    std::size_t cellsV = std::min<std::size_t>(static_cast<std::size_t>(std::ceil(spanV)), 256);
+    std::size_t covered = 0;
+
+    for (std::size_t i = 0; i < cellsU; ++i)
+    {
+        double u = lowU + spanU * (i + 0.5) / cellsU;
+
+        for (std::size_t j = 0; j < cellsV; ++j)
+        {
+            double v = lowV + spanV * (j + 0.5) / cellsV;
+
+            for (const LocalTriangle& triangle : onPlane)
+            {
+                double denominator = (triangle.b.y() - triangle.a.y()) * (triangle.c.x() - triangle.a.x()) -
+                    (triangle.b.x() - triangle.a.x()) * (triangle.c.y() - triangle.a.y());
+
+                if (std::abs(denominator) < DEGENERATE_AREA)
+                {
+                    continue;
+                }
+
+                double weightB = ((v - triangle.a.y()) * (triangle.c.x() - triangle.a.x()) -
+                    (u - triangle.a.x()) * (triangle.c.y() - triangle.a.y())) / denominator;
+                double weightC = ((u - triangle.a.x()) * (triangle.b.y() - triangle.a.y()) -
+                    (v - triangle.a.y()) * (triangle.b.x() - triangle.a.x())) / denominator;
+
+                if (weightB >= -BARYCENTRIC_TOLERANCE && weightC >= -BARYCENTRIC_TOLERANCE &&
+                    weightB + weightC <= 1.0 + BARYCENTRIC_TOLERANCE)
+                {
+                    ++covered;
+                    break;
+                }
+            }
+        }
+    }
+
+    return static_cast<double>(covered) / (cellsU * cellsV);
+}
+
 OpeningSolution solveOpening(const model::IModel& model, const Matrix4& modelToWorld,
     const OpeningFrame& frame, const OpeningSettings& settings)
 {

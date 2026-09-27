@@ -72,10 +72,10 @@ void GridManager::loadDefaultValue()
 	// Get the registry value
 	int registryValue = registry::getValue<int>(RKEY_DEFAULT_GRID_SIZE);
 
-	// Map the [0..N] values to [GRID_0125...GRID_M_8]
+	// Map the [0..N] values to [GRID_0125...GRID_M_10]
 	int mapped = registryValue + static_cast<int>(GRID_0125);
 
-	if (mapped >= GRID_0125 && mapped <= GRID_M_8)
+	if (mapped >= GRID_0125 && mapped <= GRID_M_10)
 	{
 		_activeGridSize = static_cast<GridSize>(mapped);
 	}
@@ -88,7 +88,7 @@ void GridManager::loadDefaultValue()
 void GridManager::populateGridItems()
 {
 	// Populate the GridItem map
-	for (int size = GRID_0125; size <= GRID_M_8; size++)
+	for (int size = GRID_0125; size <= GRID_M_10; size++)
 	{
 		_gridItems.emplace_back(
 			grid::getStringForSize(static_cast<GridSize>(size)),
@@ -196,7 +196,7 @@ void GridManager::gridDownCmd(const cmd::ArgumentList& args)
 
 void GridManager::gridDown()
 {
-	GridSize lowerBound = grid::isMetric(_activeGridSize) ? GRID_M_0125 : GRID_0125;
+	GridSize lowerBound = grid::isMetric(_activeGridSize) ? GRID_M_01 : GRID_0125;
 	if (_activeGridSize > lowerBound)
 	{
 		int _activeGridIndex = static_cast<int>(_activeGridSize);
@@ -212,7 +212,7 @@ void GridManager::gridUpCmd(const cmd::ArgumentList& args)
 
 void GridManager::gridUp()
 {
-	GridSize upperBound = grid::isMetric(_activeGridSize) ? GRID_M_8 : GRID_256;
+	GridSize upperBound = grid::isMetric(_activeGridSize) ? GRID_M_10 : GRID_256;
 	if (_activeGridSize < upperBound)
 	{
 		int _activeGridIndex = static_cast<int>(_activeGridSize);
@@ -247,7 +247,7 @@ float GridManager::getGridSize(grid::Space space) const
 int GridManager::getGridPower(grid::Space space) const
 {
     int power = grid::isMetric(_activeGridSize)
-        ? static_cast<int>(_activeGridSize) - static_cast<int>(GRID_M_0125)
+        ? static_cast<int>(_activeGridSize) - static_cast<int>(GRID_M_01)
         : static_cast<int>(_activeGridSize);
 
     // Texture space is using smaller grid sizes, since it doesn't make much

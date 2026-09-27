@@ -22,13 +22,13 @@ enum GridSize
 	GRID_64 = 6,
 	GRID_128 = 7,
 	GRID_256 = 8,
-	GRID_M_0125 = 9,
-	GRID_M_025 = 10,
+	GRID_M_01 = 9,
+	GRID_M_02 = 10,
 	GRID_M_05 = 11,
 	GRID_M_1 = 12,
 	GRID_M_2 = 13,
-	GRID_M_4 = 14,
-	GRID_M_8 = 15,
+	GRID_M_5 = 14,
+	GRID_M_10 = 15,
 };
 
 namespace grid
@@ -61,13 +61,13 @@ inline const char* getStringForSize(GridSize size)
 	case GRID_64:  return "64";
 	case GRID_128:  return "128";
 	case GRID_256:  return "256";
-	case GRID_M_0125: return "0.125m";
-	case GRID_M_025:  return "0.25m";
+	case GRID_M_01:   return "0.1m";
+	case GRID_M_02:   return "0.2m";
 	case GRID_M_05:   return "0.5m";
 	case GRID_M_1:    return "1m";
 	case GRID_M_2:    return "2m";
-	case GRID_M_4:    return "4m";
-	case GRID_M_8:    return "8m";
+	case GRID_M_5:    return "5m";
+	case GRID_M_10:   return "10m";
 	default:
 		throw new std::logic_error("Grid size not handled in switch!");
 	};
@@ -89,13 +89,13 @@ inline float getStepForSize(GridSize size)
 	case GRID_64:   return 64.0f;
 	case GRID_128:  return 128.0f;
 	case GRID_256:  return 256.0f;
-	case GRID_M_0125: return 5.0f;
-	case GRID_M_025:  return 10.0f;
+	case GRID_M_01:   return 4.0f;
+	case GRID_M_02:   return 8.0f;
 	case GRID_M_05:   return 20.0f;
 	case GRID_M_1:    return 40.0f;
 	case GRID_M_2:    return 80.0f;
-	case GRID_M_4:    return 160.0f;
-	case GRID_M_8:    return 320.0f;
+	case GRID_M_5:    return 200.0f;
+	case GRID_M_10:   return 400.0f;
 	default:
 		throw new std::logic_error("Grid size not handled in switch!");
 	};
@@ -103,7 +103,29 @@ inline float getStepForSize(GridSize size)
 
 inline bool isMetric(GridSize size)
 {
-	return size >= GRID_M_0125;
+	return size >= GRID_M_01;
+}
+
+inline double getNextMetricStep(double step)
+{
+	double decade = UNITS_PER_METER / 10.0;
+
+	while (step >= decade * 10.0)
+	{
+		decade *= 10.0;
+	}
+
+	if (step < decade * 2.0)
+	{
+		return decade * 2.0;
+	}
+
+	if (step < decade * 5.0)
+	{
+		return decade * 5.0;
+	}
+
+	return decade * 10.0;
 }
 
 // The space the grid is dividing. Regular map editing is using the

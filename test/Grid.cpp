@@ -46,13 +46,33 @@ TEST_F(GridTest, WorldGridSize)
     checkGridSize(GRID_64, grid::Space::World, 64.0f);
     checkGridSize(GRID_128, grid::Space::World, 128.0f);
     checkGridSize(GRID_256, grid::Space::World, 256.0f);
-    checkGridSize(GRID_M_0125, grid::Space::World, 5.0f);
-    checkGridSize(GRID_M_025, grid::Space::World, 10.0f);
+    checkGridSize(GRID_M_01, grid::Space::World, 4.0f);
+    checkGridSize(GRID_M_02, grid::Space::World, 8.0f);
     checkGridSize(GRID_M_05, grid::Space::World, 20.0f);
     checkGridSize(GRID_M_1, grid::Space::World, 40.0f);
     checkGridSize(GRID_M_2, grid::Space::World, 80.0f);
-    checkGridSize(GRID_M_4, grid::Space::World, 160.0f);
-    checkGridSize(GRID_M_8, grid::Space::World, 320.0f);
+    checkGridSize(GRID_M_5, grid::Space::World, 200.0f);
+    checkGridSize(GRID_M_10, grid::Space::World, 400.0f);
+}
+
+TEST_F(GridTest, MetricStepsLandOnTheFourUnitGrid)
+{
+    for (int size = GRID_M_01; size <= GRID_M_10; size++)
+    {
+        float step = grid::getStepForSize(static_cast<GridSize>(size));
+        EXPECT_EQ(std::fmod(step, 4.0f), 0.0f) << grid::getStringForSize(static_cast<GridSize>(size));
+    }
+}
+
+TEST_F(GridTest, MetricStepLadder)
+{
+    EXPECT_DOUBLE_EQ(grid::getNextMetricStep(4.0), 8.0);
+    EXPECT_DOUBLE_EQ(grid::getNextMetricStep(8.0), 20.0);
+    EXPECT_DOUBLE_EQ(grid::getNextMetricStep(20.0), 40.0);
+    EXPECT_DOUBLE_EQ(grid::getNextMetricStep(40.0), 80.0);
+    EXPECT_DOUBLE_EQ(grid::getNextMetricStep(80.0), 200.0);
+    EXPECT_DOUBLE_EQ(grid::getNextMetricStep(200.0), 400.0);
+    EXPECT_DOUBLE_EQ(grid::getNextMetricStep(400.0), 800.0);
 }
 
 TEST_F(GridTest, WorldGridPower)
@@ -69,13 +89,13 @@ TEST_F(GridTest, WorldGridPower)
     checkGridPower(GRID_64, grid::Space::World, 6);
     checkGridPower(GRID_128, grid::Space::World, 7);
     checkGridPower(GRID_256, grid::Space::World, 8);
-    checkGridPower(GRID_M_0125, grid::Space::World, 0);
-    checkGridPower(GRID_M_025, grid::Space::World, 1);
+    checkGridPower(GRID_M_01, grid::Space::World, 0);
+    checkGridPower(GRID_M_02, grid::Space::World, 1);
     checkGridPower(GRID_M_05, grid::Space::World, 2);
     checkGridPower(GRID_M_1, grid::Space::World, 3);
     checkGridPower(GRID_M_2, grid::Space::World, 4);
-    checkGridPower(GRID_M_4, grid::Space::World, 5);
-    checkGridPower(GRID_M_8, grid::Space::World, 6);
+    checkGridPower(GRID_M_5, grid::Space::World, 5);
+    checkGridPower(GRID_M_10, grid::Space::World, 6);
 }
 
 TEST_F(GridTest, TextureGridSize)
@@ -129,13 +149,13 @@ TEST_F(GridTest, GridUpDownStaysInImperialLadder)
 
 TEST_F(GridTest, GridUpDownStaysInMetricLadder)
 {
-    GlobalGrid().setGridSize(GRID_M_8);
+    GlobalGrid().setGridSize(GRID_M_10);
     GlobalGrid().gridUp();
-    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_8) << "gridUp must clamp at GRID_M_8, not wrap";
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_10) << "gridUp must clamp at GRID_M_10, not wrap";
 
-    GlobalGrid().setGridSize(GRID_M_0125);
+    GlobalGrid().setGridSize(GRID_M_01);
     GlobalGrid().gridDown();
-    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_0125) << "gridDown must clamp at GRID_M_0125, not cross into imperial";
+    EXPECT_EQ(GlobalGrid().getActiveGridSize(), GRID_M_01) << "gridDown must clamp at GRID_M_01, not cross into imperial";
 
     GlobalGrid().setGridSize(GRID_M_1);
     GlobalGrid().gridUp();
@@ -189,10 +209,10 @@ TEST_F(GridTest, SetGridSizeByCmd)
     checkGridSizeByCmd(grid::getStringForSize(GRID_64), grid::Space::World, 64.0f);
     checkGridSizeByCmd(grid::getStringForSize(GRID_128), grid::Space::World, 128.0f);
     checkGridSizeByCmd(grid::getStringForSize(GRID_256), grid::Space::World, 256.0f);
-    checkGridSizeByCmd(grid::getStringForSize(GRID_M_0125), grid::Space::World, 5.0f);
+    checkGridSizeByCmd(grid::getStringForSize(GRID_M_01), grid::Space::World, 4.0f);
     checkGridSizeByCmd(grid::getStringForSize(GRID_M_1), grid::Space::World, 40.0f);
-    checkGridSizeByCmd(grid::getStringForSize(GRID_M_4), grid::Space::World, 160.0f);
-    checkGridSizeByCmd(grid::getStringForSize(GRID_M_8), grid::Space::World, 320.0f);
+    checkGridSizeByCmd(grid::getStringForSize(GRID_M_5), grid::Space::World, 200.0f);
+    checkGridSizeByCmd(grid::getStringForSize(GRID_M_10), grid::Space::World, 400.0f);
 }
 
 TEST_F(GridTest, GridSnapMessageIsSent)

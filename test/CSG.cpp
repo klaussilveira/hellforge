@@ -1,6 +1,8 @@
 #include "RadiantTest.h"
 
 #include "imap.h"
+#include "igrid.h"
+#include <set>
 #include "ibrush.h"
 #include "entitylib.h"
 #include "algorithm/Scene.h"
@@ -339,6 +341,253 @@ TEST_F(CsgTest, CSGIntersectRequiresTwoBrushes)
 
     // The original brush should still exist (operation failed, no changes)
     ASSERT_TRUE(brush->getParent() != nullptr);
+}
+
+namespace
+{
+
+std::vector<AABB> getBrushBoundsInside(const scene::INodePtr& worldspawn, const AABB& region)
+{
+    std::vector<AABB> result;
+
+    worldspawn->foreachNode([&](const scene::INodePtr& node)
+    {
+        if (Node_isBrush(node) && region.contains(node->worldAABB()))
+        {
+            result.push_back(node->worldAABB());
+        }
+
+        return true;
+    });
+
+    return result;
+}
+
+bool boundsContainPoint(const std::vector<AABB>& bounds, const Vector3& point)
+{
+    for (const AABB& aabb : bounds)
+    {
+        if (aabb.intersects(point))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::set<std::string> getBrushMaterialsInside(const scene::INodePtr& worldspawn, const AABB& region)
+{
+    std::set<std::string> result;
+
+    worldspawn->foreachNode([&](const scene::INodePtr& node)
+    {
+        if (Node_isBrush(node) && region.contains(node->worldAABB()))
+        {
+            IBrush* brush = Node_getIBrush(node);
+
+            for (std::size_t i = 0; i < brush->getNumFaces(); ++i)
+            {
+                result.insert(brush->getFace(i).getShader());
+            }
+        }
+
+        return true;
+    });
+
+    return result;
+}
+
+std::vector<AABB> getBrushBoundsWithMaterial(const scene::INodePtr& worldspawn, const std::string& material)
+{
+    std::vector<AABB> result;
+
+    worldspawn->foreachNode([&](const scene::INodePtr& node)
+    {
+        if (Node_isBrush(node) && Node_getIBrush(node)->hasShader(material))
+        {
+            result.push_back(node->worldAABB());
+        }
+
+        return true;
+    });
+
+    return result;
+}
+
+void runCarve(const std::vector<scene::INodePtr>& nodes)
+{
+    GlobalSelectionSystem().setSelectedAll(false);
+
+    for (const scene::INodePtr& node : nodes)
+    {
+        Node_setSelected(node, true);
+    }
+
+    GlobalCommandSystem().executeCommand("CarveEntityOpening");
+}
+
+void expectDoorwayCut(const scene::INodePtr& worldspawn)
+{
+    auto pieces = getBrushBoundsInside(worldspawn,
+        AABB::createFromMinMax(Vector3(123, -97, -1), Vector3(133, 161, 129)));
+
+    EXPECT_EQ(pieces.size(), 3);
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, 30, 48)));
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, 3, 95)));
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, 57, 1)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, 1, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, 59, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, 30, 97)));
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, 1.75, 48)));
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, 58.25, 48)));
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, 30, 96.25)));
+
+    auto materials = getBrushMaterialsInside(worldspawn,
+        AABB::createFromMinMax(Vector3(123, -97, -1), Vector3(133, 161, 129)));
+
+    EXPECT_EQ(materials, std::set<std::string>({ "wall" }));
+}
+
+}
+
+TEST_F(CsgTest, CarveOpeningWithWallSelected)
+{
+    loadMap("carve_opening.map");
+
+    auto worldspawn = GlobalMapModule().getWorldspawn();
+    auto wall = algorithm::findFirstBrushWithMaterial(worldspawn, "wall");
+    auto floor = algorithm::findFirstBrushWithMaterial(worldspawn, "floor");
+    auto doorway = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway");
+
+    runCarve({ doorway, wall });
+
+    EXPECT_TRUE(wall->getParent() == nullptr);
+    EXPECT_TRUE(floor->getParent() != nullptr);
+    expectDoorwayCut(worldspawn);
+}
+
+TEST_F(CsgTest, CarveOpeningWithOnlyEntitySelected)
+{
+    loadMap("carve_opening.map");
+
+    auto worldspawn = GlobalMapModule().getWorldspawn();
+    auto wall = algorithm::findFirstBrushWithMaterial(worldspawn, "wall");
+    auto floor = algorithm::findFirstBrushWithMaterial(worldspawn, "floor");
+    auto doorway = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway");
+
+    runCarve({ doorway });
+
+    EXPECT_TRUE(wall->getParent() == nullptr);
+    EXPECT_TRUE(floor->getParent() != nullptr);
+    expectDoorwayCut(worldspawn);
+}
+
+TEST_F(CsgTest, CarveOpeningFollowsEntityRotation)
+{
+    loadMap("carve_opening.map");
+
+    auto worldspawn = GlobalMapModule().getWorldspawn();
+    auto wall = algorithm::findFirstBrushWithMaterial(worldspawn, "wall2");
+    auto untouched = algorithm::findFirstBrushWithMaterial(worldspawn, "wall");
+    auto doorway = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway_rotated");
+
+    runCarve({ doorway });
+
+    EXPECT_TRUE(wall->getParent() == nullptr);
+    EXPECT_TRUE(untouched->getParent() != nullptr);
+
+    auto pieces = getBrushBoundsInside(worldspawn,
+        AABB::createFromMinMax(Vector3(-97, 155, -1), Vector3(97, 165, 129)));
+
+    EXPECT_EQ(pieces.size(), 3);
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(0, 160, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(-29, 160, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(29, 160, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(0, 160, 97)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(-28.25, 160, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(28.25, 160, 48)));
+
+    auto materials = getBrushMaterialsInside(worldspawn,
+        AABB::createFromMinMax(Vector3(-97, 155, -1), Vector3(97, 165, 129)));
+
+    EXPECT_EQ(materials, std::set<std::string>({ "wall2" }));
+}
+
+TEST_F(CsgTest, PlaceOpeningOnWallFromCamera)
+{
+    loadMap("carve_opening.map");
+
+    auto worldspawn = GlobalMapModule().getWorldspawn();
+    auto doorway = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway_rotated");
+
+    GlobalGrid().setGridSize(GRID_M_02);
+    GlobalSelectionSystem().setSelectedAll(false);
+    Node_setSelected(doorway, true);
+
+    GlobalCommandSystem().executeCommand("PlaceOpeningOnWall",
+        cmd::ArgumentList{ Vector3(132, -32, 50), Vector3(1, 0, 0) });
+
+    EXPECT_TRUE(math::isNear(doorway->worldAABB().getOrigin(), Vector3(128, -32, 0), 0.001));
+
+    runCarve({ doorway });
+
+    auto pieces = getBrushBoundsInside(worldspawn,
+        AABB::createFromMinMax(Vector3(123, -97, -1), Vector3(133, 161, 129)));
+
+    EXPECT_EQ(pieces.size(), 3);
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, -32, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, -61, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, -3, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, -32, 97)));
+}
+
+TEST_F(CsgTest, PlaceOpeningOnWallFromTopView)
+{
+    loadMap("carve_opening.map");
+
+    auto worldspawn = GlobalMapModule().getWorldspawn();
+    auto doorway = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway");
+
+    GlobalGrid().setGridSize(GRID_M_02);
+    GlobalSelectionSystem().setSelectedAll(false);
+    Node_setSelected(doorway, true);
+
+    GlobalCommandSystem().executeCommand("PlaceOpeningOnWall",
+        cmd::ArgumentList{ Vector3(128, 64, 999), Vector3(0, 0, 0) });
+
+    EXPECT_TRUE(math::isNear(doorway->worldAABB().getOrigin(), Vector3(128, 64, 48), 0.001));
+
+    runCarve({ doorway });
+
+    auto pieces = getBrushBoundsInside(worldspawn,
+        AABB::createFromMinMax(Vector3(123, -97, -1), Vector3(133, 161, 129)));
+
+    EXPECT_EQ(pieces.size(), 3);
+    EXPECT_FALSE(boundsContainPoint(pieces, Vector3(128, 64, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, 35, 48)));
+    EXPECT_TRUE(boundsContainPoint(pieces, Vector3(128, 93, 48)));
+}
+
+TEST_F(CsgTest, CarveOpeningRecessesOnlyTheLinedDepth)
+{
+    loadMap("carve_overlap.map");
+
+    auto worldspawn = GlobalMapModule().getWorldspawn();
+    auto doorway = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway");
+
+    runCarve({ doorway });
+
+    auto wallPieces = getBrushBoundsWithMaterial(worldspawn, "wall");
+    auto roomPieces = getBrushBoundsWithMaterial(worldspawn, "roomwall");
+
+    EXPECT_EQ(wallPieces.size(), 3);
+    EXPECT_FALSE(boundsContainPoint(wallPieces, Vector3(128, 1.75, 48)));
+    EXPECT_FALSE(boundsContainPoint(roomPieces, Vector3(126, 1.75, 48)));
+    EXPECT_TRUE(boundsContainPoint(roomPieces, Vector3(100, 1.75, 48)));
+    EXPECT_FALSE(boundsContainPoint(roomPieces, Vector3(100, 2.25, 48)));
+    EXPECT_TRUE(boundsContainPoint(roomPieces, Vector3(100, 30, 97)));
+    EXPECT_FALSE(boundsContainPoint(roomPieces, Vector3(126, 30, 96.25)));
 }
 
 }

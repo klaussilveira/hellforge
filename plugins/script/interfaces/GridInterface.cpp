@@ -11,9 +11,9 @@ namespace script
 void GridInterface::setGridSize(int gridSize)
 {
 	// Sanity-check the incoming int
-	if (gridSize < GRID_0125 || gridSize > GRID_M_8) {
+	if (gridSize < GRID_0125 || gridSize > GRID_M_10) {
 		rError() << "Invalid grid size passed, allowed values are in the range "
-			<< "[" << GRID_0125 << ".." << GRID_M_8 << "]" << std::endl;
+			<< "[" << GRID_0125 << ".." << GRID_M_10 << "]" << std::endl;
 		return;
 	}
 

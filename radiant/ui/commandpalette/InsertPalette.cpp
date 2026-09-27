@@ -17,6 +17,8 @@
 #include "scenelib.h"
 #include "iselectable.h"
 #include "ui/imainframe.h"
+#include "iundo.h"
+#include "camera/tools/FaceIntersectionFinder.h"
 
 #include <wx/sizer.h>
 #include <wx/settings.h>
@@ -426,12 +428,31 @@ void InsertPalette::insertSelected()
 
 		case AssetType::Prefab:
 		{
+			auto test = cam.createSelectionTestForPoint(Vector2(0, 0));
+			FaceIntersectionFinder finder(*test, test->getVolume().GetViewProjection());
+			GlobalSceneGraph().root()->traverse(finder);
+			auto hit = finder.getResult();
+
+			if (hit.valid)
+			{
+				pos = hit.point.getSnapped(GlobalGrid().getGridSize());
+				pos -= hit.normal * (pos - hit.point).dot(hit.normal);
+			}
+
+			UndoableCommand undo("insertPrefab");
+
 			cmd::ArgumentList args;
 			args.push_back(entry.name);
 			args.push_back(pos);
 			args.push_back(1); // insertAsGroup
 			args.push_back(1); // recalculatePrefabOrigin
 			GlobalCommandSystem().executeCommand("LoadPrefabAt", args);
+
+			if (hit.valid)
+			{
+				GlobalCommandSystem().executeCommand("PlaceOpeningOnWall",
+					cmd::ArgumentList{ hit.point, hit.normal });
+			}
 			break;
 		}
 

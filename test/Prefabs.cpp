@@ -119,4 +119,19 @@ TEST_F(PrefabTest, PrefabInsertPositionWithoutOriginCorrection)
     EXPECT_EQ(brush->worldAABB().getOrigin(), Vector3(128, 0, 0));
 }
 
+TEST_F(PrefabTest, PrefabInsertPositionKeepsContainedOrigin)
+{
+    fs::path prefabPath = _context.getTestProjectPath();
+    prefabPath /= "prefabs/doorway_kit.pfb";
+
+    GlobalCommandSystem().executeCommand("LoadPrefabAt",
+                                         {prefabPath.string(), Vector3(128, 32, 0), 1});
+
+    auto frame = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway_kit_frame");
+    EXPECT_TRUE(math::isNear(frame->worldAABB().getOrigin(), Vector3(128, 32, 16), 0.001));
+
+    auto leaf = algorithm::getEntityByName(GlobalMapModule().getRoot(), "doorway_kit_leaf");
+    EXPECT_TRUE(math::isNear(leaf->worldAABB().getOrigin(), Vector3(129.15, 4.35, 16.63), 0.001));
+}
+
 }

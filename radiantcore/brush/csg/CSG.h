@@ -79,6 +79,8 @@ bool carveOpeningForEntity(const scene::INodePtr& entity, const scene::INodePtr&
 
 void carveSelectedEntityOpenings(const cmd::ArgumentList& args);
 
+void placeSelectedOpeningOnWall(const cmd::ArgumentList& args);
+
 /**
  * Connect the various events to the functions in this namespace
  */
