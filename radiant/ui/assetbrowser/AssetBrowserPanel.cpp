@@ -21,6 +21,7 @@
 #include "ideclmanager.h"
 #include "ieclass.h"
 #include "ifilesystem.h"
+#include "ifiletypes.h"
 #include "igame.h"
 #include "imodelcache.h"
 #include "ipreferencesystem.h"
@@ -242,7 +243,7 @@ private:
             dc.DrawRectangle(thumbX, thumbY, _thumbSize, _thumbSize);
 
             _cache.request(tile.key, _owner.getCacheVariant(tile.key),
-                tile.type == assetType::Model ? tile.name : std::string());
+                tile.type != assetType::EntityClass ? tile.name : std::string());
         }
 
         dc.SetTextForeground(wxSystemSettings::GetColour(
@@ -396,6 +397,7 @@ AssetBrowserPanel::AssetBrowserPanel(wxWindow* parent) :
     _modeChoice = new wxChoice(this, wxID_ANY);
     _modeChoice->Append(_("Models"));
     _modeChoice->Append(_("Entities"));
+    _modeChoice->Append(_("Prefabs"));
     _modeChoice->SetSelection(0);
 
     _filterBox = new wxTextCtrl(this, wxID_ANY);
@@ -590,6 +592,7 @@ void AssetBrowserPanel::populateAssets()
 {
     _models.clear();
     _entityClasses.clear();
+    _prefabs.clear();
 
     std::set<std::string> allowedExtensions;
     string::split(allowedExtensions,
@@ -620,13 +623,47 @@ void AssetBrowserPanel::populateAssets()
             _entityClasses.push_back(eclass->getDeclName());
         });
 
+    std::set<std::string> prefabExtensions;
+
+    for (const auto& pattern : GlobalFiletypes().getPatternsForType(filetype::TYPE_PREFAB))
+    {
+        prefabExtensions.insert(pattern.extension);
+    }
+
+    GlobalFileSystem().forEachFile("prefabs/", "*",
+        [&](const vfs::FileInfo& fileInfo)
+        {
+            if (fileInfo.visibility != vfs::Visibility::NORMAL) return;
+
+            auto extension = string::to_lower_copy(os::getExtension(fileInfo.name));
+
+            if (prefabExtensions.count(extension) > 0)
+            {
+                _prefabs.push_back(fileInfo.fullPath());
+            }
+        }, 0);
+
     std::sort(_models.begin(), _models.end());
     std::sort(_entityClasses.begin(), _entityClasses.end());
+    std::sort(_prefabs.begin(), _prefabs.end());
 }
 
 void AssetBrowserPanel::applyFilter()
 {
-    bool models = _modeChoice->GetSelection() == 0;
+    const std::vector<std::string>* names = &_models;
+    const char* type = assetType::Model;
+
+    if (_modeChoice->GetSelection() == 1)
+    {
+        names = &_entityClasses;
+        type = assetType::EntityClass;
+    }
+    else if (_modeChoice->GetSelection() == 2)
+    {
+        names = &_prefabs;
+        type = assetType::Prefab;
+    }
+
     auto filter = string::to_lower_copy(_filterBox->GetValue().ToStdString());
 
     auto matchesFilter = [&](const std::string& name)
@@ -642,7 +679,7 @@ void AssetBrowserPanel::applyFilter()
 
     std::vector<AssetTile> tiles;
 
-    for (const auto& name : models ? _models : _entityClasses)
+    for (const auto& name : *names)
     {
         if (!matchesFilter(name))
         {
@@ -650,7 +687,7 @@ void AssetBrowserPanel::applyFilter()
         }
 
         AssetTile tile;
-        tile.type = models ? assetType::Model : assetType::EntityClass;
+        tile.type = type;
         tile.name = name;
         tile.label = os::getFilename(name);
         tile.key = tile.type + ":" + name;

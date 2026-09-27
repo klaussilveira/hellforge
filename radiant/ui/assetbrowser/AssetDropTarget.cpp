@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "icommandsystem.h"
 #include "ientity.h"
 #include "imap.h"
 #include "iorthoview.h"
@@ -52,7 +53,7 @@ bool AssetDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& text)
     auto name = rest.substr(separator + 1);
 
     if (name.empty()) return false;
-    if (type != assetType::Model && type != assetType::EntityClass) return false;
+    if (type != assetType::Model && type != assetType::EntityClass && type != assetType::Prefab) return false;
     if (!GlobalMapModule().getRoot()) return false;
 
     auto test = _view.createSelectionTestForPoint(device_constrained(window_to_normalised_device(
@@ -80,6 +81,19 @@ bool AssetDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& text)
     }
 
     UndoableCommand command("dropAsset");
+
+    if (type == assetType::Prefab)
+    {
+        GlobalCommandSystem().executeCommand(LOAD_PREFAB_AT_CMD, cmd::ArgumentList{ name, position, 1, 1 });
+
+        if (intersection.valid)
+        {
+            GlobalCommandSystem().executeCommand("PlaceOpeningOnWall",
+                cmd::ArgumentList{ intersection.point, intersection.normal });
+        }
+
+        return true;
+    }
 
     GlobalSelectionSystem().setSelectedAll(false);
 

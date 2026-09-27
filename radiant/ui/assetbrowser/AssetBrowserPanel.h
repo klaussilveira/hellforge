@@ -67,6 +67,7 @@ private:
 
     std::vector<std::string> _models;
     std::vector<std::string> _entityClasses;
+    std::vector<std::string> _prefabs;
     std::string _previewKey;
     int _thumbnailSize = 0;
     bool _populated = false;

@@ -29,10 +29,10 @@ protected:
     float _defaultCamDistanceFactor = 2.8f;
 
 private:
-    bool onPreRender() override;
     RenderStateFlags getRenderFlagsFill() override;
 
 protected:
+    bool onPreRender() override;
     void setupSceneGraph() override;
     AABB getSceneBounds() override;
 

@@ -5,7 +5,9 @@
 #include "imodel.h"
 #include "ishaders.h"
 #include "model/BestViewSolver.h"
+#include "registry/registry.h"
 #include "scene/EntityNode.h"
+#include "scene/PrefabBoundsAccumulator.h"
 
 #include "AssetTypes.h"
 
@@ -41,6 +43,13 @@ ThumbnailPreview::ThumbnailPreview(wxWindow* parent) :
 
 bool ThumbnailPreview::showAsset(const std::string& type, const std::string& name)
 {
+    showEntityRoot();
+
+    if (type == assetType::Prefab)
+    {
+        return showPrefab(name);
+    }
+
     try
     {
         EntityNodePtr entity;
@@ -75,6 +84,56 @@ bool ThumbnailPreview::showAsset(const std::string& type, const std::string& nam
     {
         return false;
     }
+}
+
+bool ThumbnailPreview::showPrefab(const std::string& path)
+{
+    registry::ScopedKeyChanger<bool> changer(RKEY_MAP_SUPPRESS_LOAD_STATUS_DIALOG, true);
+
+    try
+    {
+        auto resource = GlobalMapResourceManager().createFromPath(path);
+
+        if (!resource || !resource->load()) return false;
+
+        const auto& root = resource->getRootNode();
+
+        scene::PrefabBoundsAccumulator accumulator;
+        root->traverseChildren(accumulator);
+
+        if (!accumulator.getBounds().isValid()) return false;
+
+        setEntity(EntityNodePtr());
+
+        _entityRoot = getScene()->root();
+        _prefabResource = resource;
+        _prefabBounds = accumulator.getBounds();
+
+        getScene()->setRoot(root);
+        associateRenderSystem();
+
+        _assetViewAngles = model::getDefaultViewAngles();
+
+        queueSceneUpdate();
+
+        return true;
+    }
+    catch (const std::runtime_error&)
+    {
+        return false;
+    }
+}
+
+void ThumbnailPreview::showEntityRoot()
+{
+    if (!_prefabResource) return;
+
+    _prefabResource.reset();
+
+    getScene()->setRoot(_entityRoot);
+    associateRenderSystem();
+
+    _entityRoot.reset();
 }
 
 bool ThumbnailPreview::captureImage(wxImage& image, int size)
@@ -114,6 +173,20 @@ void ThumbnailPreview::setAssetViewAngles(const Vector3& angles)
     queueSceneUpdate();
 }
 
+bool ThumbnailPreview::onPreRender()
+{
+    if (!_prefabResource) return EntityPreview::onPreRender();
+
+    prepareScene();
+
+    return true;
+}
+
+AABB ThumbnailPreview::getSceneBounds()
+{
+    return _prefabResource ? _prefabBounds : EntityPreview::getSceneBounds();
+}
+
 bool ThumbnailPreview::canDrawGrid()
 {
     return false;
@@ -121,7 +194,7 @@ bool ThumbnailPreview::canDrawGrid()
 
 void ThumbnailPreview::setupInitialViewPosition()
 {
-    if (!getEntity()) return;
+    if (!getEntity() && !_prefabResource) return;
 
     frameBounds(getSceneBounds(), _assetViewAngles, _padding);
 }
