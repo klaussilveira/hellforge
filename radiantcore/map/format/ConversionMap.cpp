@@ -35,6 +35,7 @@ const std::set<std::string> SCALAR_KEYS = {
 std::map<std::string, std::string> ConversionMap::_textureMap;
 std::map<std::string, std::pair<double, double>> ConversionMap::_textureSizes;
 double ConversionMap::_scale = 1.0;
+std::string ConversionMap::_mapPath;
 
 double ConversionMap::getDefaultScale(const std::string& formatName)
 {

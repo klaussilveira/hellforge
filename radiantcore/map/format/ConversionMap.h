@@ -12,6 +12,7 @@ class ConversionMap
 	static std::map<std::string, std::string> _textureMap;
 	static std::map<std::string, std::pair<double, double>> _textureSizes;
 	static double _scale;
+	static std::string _mapPath;
 
 public:
 	static constexpr double TARGET_EYE_HEIGHT = 68.0;
@@ -26,6 +27,7 @@ public:
 		_textureMap.clear();
 		_textureSizes.clear();
 		_scale = 1.0;
+		_mapPath.clear();
 	}
 
 	static void setTextureSizes(const std::map<std::string, std::pair<double, double>>& sizes)
@@ -59,6 +61,16 @@ public:
 	static double getScale()
 	{
 		return _scale;
+	}
+
+	static void setMapPath(const std::string& path)
+	{
+		_mapPath = path;
+	}
+
+	static const std::string& getMapPath()
+	{
+		return _mapPath;
 	}
 
 	static double getDefaultScale(const std::string& formatName);

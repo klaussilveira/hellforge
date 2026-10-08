@@ -5,6 +5,7 @@
 #include "math/Vector3.h"
 
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -15,6 +16,16 @@ namespace map
 
 namespace goldsrc
 {
+
+struct Displacement
+{
+	std::size_t power = 0;
+	Vector3 corners[4];
+	double elevation = 0;
+	std::vector<Vector3> normals;
+	std::vector<double> distances;
+	std::vector<Vector3> offsets;
+};
 
 struct Face
 {
@@ -28,6 +39,7 @@ struct Face
 	double rotation = 0;
 	double scaleU = 1;
 	double scaleV = 1;
+	std::optional<Displacement> displacement;
 };
 
 struct Solid
@@ -73,6 +85,8 @@ struct ScanResult
 MapData load(const std::string& contents);
 
 std::map<std::string, std::pair<double, double>> readWadTextureSizes(const std::string& mapPath);
+
+void collectNames(const MapData& data, ScanResult& result);
 
 ScanResult scanMap(const std::string& path);
 

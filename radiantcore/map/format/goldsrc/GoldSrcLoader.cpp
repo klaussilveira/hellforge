@@ -769,6 +769,35 @@ std::map<std::string, std::pair<double, double>> readWadTextureSizes(const std::
 	return sizes;
 }
 
+void collectNames(const MapData& data, ScanResult& result)
+{
+	auto collect = [&](const Entity& entity)
+	{
+		const auto& className = entity.keyValues.front().second;
+		result.entities.insert(className);
+
+		if (&entity != &data.world && !entity.solids.empty())
+		{
+			result.brushEntities.insert(className);
+		}
+
+		for (const auto& solid : entity.solids)
+		{
+			for (const auto& face : solid.faces)
+			{
+				result.textures.insert(face.texture);
+			}
+		}
+	};
+
+	collect(data.world);
+
+	for (const auto& entity : data.entities)
+	{
+		collect(entity);
+	}
+}
+
 ScanResult scanMap(const std::string& path)
 {
 	ScanResult result;
@@ -784,33 +813,7 @@ ScanResult scanMap(const std::string& path)
 
 	try
 	{
-		auto data = load(contents);
-
-		auto collect = [&](const Entity& entity)
-		{
-			const auto& className = entity.keyValues.front().second;
-			result.entities.insert(className);
-
-			if (&entity != &data.world && !entity.solids.empty())
-			{
-				result.brushEntities.insert(className);
-			}
-
-			for (const auto& solid : entity.solids)
-			{
-				for (const auto& face : solid.faces)
-				{
-					result.textures.insert(face.texture);
-				}
-			}
-		};
-
-		collect(data.world);
-
-		for (const auto& entity : data.entities)
-		{
-			collect(entity);
-		}
+		collectNames(load(contents), result);
 
 		result.textureSizes = readWadTextureSizes(path);
 	}

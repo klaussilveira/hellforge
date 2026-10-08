@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imapformat.h"
+#include "goldsrc/GoldSrcConversion.h"
 
 namespace map
 {
@@ -9,19 +10,14 @@ class ValveVmfReader :
 	public IMapReader
 {
 	IMapImportFilter& _importFilter;
-	std::size_t _entityCount;
 
 public:
 	ValveVmfReader(IMapImportFilter& importFilter);
 	void readFromStream(std::istream& stream) override;
 
 private:
-	typedef std::map<std::string, std::string> EntityKeyValues;
-
-	void skipBlock(parser::DefTokeniser& tok);
-	void parseWorldOrEntity(parser::DefTokeniser& tok, bool isWorld);
-	scene::INodePtr parseSolid(parser::DefTokeniser& tok);
-	scene::INodePtr createEntity(const EntityKeyValues& keyValues);
+	void addSolid(const goldsrc::Solid& solid, const Vector3& origin, const scene::INodePtr& entity,
+		const std::vector<int>& visgroups, const std::vector<int>& groups, goldsrc::SceneAssigner& assigner);
 };
 
 class ValveVmfFormat :

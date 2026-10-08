@@ -1,395 +1,279 @@
-#define SPECIALISE_STR_TO_FLOAT
-
 #include "ValveVmfFormat.h"
 
 #include "Quake3MapWriter.h"
 #include "ConversionMap.h"
+#include "valve/VmfLoader.h"
+#include "primitiveparsers/Quake1BrushDef.h"
 #include "module/StaticModule.h"
-#include "string/convert.h"
 #include "imap.h"
-#include "ibrush.h"
-#include "ishaders.h"
-#include "ieclass.h"
+#include "ipatch.h"
 #include "itextstream.h"
-#include "parser/DefTokeniser.h"
-#include "math/Matrix4.h"
-#include "math/Plane3.h"
-#include "math/Vector3.h"
-#include "scene/EntityNode.h"
-#include "shaderlib.h"
-#include "texturelib.h"
-#include "i18n.h"
+
 #include <fmt/format.h>
-#include <cstdio>
+
+#include <algorithm>
+#include <iterator>
 
 namespace map
 {
 
+using namespace goldsrc;
+
 namespace
 {
 
-std::string resolveTextureName(const std::string& rawName)
+const std::size_t DISPLACEMENT_SUBDIVISIONS = 2;
+
+const std::set<std::string> NON_SOLID_CLASSES = {
+	"func_illusionary", "func_dustmotes", "func_dustcloud", "func_smokevolume", "func_precipitation",
+	"fog_volume", "color_correction_volume", "func_buyzone", "func_bomb_target", "func_hostage_rescue", "func_nobuild"
+};
+
+const char* const SOURCE_LIGHT_KEYS[] = {
+	"_lightHDR", "_lightscaleHDR", "_constant_attn", "_linear_attn", "_quadratic_attn", "_fifty_percent_distance",
+	"_zero_percent_distance", "_distance", "_inner_cone", "_exponent", "_hardfalloff", "_ambient", "_ambientHDR",
+	"_AmbientScaleHDR"
+};
+
+double lightRadius(Entity& entity)
 {
-	const auto& mapped = ConversionMap::lookup(rawName);
-	if (!mapped.empty())
+	for (const char* key : { "_zero_percent_distance", "_distance" })
 	{
-		return mapped;
+		auto distance = parseNumbers(findValue(entity, key));
+
+		if (!distance.empty() && distance[0] > 0)
+		{
+			return distance[0];
+		}
 	}
 
-	std::string prefix = GlobalTexturePrefix_get();
-	std::string fullName = prefix + rawName;
+	auto half = parseNumbers(findValue(entity, "_fifty_percent_distance"));
 
-	if (GlobalMaterialManager().materialExists(fullName))
-	{
-		return fullName;
-	}
-
-	if (GlobalMaterialManager().materialExists(rawName))
-	{
-		return rawName;
-	}
-
-	return prefix + texdef_name_default();
+	return !half.empty() && half[0] > 0 ? half[0] * 2 : 0;
 }
 
-std::pair<float, float> getTextureDimensions(const std::string& shader)
+void convertSourceLight(Entity& entity, const AABB& worldBounds, double scale)
 {
-	float w = 128;
-	float h = 128;
-
-	auto texture = GlobalMaterialManager().getMaterial(shader)->getEditorImage();
-
-	if (texture)
+	if (!findValue(entity, "_light"))
 	{
-		w = static_cast<float>(texture->getWidth());
-		h = static_cast<float>(texture->getHeight());
+		return;
 	}
 
-	if (w == 0) w = 128;
-	if (h == 0) h = 128;
+	convertLight(entity, worldBounds, scale, "_cone", lightRadius(entity));
 
-	return { w, h };
+	for (const char* key : SOURCE_LIGHT_KEYS)
+	{
+		removeKey(entity, key);
+	}
 }
 
-Plane3 parsePlaneString(const std::string& str, double scale)
+void convertSolidity(Entity& entity)
 {
-	double x1, y1, z1, x2, y2, z2, x3, y3, z3;
+	auto solidity = parseNumbers(findValue(entity, "Solidity"));
+	bool nonSolid = NON_SOLID_CLASSES.count(entity.keyValues.front().second) > 0 || (!solidity.empty() && solidity[0] == 1);
 
-	if (std::sscanf(str.c_str(), "(%lf %lf %lf) (%lf %lf %lf) (%lf %lf %lf)",
-		&x1, &y1, &z1, &x2, &y2, &z2, &x3, &y3, &z3) != 9)
+	removeKey(entity, "Solidity");
+
+	if (nonSolid && !entity.solids.empty())
 	{
-		throw parser::ParseException("VMF: failed to parse plane: " + str);
+		setValue(entity, "solid", "0");
+	}
+}
+
+void convertMoveDirection(Entity& entity)
+{
+	auto moveDirection = parseNumbers(findValue(entity, "movedir"));
+
+	if (entity.solids.empty() || moveDirection.size() != 3)
+	{
+		convertAngles(entity, !entity.solids.empty());
+		return;
 	}
 
-	Vector3 p1(x1 * scale, y1 * scale, z1 * scale);
-	Vector3 p2(x2 * scale, y2 * scale, z2 * scale);
-	Vector3 p3(x3 * scale, y3 * scale, z3 * scale);
+	double direction = moveDirection[0] == -90 ? -1 : (moveDirection[0] == 90 ? -2 : moveDirection[1]);
 
-	return Plane3(p3, p2, p1);
+	setValue(entity, "movedir", fmt::format("{0:g}", direction));
+	removeKey(entity, "angles");
 }
 
-void parseAxisString(const std::string& str, Vector3& axis, double& shift, double& scale)
+void passThrough(PatchControl& control, const PatchControl& before, const PatchControl& after)
 {
-	double ax, ay, az;
+	control.vertex = control.vertex * 2 - (before.vertex + after.vertex) * 0.5;
+	control.texcoord = control.texcoord * 2 - (before.texcoord + after.texcoord) * 0.5;
+}
 
-	if (std::sscanf(str.c_str(), "[%lf %lf %lf %lf] %lf",
-		&ax, &ay, &az, &shift, &scale) != 5)
+scene::INodePtr createDisplacement(const Face& face, const Vector3& origin)
+{
+	const auto& displacement = *face.displacement;
+	const auto* corners = displacement.corners;
+
+	auto size = (std::size_t(1) << displacement.power) + 1;
+	auto scale = ConversionMap::getScale();
+	auto shader = resolveTextureName(face.texture);
+
+	auto [imageWidth, imageHeight] = textureSize(face, shader);
+
+	std::vector<PatchControl> grid(size * size);
+
+	for (std::size_t row = 0; row < size; ++row)
 	{
-		throw parser::ParseException("VMF: failed to parse axis: " + str);
+		auto t = static_cast<double>(row) / (size - 1);
+		auto start = corners[0] + (corners[1] - corners[0]) * t;
+		auto end = corners[3] + (corners[2] - corners[3]) * t;
+
+		for (std::size_t col = 0; col < size; ++col)
+		{
+			auto index = row * size + col;
+			auto flat = start + (end - start) * (static_cast<double>(col) / (size - 1));
+
+			auto point = flat + displacement.normals[index] * displacement.distances[index] +
+				displacement.offsets[index] + face.plane.normal() * displacement.elevation;
+
+			grid[index].vertex = (point - origin) * scale;
+			grid[index].texcoord = Vector2((flat.dot(face.uAxis) / face.scaleU + face.shiftU) / imageWidth,
+				(flat.dot(face.vAxis) / face.scaleV + face.shiftV) / imageHeight);
+		}
 	}
 
-	axis = Vector3(ax, ay, az);
+	for (std::size_t row = 0; row < size; ++row)
+	{
+		for (std::size_t col = 1; col < size; col += 2)
+		{
+			passThrough(grid[row * size + col], grid[row * size + col - 1], grid[row * size + col + 1]);
+		}
+	}
+
+	for (std::size_t col = 0; col < size; ++col)
+	{
+		for (std::size_t row = 1; row < size; row += 2)
+		{
+			passThrough(grid[row * size + col], grid[(row - 1) * size + col], grid[(row + 1) * size + col]);
+		}
+	}
+
+	auto node = GlobalPatchModule().createPatch(patch::PatchDefType::Def3);
+	auto& patch = std::dynamic_pointer_cast<IPatchNode>(node)->getPatch();
+
+	patch.setDims(size, size);
+	patch.setFixedSubdivisions(true, Subdivisions(DISPLACEMENT_SUBDIVISIONS, DISPLACEMENT_SUBDIVISIONS));
+	patch.setShader(shader);
+
+	for (std::size_t row = 0; row < size; ++row)
+	{
+		for (std::size_t col = 0; col < size; ++col)
+		{
+			patch.ctrlAt(row, col) = grid[row * size + col];
+		}
+	}
+
+	patch.controlPointsChanged();
+
+	return node;
 }
 
-Matrix3 calculateTextureMatrix(const std::string& shader, const Vector3& normal,
-	const Vector3& uAxis, const Vector3& vAxis,
-	double shiftU, double shiftV, double scaleU, double scaleV)
-{
-	auto [imageWidth, imageHeight] = getTextureDimensions(shader);
-
-	auto transform = Matrix4::getIdentity();
-
-	transform.xx() = uAxis.x() / scaleU / imageWidth;
-	transform.yx() = uAxis.y() / scaleU / imageWidth;
-	transform.zx() = uAxis.z() / scaleU / imageWidth;
-
-	transform.xy() = vAxis.x() / scaleV / imageHeight;
-	transform.yy() = vAxis.y() / scaleV / imageHeight;
-	transform.zy() = vAxis.z() / scaleV / imageHeight;
-
-	transform.tx() = shiftU / imageWidth;
-	transform.ty() = shiftV / imageHeight;
-
-	auto axisBase = getBasisTransformForNormal(normal);
-	transform.multiplyBy(axisBase.getTransposed());
-
-	return getTextureMatrixFromMatrix4(transform);
 }
-
-}
-
-// Reader
 
 ValveVmfReader::ValveVmfReader(IMapImportFilter& importFilter) :
-	_importFilter(importFilter),
-	_entityCount(0)
+	_importFilter(importFilter)
 {}
 
 void ValveVmfReader::readFromStream(std::istream& stream)
 {
-	parser::BasicDefTokeniser<std::istream> tok(stream);
+	std::string contents{ std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>() };
 
-	while (tok.hasMoreTokens())
+	vmf::Statistics statistics;
+	auto data = vmf::load(contents, ConversionMap::getMapPath(), statistics);
+
+	if (statistics.hiddenObjects > 0)
 	{
-		std::string token = tok.nextToken();
-
-		if (token == "world")
-		{
-			try
-			{
-				tok.assertNextToken("{");
-				parseWorldOrEntity(tok, true);
-				_entityCount++;
-			}
-			catch (FailureException& e)
-			{
-				std::string text = fmt::format(_("Failed parsing world entity:\n{0}"), e.what());
-				throw FailureException(text);
-			}
-		}
-		else if (token == "entity")
-		{
-			try
-			{
-				tok.assertNextToken("{");
-				parseWorldOrEntity(tok, false);
-				_entityCount++;
-			}
-			catch (FailureException& e)
-			{
-				std::string text = fmt::format(_("Failed parsing entity {0:d}:\n{1}"), _entityCount, e.what());
-				throw FailureException(text);
-			}
-		}
-		else if (token == "{")
-		{
-			skipBlock(tok);
-		}
-		else
-		{
-			if (tok.hasMoreTokens() && tok.peek() == "{")
-			{
-				tok.nextToken();
-				skipBlock(tok);
-			}
-		}
-	}
-}
-
-void ValveVmfReader::skipBlock(parser::DefTokeniser& tok)
-{
-	std::size_t depth = 1;
-	while (depth > 0 && tok.hasMoreTokens())
-	{
-		std::string token = tok.nextToken();
-		if (token == "{") depth++;
-		else if (token == "}") depth--;
-	}
-}
-
-void ValveVmfReader::parseWorldOrEntity(parser::DefTokeniser& tok, bool isWorld)
-{
-	EntityKeyValues keyValues;
-	scene::INodePtr entity;
-	std::size_t primitiveCount = 0;
-
-	while (tok.hasMoreTokens())
-	{
-		std::string token = tok.nextToken();
-
-		if (token == "}")
-		{
-			if (entity == nullptr)
-			{
-				if (isWorld)
-				{
-					keyValues["classname"] = "worldspawn";
-				}
-				entity = createEntity(keyValues);
-			}
-			break;
-		}
-		else if (tok.hasMoreTokens() && tok.peek() == "{")
-		{
-			tok.nextToken();
-
-			if (token == "solid")
-			{
-				if (entity == nullptr)
-				{
-					if (isWorld)
-					{
-						keyValues["classname"] = "worldspawn";
-					}
-					entity = createEntity(keyValues);
-				}
-
-				try
-				{
-					primitiveCount++;
-					scene::INodePtr brush = parseSolid(tok);
-
-					if (brush)
-					{
-						_importFilter.addPrimitiveToEntity(brush, entity);
-					}
-				}
-				catch (parser::ParseException& e)
-				{
-					std::string text = fmt::format(_("Primitive #{0:d}: parse exception {1}"), primitiveCount, e.what());
-					throw FailureException(text);
-				}
-			}
-			else
-			{
-				skipBlock(tok);
-			}
-		}
-		else
-		{
-			std::string value = tok.nextToken();
-			if (token != "id")
-			{
-				keyValues[token] = value;
-			}
-		}
+		rMessage() << fmt::format("[vmf]: Skipped {0} hidden objects", statistics.hiddenObjects) << std::endl;
 	}
 
-	if (entity)
+	if (statistics.connections > 0)
 	{
-		_importFilter.addEntity(entity);
+		rMessage() << fmt::format("[vmf]: Dropped {0} entity connections, I/O conversion is not supported", statistics.connections) << std::endl;
 	}
-}
 
-scene::INodePtr ValveVmfReader::parseSolid(parser::DefTokeniser& tok)
-{
-	scene::INodePtr node = GlobalBrushCreator().createBrush();
-	IBrushNodePtr brushNode = std::dynamic_pointer_cast<IBrushNode>(node);
-	assert(brushNode != NULL);
+	if (statistics.instances > 0)
+	{
+		rMessage() << fmt::format("[vmf]: Merged {0} instances", statistics.instances - statistics.failedInstances.size()) << std::endl;
+	}
 
-	IBrush& brush = brushNode->getIBrush();
+	for (const auto& failed : statistics.failedInstances)
+	{
+		rWarning() << "[vmf]: Could not load instance " << failed << std::endl;
+	}
+
+	SceneAssigner assigner(_importFilter.getRootNode(), data.visgroups);
+
+	auto dropped = removeToolSolids(data.world.solids, { "tools/toolshint", "tools/toolsskip" }, "tools/toolsorigin");
+
+	if (dropped > 0)
+	{
+		rMessage() << fmt::format("[vmf]: Dropped {0} hint, skip and origin brushes from the world", dropped) << std::endl;
+	}
+
+	auto worldBounds = getBounds(data.world.solids);
 
 	auto scale = ConversionMap::getScale();
 
-	while (tok.hasMoreTokens())
+	convertTargets(data.entities);
+
+	auto world = createEntity(data.world, "vmf");
+
+	for (const auto& solid : data.world.solids)
 	{
-		std::string token = tok.nextToken();
-
-		if (token == "}")
-		{
-			break;
-		}
-		else if (tok.hasMoreTokens() && tok.peek() == "{")
-		{
-			tok.nextToken();
-
-			if (token == "side")
-			{
-				std::string planeStr;
-				std::string material;
-				std::string uaxisStr;
-				std::string vaxisStr;
-
-				while (tok.hasMoreTokens())
-				{
-					std::string key = tok.nextToken();
-
-					if (key == "}")
-					{
-						break;
-					}
-					else if (tok.hasMoreTokens() && tok.peek() == "{")
-					{
-						tok.nextToken();
-						skipBlock(tok);
-					}
-					else
-					{
-						std::string value = tok.nextToken();
-
-						if (key == "plane") planeStr = value;
-						else if (key == "material") material = value;
-						else if (key == "uaxis") uaxisStr = value;
-						else if (key == "vaxis") vaxisStr = value;
-					}
-				}
-
-				if (!planeStr.empty() && !uaxisStr.empty() && !vaxisStr.empty())
-				{
-					Plane3 plane = parsePlaneString(planeStr, scale);
-
-					std::string shader = resolveTextureName(material);
-
-					Vector3 uAxis, vAxis;
-					double shiftU, shiftV, scaleU, scaleV;
-
-					parseAxisString(uaxisStr, uAxis, shiftU, scaleU);
-					parseAxisString(vaxisStr, vAxis, shiftV, scaleV);
-
-					if (scaleU == 0) scaleU = 1;
-					if (scaleV == 0) scaleV = 1;
-
-					auto texdef = calculateTextureMatrix(shader, plane.normal(),
-						uAxis, vAxis, shiftU, shiftV, scaleU * scale, scaleV * scale);
-
-					brush.addFace(plane, texdef, shader);
-				}
-			}
-			else
-			{
-				skipBlock(tok);
-			}
-		}
-		else if (tok.hasMoreTokens())
-		{
-			tok.nextToken();
-		}
+		addSolid(solid, Vector3(0, 0, 0), world, solid.visgroups, solid.groups, assigner);
 	}
 
-	brush.removeRedundantFaces();
-	return node;
+	_importFilter.addEntity(world);
+
+	for (auto& entity : data.entities)
+	{
+		auto origin = takeOrigin(entity, "tools/toolsorigin");
+
+		convertSolidity(entity);
+		convertSourceLight(entity, worldBounds, scale);
+		convertMoveDirection(entity);
+		convertRendering(entity);
+
+		auto node = createEntity(entity, "vmf");
+
+		for (const auto& solid : entity.solids)
+		{
+			addSolid(solid, origin, node, entity.visgroups, {}, assigner);
+		}
+
+		_importFilter.addEntity(node);
+		assigner.assign(node, entity.visgroups, entity.groups);
+	}
 }
 
-scene::INodePtr ValveVmfReader::createEntity(const EntityKeyValues& keyValues)
+void ValveVmfReader::addSolid(const Solid& solid, const Vector3& origin, const scene::INodePtr& entity,
+	const std::vector<int>& visgroups, const std::vector<int>& groups, SceneAssigner& assigner)
 {
-	EntityKeyValues::const_iterator found = keyValues.find("classname");
-
-	if (found == keyValues.end())
+	bool displaced = std::any_of(solid.faces.begin(), solid.faces.end(), [](const Face& face)
 	{
-		throw FailureException("ValveVmfReader::createEntity(): could not find classname.");
+		return face.displacement.has_value();
+	});
+
+	if (!displaced)
+	{
+		auto brush = createBrush(solid, origin, {});
+		_importFilter.addPrimitiveToEntity(brush, entity);
+		assigner.assign(brush, visgroups, groups);
+		return;
 	}
 
-	std::string className = found->second;
-	scene::EntityClass::Ptr classPtr = GlobalEntityClassManager().findClass(className);
-
-	if (classPtr == NULL)
+	for (const auto& face : solid.faces)
 	{
-		rError() << "[vmf]: Could not find entity class: "
-			<< className << std::endl;
-
-		classPtr = GlobalEntityClassManager().findOrInsert(className, true);
+		if (face.displacement)
+		{
+			auto patch = createDisplacement(face, origin);
+			_importFilter.addPrimitiveToEntity(patch, entity);
+			assigner.assign(patch, visgroups, groups);
+		}
 	}
-
-	EntityNodePtr node(GlobalEntityModule().createEntity(classPtr));
-
-	for (EntityKeyValues::const_iterator i = keyValues.begin();
-		i != keyValues.end();
-		++i)
-	{
-		node->getEntity().setKeyValue(i->first, ConversionMap::scaleSpatialValue(i->first, i->second));
-	}
-
-	return node;
 }
 
 // Format

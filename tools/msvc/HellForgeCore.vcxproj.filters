@@ -128,6 +128,9 @@
     <Filter Include="src\map\format\goldsrc">
       <UniqueIdentifier>{6b1f0d4e-3c2a-4e8b-9a57-d1c4f2e8b730}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\map\format\valve">
+      <UniqueIdentifier>{f5927784-a38e-42fc-b072-6fff6125cc34}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\model\md5">
       <UniqueIdentifier>{29be273d-ab50-438d-b093-68823b761c71}</UniqueIdentifier>
     </Filter>
@@ -348,6 +351,12 @@
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\map\format\goldsrc\GoldSrcLoader.cpp">
       <Filter>src\map\format\goldsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\goldsrc\GoldSrcConversion.cpp">
+      <Filter>src\map\format\goldsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiantcore\map\format\valve\VmfLoader.cpp">
+      <Filter>src\map\format\valve</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiantcore\map\format\primitiveparsers\Quake1BrushDef.cpp">
       <Filter>src\map\format\primitiveparsers</Filter>

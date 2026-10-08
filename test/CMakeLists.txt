@@ -102,6 +102,7 @@ add_executable(drtest
                Transformation.cpp
                TrimTool.cpp
                UndoRedo.cpp
+               ValveVmfImport.cpp
                VFS.cpp
                WallGeometry.cpp
                ${CMAKE_SOURCE_DIR}/radiant/xyview/tools/WallGeometry.cpp

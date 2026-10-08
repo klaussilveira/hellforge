@@ -57,6 +57,7 @@
 #include "format/WadImportSettings.h"
 #include "format/DoomWadFormat.h"
 #include "format/goldsrc/GoldSrcLoader.h"
+#include "format/valve/VmfLoader.h"
 #include "messages/WadImportRequest.h"
 
 #include "ibrush.h"
@@ -287,7 +288,15 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
         return;
     }
 
-    bool isVmf = (formatName == "Valve VMF");
+    if (formatName == "Valve VMF")
+    {
+        ConversionMap::setMapPath(mapPath);
+
+        auto scan = vmf::scanMap(mapPath);
+
+        offerNameMapping(formatName, scan.textures, scan.entities, scan.brushEntities);
+        return;
+    }
 
     std::ifstream file(mapPath);
     if (!file.good()) return;
@@ -323,10 +332,8 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
         {
             if (key == "classname")
                 sourceEntities.insert(value);
-            else if (isVmf && key == "material")
-                sourceTextures.insert(value);
         }
-        else if (!isVmf && trimmed[0] == '(')
+        else if (trimmed[0] == '(')
         {
             int parenSets = 0;
             std::size_t pos = 0;

@@ -119,6 +119,8 @@ add_library(radiantcore MODULE
             map/format/doom/WadFile.cpp
             map/format/GoldSrcFormat.cpp
             map/format/goldsrc/GoldSrcLoader.cpp
+            map/format/goldsrc/GoldSrcConversion.cpp
+            map/format/valve/VmfLoader.cpp
             map/format/Quake3MapFormat.cpp
             map/format/Quake3MapReader.cpp
             map/format/Quake4MapFormat.cpp

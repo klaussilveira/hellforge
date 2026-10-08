@@ -15,10 +15,6 @@ public:
 	GoldSrcReader(IMapImportFilter& importFilter);
 
 	void readFromStream(std::istream& stream) override;
-
-private:
-	scene::INodePtr createEntity(const goldsrc::Entity& entity);
-	scene::INodePtr createBrush(const goldsrc::Solid& solid, const Vector3& origin, const std::string& material);
 };
 
 class GoldSrcFormat :

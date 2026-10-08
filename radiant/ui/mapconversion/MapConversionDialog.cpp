@@ -32,11 +32,11 @@ namespace
 {
 
 const std::map<std::string, std::string> BASE_TEXTURE_MAP = {
-	{ "tools/toolsnodraw", "textures/common/nodraw" },
-	{ "tools/toolsnodraw_roof", "textures/common/nodraw" },
+	{ "tools/toolsnodraw", "textures/common/caulk" },
+	{ "tools/toolsnodraw_roof", "textures/common/caulk" },
 	{ "tools/toolsclip", "textures/common/clip" },
 	{ "tools/toolsinvisible", "textures/common/clip" },
-	{ "tools/toolsinvisibleladder", "textures/common/ladder_clip" },
+	{ "tools/toolsinvisibleladder", "textures/common/ladder" },
 	{ "tools/toolsplayerclip", "textures/common/player_clip" },
 	{ "tools/toolsnpcclip", "textures/common/monster_clip" },
 	{ "tools/toolstrigger", "textures/common/trigger" },
@@ -55,12 +55,14 @@ const std::map<std::string, std::string> BASE_TEXTURE_MAP = {
 	{ "tools/toolsblocknpcs", "textures/common/monster_clip" },
 	{ "tools/toolsnpchint", "textures/common/hint" },
 	{ "tools/toolsareaportalwindow", "textures/editor/visportal" },
-	{ "tools/toolsskybox", "textures/common/nodraw" },
-	{ "tools/toolsskybox2d", "textures/common/nodraw" },
+	{ "tools/toolsskybox", "textures/skies/commoutside" },
+	{ "tools/toolsskybox2d", "textures/skies/commoutside" },
 	{ "tools/toolsfog", "textures/common/nodraw" },
 	{ "tools/toolsfogvolume", "textures/common/nodraw" },
 	{ "tools/toolsboundary", "textures/common/nodraw" },
-	{ "tools/toolsblack", "textures/common/nodraw" },
+	{ "tools/toolsblack", "textures/sfx/black" },
+	{ "tools/toolsblack_noportal", "textures/sfx/black" },
+	{ "tools/toolsblack_noportal_nofog", "textures/sfx/black" },
 	{ "tools/toolsdotted", "textures/common/nodraw" },
 	{ "tools/toolsorigin", "textures/common/origin" },
 
@@ -311,10 +313,9 @@ void MapConversionDialog::buildKnownMaps()
 	if (!nodrawShader.empty())
 	{
 		for (const char* key : {
-			"tools/toolsnodraw", "tools/toolsnodraw_roof", "tools/toolsskip",
-			"tools/toolsoccluder", "tools/toolsskybox", "tools/toolsskybox2d",
+			"tools/toolsskip", "tools/toolsoccluder",
 			"tools/toolsfog", "tools/toolsfogvolume", "tools/toolsboundary",
-			"tools/toolsblack", "tools/toolsdotted",
+			"tools/toolsdotted",
 			"skip", "nodraw", "noclip", "hintskip",
 			"common/skip", "common/nodraw"
 		})
