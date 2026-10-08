@@ -29,6 +29,7 @@ public:
 		const std::string& formatName,
 		const std::set<std::string>& sourceTextures,
 		const std::set<std::string>& sourceEntities,
+		const std::set<std::string>& sourceBrushEntities,
 		double defaultScale);
 
 private:
@@ -79,7 +80,8 @@ private:
 	void buildKnownMaps();
 
 	void populate(const std::set<std::string>& sourceTextures,
-				  const std::set<std::string>& sourceEntities);
+				  const std::set<std::string>& sourceEntities,
+				  const std::set<std::string>& sourceBrushEntities);
 
 	std::string findTextureMatch(const std::string& source) const;
 	std::string findEntityMatch(const std::string& source) const;

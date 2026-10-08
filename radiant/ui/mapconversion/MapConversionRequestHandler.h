@@ -34,6 +34,7 @@ private:
 			request.getFormatName(),
 			request.getSourceTextures(),
 			request.getSourceEntities(),
+			request.getSourceBrushEntities(),
 			request.getDefaultScale());
 
 		radiant::MapConversionRequest::Result msgResult;

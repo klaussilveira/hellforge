@@ -2,6 +2,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 
 namespace map
 {
@@ -9,6 +10,7 @@ namespace map
 class ConversionMap
 {
 	static std::map<std::string, std::string> _textureMap;
+	static std::map<std::string, std::pair<double, double>> _textureSizes;
 	static double _scale;
 
 public:
@@ -22,7 +24,19 @@ public:
 	static void clear()
 	{
 		_textureMap.clear();
+		_textureSizes.clear();
 		_scale = 1.0;
+	}
+
+	static void setTextureSizes(const std::map<std::string, std::pair<double, double>>& sizes)
+	{
+		_textureSizes = sizes;
+	}
+
+	static const std::pair<double, double>* findTextureSize(const std::string& upperCaseName)
+	{
+		auto it = _textureSizes.find(upperCaseName);
+		return (it != _textureSizes.end()) ? &it->second : nullptr;
 	}
 
 	static const std::string& lookup(const std::string& name)

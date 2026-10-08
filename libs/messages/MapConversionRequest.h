@@ -25,6 +25,7 @@ private:
 	std::string _formatName;
 	std::set<std::string> _sourceTextures;
 	std::set<std::string> _sourceEntities;
+	std::set<std::string> _sourceBrushEntities;
 	double _defaultScale;
 	Result _result;
 
@@ -47,6 +48,9 @@ public:
 	const std::string& getFormatName() const { return _formatName; }
 	const std::set<std::string>& getSourceTextures() const { return _sourceTextures; }
 	const std::set<std::string>& getSourceEntities() const { return _sourceEntities; }
+
+	const std::set<std::string>& getSourceBrushEntities() const { return _sourceBrushEntities; }
+	void setSourceBrushEntities(const std::set<std::string>& brushEntities) { _sourceBrushEntities = brushEntities; }
 
 	double getDefaultScale() const { return _defaultScale; }
 

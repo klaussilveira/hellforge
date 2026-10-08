@@ -66,6 +66,12 @@ const std::map<std::string, std::string> BASE_TEXTURE_MAP = {
 
 	{ "clip", "textures/common/clip" },
 	{ "trigger", "textures/common/trigger" },
+	{ "aaatrigger", "textures/common/trigger" },
+	{ "aaa_trigger", "textures/common/trigger" },
+	{ "null", "textures/common/caulk" },
+	{ "solidhint", "textures/common/caulk" },
+	{ "bevel", "textures/common/caulk" },
+	{ "clipbevel", "textures/common/clip" },
 	{ "skip", "textures/common/nodraw" },
 	{ "hint", "textures/common/hint" },
 	{ "hintskip", "textures/common/nodraw" },
@@ -374,7 +380,8 @@ std::string MapConversionDialog::findEntityMatch(const std::string& source) cons
 }
 
 void MapConversionDialog::populate(const std::set<std::string>& sourceTextures,
-								   const std::set<std::string>& sourceEntities)
+								   const std::set<std::string>& sourceEntities,
+								   const std::set<std::string>& sourceBrushEntities)
 {
 	for (const auto& tex : sourceTextures)
 	{
@@ -393,10 +400,17 @@ void MapConversionDialog::populate(const std::set<std::string>& sourceTextures,
 		wxutil::TreeModel::Row row = _entStore->AddItem();
 		std::string match = findEntityMatch(ent);
 		bool isWorldspawn = (toLower(ent) == "worldspawn");
+		std::string matchType = match.empty() ? std::string("") : std::string("Known");
+
+		if (match.empty() && sourceBrushEntities.count(ent) > 0)
+		{
+			match = toLower(ent).compare(0, 8, "trigger_") == 0 ? "trigger_multiple" : "func_static";
+			matchType = "Brush";
+		}
 
 		row[_entColumns.sourceEntity] = ent;
 		row[_entColumns.targetEntity] = match;
-		row[_entColumns.matchType] = match.empty() ? std::string("") : std::string("Known");
+		row[_entColumns.matchType] = matchType;
 		row[_entColumns.skipImport] = match.empty() && !isWorldspawn;
 
 		row.SendItemAdded();
@@ -608,10 +622,11 @@ MapConversionDialog::MappingResult MapConversionDialog::RunDialog(
 	const std::string& formatName,
 	const std::set<std::string>& sourceTextures,
 	const std::set<std::string>& sourceEntities,
+	const std::set<std::string>& sourceBrushEntities,
 	double defaultScale)
 {
 	MapConversionDialog dlg(parent, formatName, defaultScale);
-	dlg.populate(sourceTextures, sourceEntities);
+	dlg.populate(sourceTextures, sourceEntities, sourceBrushEntities);
 
 	if (dlg.ShowModal() == wxID_OK)
 	{

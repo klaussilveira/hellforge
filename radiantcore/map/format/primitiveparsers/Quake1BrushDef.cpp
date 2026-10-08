@@ -47,6 +47,8 @@ Plane3 parsePlane(parser::DefTokeniser& tok, double scale)
 	return Plane3(p3, p2, p1);
 }
 
+}
+
 std::string resolveTextureName(const std::string& rawName)
 {
 	const auto& mapped = ConversionMap::lookup(rawName);
@@ -89,6 +91,9 @@ std::pair<float, float> getTextureDimensions(const std::string& shader)
 
 	return { w, h };
 }
+
+namespace
+{
 
 Matrix3 ssrToTextureMatrix(const std::string& shader, const Vector3& normal, const ShiftScaleRotation& ssr)
 {
@@ -241,6 +246,13 @@ Matrix3 Valve220BrushDefParser::calculateTextureMatrix(const std::string& shader
 {
 	auto [imageWidth, imageHeight] = getTextureDimensions(shader);
 
+	return calculateTextureMatrix(imageWidth, imageHeight, normal, uAxis, vAxis, shiftU, shiftV, scaleU, scaleV);
+}
+
+Matrix3 Valve220BrushDefParser::calculateTextureMatrix(double imageWidth, double imageHeight, const Vector3& normal,
+	const Vector3& uAxis, const Vector3& vAxis,
+	double shiftU, double shiftV, double scaleU, double scaleV)
+{
 	auto transform = Matrix4::getIdentity();
 
 	transform.xx() = uAxis.x() / scaleU / imageWidth;

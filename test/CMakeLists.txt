@@ -28,6 +28,8 @@ add_executable(drtest
                ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/SectorGeometry.cpp
                ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/UdmfLoader.cpp
                ${CMAKE_SOURCE_DIR}/radiantcore/map/format/doom/WadFile.cpp
+               GoldSrcImport.cpp
+               ${CMAKE_SOURCE_DIR}/radiantcore/map/format/goldsrc/GoldSrcLoader.cpp
                Entity.cpp
                EntityClass.cpp
                EntityInspector.cpp

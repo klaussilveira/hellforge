@@ -1771,6 +1771,8 @@ TEST_F(MapImportTest, defaultScaleMatchesPlayerEyeHeights)
     EXPECT_NEAR(map::ConversionMap::getDefaultScale("Quake 3"), 68.0 / 50.0, 1e-9);
     EXPECT_NEAR(map::ConversionMap::getDefaultScale("Valve 220"), 68.0 / 64.0, 1e-9);
     EXPECT_NEAR(map::ConversionMap::getDefaultScale("Valve VMF"), 68.0 / 64.0, 1e-9);
+    EXPECT_NEAR(map::ConversionMap::getDefaultScale("Worldcraft RMF"), 68.0 / 64.0, 1e-9);
+    EXPECT_NEAR(map::ConversionMap::getDefaultScale("Jackhammer JMF"), 68.0 / 64.0, 1e-9);
 
     EXPECT_EQ(map::ConversionMap::getDefaultScale("Doom 3"), 1.0);
     EXPECT_EQ(map::ConversionMap::getDefaultScale("Doom WAD"), 1.0);

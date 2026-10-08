@@ -56,6 +56,7 @@
 #include "format/ConversionMap.h"
 #include "format/WadImportSettings.h"
 #include "format/DoomWadFormat.h"
+#include "format/goldsrc/GoldSrcLoader.h"
 #include "messages/WadImportRequest.h"
 
 #include "ibrush.h"
@@ -254,7 +255,8 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
     _pendingEntitiesToSkip.clear();
 
     static const std::set<std::string> externalFormats = {
-        "Quake 1", "Quake 2", "Quake 3", "Valve 220", "Valve VMF", "Doom WAD"
+        "Quake 1", "Quake 2", "Quake 3", "Valve 220", "Valve VMF", "Doom WAD",
+        "Worldcraft RMF", "Jackhammer JMF"
     };
 
     if (externalFormats.find(formatName) == externalFormats.end())
@@ -272,6 +274,16 @@ void Map::offerMapConversion(const std::string& formatName, const std::string& m
         doom::scanWadMap(mapPath, WadImportSettings::getMapName(), sourceTextures, sourceEntities);
 
         offerNameMapping(formatName, sourceTextures, sourceEntities);
+        return;
+    }
+
+    if (formatName == "Worldcraft RMF" || formatName == "Jackhammer JMF")
+    {
+        auto scan = goldsrc::scanMap(mapPath);
+
+        ConversionMap::setTextureSizes(scan.textureSizes);
+
+        offerNameMapping(formatName, scan.textures, scan.entities, scan.brushEntities);
         return;
     }
 
@@ -381,7 +393,8 @@ bool Map::offerWadImportOptions(const std::string& mapPath)
 }
 
 void Map::offerNameMapping(const std::string& formatName,
-    const std::set<std::string>& sourceTextures, const std::set<std::string>& sourceEntities)
+    const std::set<std::string>& sourceTextures, const std::set<std::string>& sourceEntities,
+    const std::set<std::string>& sourceBrushEntities)
 {
     if (sourceTextures.empty() && sourceEntities.empty())
     {
@@ -390,6 +403,7 @@ void Map::offerNameMapping(const std::string& formatName,
 
     radiant::MapConversionRequest request(formatName, sourceTextures, sourceEntities,
         ConversionMap::getDefaultScale(formatName));
+    request.setSourceBrushEntities(sourceBrushEntities);
     GlobalRadiantCore().getMessageBus().sendMessage(request);
 
     if (request.isHandled() && request.getResult().accepted)

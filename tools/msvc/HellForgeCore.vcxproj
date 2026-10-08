@@ -122,6 +122,8 @@
     <ClCompile Include="..\..\radiantcore\map\format\doom\SectorGeometry.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\doom\UdmfLoader.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\doom\WadFile.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\GoldSrcFormat.cpp" />
+    <ClCompile Include="..\..\radiantcore\map\format\goldsrc\GoldSrcLoader.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake3MapFormat.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake3MapReader.cpp" />
     <ClCompile Include="..\..\radiantcore\map\format\Quake4MapFormat.cpp" />
