@@ -41,6 +41,7 @@
     <ClCompile Include="..\..\..\test\BuildingGenerator.cpp" />
     <ClCompile Include="..\..\..\test\StairsGenerator.cpp" />
     <ClCompile Include="..\..\..\test\TrimTool.cpp" />
+    <ClCompile Include="..\..\..\test\Hotspot.cpp" />
     <ClCompile Include="..\..\..\test\KeyCode.cpp" />
     <ClCompile Include="..\..\..\test\DarkmodTxt.cpp" />
     <ClCompile Include="..\..\..\plugins\dm.editing\DarkmodTxt.cpp" />

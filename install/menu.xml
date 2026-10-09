@@ -290,6 +290,16 @@
 		<menuItem name="brushmakestructural" caption="Make Structural" command="BrushMakeStructural" gamefeature="detail_brushes" />
 	</subMenu>
 
+	<subMenu name="hotspot" caption="Hot&amp;spot">
+		<menuItem name="hotspotTexture" caption="Apply Hotspot" command="HotspotTexture" />
+		<menuItem name="hotspotTextureAlt" caption="Apply Hotspot (Alternate Rects)" command="HotspotTextureAlt" />
+		<menuSeparator />
+		<menuItem name="hotspotMergeCoplanar" caption="Treat Coplanar Faces as One" command="ToggleHotspotMergeCoplanar" />
+		<menuItem name="hotspotAllowRotation" caption="Allow Rotating Rects" command="ToggleHotspotAllowRotation" />
+		<menuSeparator />
+		<menuItem name="hotspotEditor" caption="Rect Editor..." command="HotspotEditor" />
+	</subMenu>
+
 	<subMenu name="patch" caption="&amp;Patch">
 		<menuItem name="simplePatch" caption="Create Simple Patch..." command="CreateSimplePatchDialog" />
 		<menuSeparator />

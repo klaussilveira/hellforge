@@ -108,6 +108,18 @@
     <ClInclude Include="..\..\libs\noise\FastNoiseLite.h">
       <Filter>noise</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libs\hotspot\HotspotSheet.h">
+      <Filter>hotspot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\hotspot\HotspotFit.h">
+      <Filter>hotspot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\hotspot\HotspotDetect.h">
+      <Filter>hotspot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libs\hotspot\HotspotLookup.h">
+      <Filter>hotspot</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\libs\noise\Noise.h">
       <Filter>noise</Filter>
     </ClInclude>
@@ -482,6 +494,9 @@
     </Filter>
     <Filter Include="decl">
       <UniqueIdentifier>{b6509c1f-67af-4737-b9d9-833a01c4bdd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="hotspot">
+      <UniqueIdentifier>{29cdb226-1bbf-4bcb-a1b8-0ca772499412}</UniqueIdentifier>
     </Filter>
     <Filter Include="noise">
       <UniqueIdentifier>{d4ce22a9-f44f-4484-9b65-e5a593ba35d9}</UniqueIdentifier>

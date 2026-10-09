@@ -18,6 +18,7 @@
 #include "patch/PatchNode.h"
 #include "selection/algorithm/Primitives.h"
 #include "selection/algorithm/Texturing.h"
+#include "selection/algorithm/Hotspot.h"
 #include "selection/textool/FaceNode.h"
 #include "selection/textool/PatchNode.h"
 #include "selection/shaderclipboard/ShaderClipboard.h"
@@ -42,6 +43,7 @@ void applyShaderToSelectionCmd(const cmd::ArgumentList& args)
 
 	UndoableCommand undo("setShader");
 	applyShaderToSelection(args[0].getString());
+	applyHotspotForMaterial(args[0].getString());
 }
 
 /** greebo: Applies the shader from the clipboard's face to the given <target> face

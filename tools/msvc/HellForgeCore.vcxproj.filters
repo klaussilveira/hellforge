@@ -847,6 +847,9 @@
     <ClCompile Include="..\..\radiantcore\selection\algorithm\Group.cpp">
       <Filter>src\selection\algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\radiantcore\selection\algorithm\Hotspot.cpp">
+      <Filter>src\selection\algorithm</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\radiantcore\selection\algorithm\GroupCycle.cpp">
       <Filter>src\selection\algorithm</Filter>
     </ClCompile>
@@ -1921,6 +1924,9 @@
       <Filter>src\selection\algorithm</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\selection\algorithm\Group.h">
+      <Filter>src\selection\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiantcore\selection\algorithm\Hotspot.h">
       <Filter>src\selection\algorithm</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiantcore\selection\algorithm\GroupCycle.h">

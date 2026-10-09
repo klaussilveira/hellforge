@@ -71,6 +71,8 @@
 #include "ui/cables/CableGeneratorDialog.h"
 #include "ui/cornerpatch/CornerPatchDialog.h"
 #include "ui/cut/CutToolDialog.h"
+#include "ui/hotspot/HotspotEditor.h"
+#include "hotspot/HotspotLookup.h"
 #include "ui/scatter/ScatterDialog.h"
 #include "ui/road/RoadGeneratorDialog.h"
 #include "ui/roof/RoofGeneratorDialog.h"
@@ -531,6 +533,8 @@ void UserInterfaceModule::initialiseEntitySettings()
 	GlobalEventManager().addRegistryToggle("ToggleShowAllLightRadii", RKEY_SHOW_ALL_LIGHT_RADII);
 	GlobalEventManager().addRegistryToggle("ToggleShowAllSpeakerRadii", RKEY_SHOW_ALL_SPEAKER_RADII);
 	GlobalEventManager().addRegistryToggle("ToggleDragResizeEntitiesSymmetrically", RKEY_DRAG_RESIZE_SYMMETRICALLY);
+	GlobalEventManager().addRegistryToggle("ToggleHotspotMergeCoplanar", hotspot::RKEY_MERGE_COPLANAR);
+	GlobalEventManager().addRegistryToggle("ToggleHotspotAllowRotation", hotspot::RKEY_ALLOW_ROTATION);
 }
 
 void UserInterfaceModule::applyBrushVertexColours()
@@ -681,6 +685,9 @@ void UserInterfaceModule::registerUICommands()
     GlobalCommandSystem().addWithCheck("CutBrush", CutToolDialog::RunPreset,
         selection::pred::haveBrush,
         { cmd::ARGTYPE_INT, cmd::ARGTYPE_STRING | cmd::ARGTYPE_OPTIONAL });
+
+    GlobalCommandSystem().addCommand("HotspotEditor", HotspotEditor::Show,
+        { cmd::ARGTYPE_STRING | cmd::ARGTYPE_OPTIONAL });
 
     // Corner patch generator for creating curved patches at brush corners
     GlobalCommandSystem().addCommand("CornerPatchDialog", CornerPatchDialog::Show);

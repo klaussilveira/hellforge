@@ -239,6 +239,9 @@
     <Filter Include="libs\clipper2">
       <UniqueIdentifier>{2c9e1b84-5f37-4d16-9a52-c81d7e40b6af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\ui\hotspot">
+      <UniqueIdentifier>{ac5fde57-2b1d-4672-88ac-c4357b1ae4ac}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ui\roof">
       <UniqueIdentifier>{c3d4e5f6-a7b8-9012-cdef-123456789012}</UniqueIdentifier>
     </Filter>
@@ -948,6 +951,9 @@
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\mapconversion\MapConversionDialog.cpp">
       <Filter>src\ui\mapconversion</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\radiant\ui\hotspot\HotspotEditor.cpp">
+      <Filter>src\ui\hotspot</Filter>
     </ClCompile>
     <ClCompile Include="..\..\radiant\ui\wadimport\WadImportDialog.cpp">
       <Filter>src\ui\wadimport</Filter>
@@ -1910,6 +1916,9 @@
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\road\RoadShape.h">
       <Filter>src\ui\road</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\radiant\ui\hotspot\HotspotEditor.h">
+      <Filter>src\ui\hotspot</Filter>
     </ClInclude>
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeneratorDialog.h">
       <Filter>src\ui\roof</Filter>

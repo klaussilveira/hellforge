@@ -141,6 +141,7 @@ add_executable(hellforge
                ui/MapFileProgressHandler.cpp
                ui/mapconversion/MapConversionDialog.cpp
                ui/wadimport/WadImportDialog.cpp
+               ui/hotspot/HotspotEditor.cpp
                ui/mapinfo/EntityInfoTab.cpp
                ui/mapinfo/LayerInfoTab.cpp
                ui/mapinfo/MapInfoDialog.cpp

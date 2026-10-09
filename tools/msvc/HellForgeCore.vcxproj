@@ -658,6 +658,7 @@
     <ClCompile Include="..\..\radiantcore\selection\algorithm\Entity.cpp" />
     <ClCompile Include="..\..\radiantcore\selection\algorithm\General.cpp" />
     <ClCompile Include="..\..\radiantcore\selection\algorithm\Group.cpp" />
+    <ClCompile Include="..\..\radiantcore\selection\algorithm\Hotspot.cpp" />
     <ClCompile Include="..\..\radiantcore\selection\algorithm\GroupCycle.cpp" />
     <ClCompile Include="..\..\radiantcore\selection\algorithm\Patch.cpp" />
     <ClCompile Include="..\..\radiantcore\selection\algorithm\Planes.cpp" />
@@ -1023,6 +1024,7 @@
     <ClInclude Include="..\..\radiantcore\selection\algorithm\Entity.h" />
     <ClInclude Include="..\..\radiantcore\selection\algorithm\General.h" />
     <ClInclude Include="..\..\radiantcore\selection\algorithm\Group.h" />
+    <ClInclude Include="..\..\radiantcore\selection\algorithm\Hotspot.h" />
     <ClInclude Include="..\..\radiantcore\selection\algorithm\GroupCycle.h" />
     <ClInclude Include="..\..\radiantcore\selection\algorithm\Patch.h" />
     <ClInclude Include="..\..\radiantcore\selection\algorithm\Planes.h" />

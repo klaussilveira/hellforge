@@ -211,6 +211,10 @@
     <ClInclude Include="..\..\libs\RandomOrigin.h" />
     <ClInclude Include="..\..\libs\Rectangle.h" />
     <ClInclude Include="..\..\libs\noise\Noise.h" />
+    <ClInclude Include="..\..\libs\hotspot\HotspotSheet.h" />
+    <ClInclude Include="..\..\libs\hotspot\HotspotFit.h" />
+    <ClInclude Include="..\..\libs\hotspot\HotspotDetect.h" />
+    <ClInclude Include="..\..\libs\hotspot\HotspotLookup.h" />
     <ClInclude Include="..\..\libs\noise\TerrainGenerator.h" />
     <ClInclude Include="..\..\libs\noise\FastNoiseLite.h" />
     <ClInclude Include="..\..\libs\registry\adaptors.h" />

@@ -416,6 +416,7 @@
     <ClCompile Include="..\..\radiant\ui\building\BuildingGeneratorDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\mapconversion\MapConversionDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\wadimport\WadImportDialog.cpp" />
+    <ClCompile Include="..\..\radiant\ui\hotspot\HotspotEditor.cpp" />
     <ClCompile Include="..\..\radiant\ui\osm\OsmImporterDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\sweep\SweepDialog.cpp" />
     <ClCompile Include="..\..\radiant\ui\tilemap\TileMapDialog.cpp" />
@@ -698,6 +699,7 @@
     <ClInclude Include="..\..\radiant\ui\road\RoadNetwork.h" />
     <ClInclude Include="..\..\radiant\ui\road\RoadShape.h" />
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeneratorDialog.h" />
+    <ClInclude Include="..\..\radiant\ui\hotspot\HotspotEditor.h" />
     <ClInclude Include="..\..\radiant\ui\roof\RoofGeometry.h" />
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeneratorDialog.h" />
     <ClInclude Include="..\..\radiant\ui\stairs\StairsGeometry.h" />

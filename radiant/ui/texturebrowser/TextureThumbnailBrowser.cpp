@@ -247,6 +247,16 @@ TextureThumbnailBrowser::TextureThumbnailBrowser(wxWindow* parent, bool showTool
                         std::bind(&TextureThumbnailBrowser::onSeekInMediaBrowser, this),
                         std::bind(&TextureThumbnailBrowser::checkSeekInMediaBrowser, this));
 
+    _popupMenu->addItem(new wxutil::IconTextMenuItem(_("Edit Hotspot Rects..."), TEXTURE_ICON),
+        [this]()
+        {
+            if (auto shader = getShaderAtCoords(_popupX, _popupY); shader)
+            {
+                GlobalCommandSystem().executeCommand("HotspotEditor", shader->getName());
+            }
+        },
+        std::bind(&TextureThumbnailBrowser::checkSeekInMediaBrowser, this));
+
 	// Catch the RightUp event during mouse capture
 	_freezePointer.connectMouseEvents(
 		wxutil::FreezePointer::MouseEventFunction(),

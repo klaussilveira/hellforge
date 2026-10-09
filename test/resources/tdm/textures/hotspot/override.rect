@@ -1,0 +1,10 @@
+Rectangles
+{
+	resolution	"512 512"
+
+	rectangle
+	{
+		min	"0 0"
+		max	"512 512"
+	}
+}

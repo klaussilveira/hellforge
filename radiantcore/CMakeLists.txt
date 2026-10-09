@@ -249,6 +249,7 @@ add_library(radiantcore MODULE
             selection/algorithm/Entity.cpp
             selection/algorithm/General.cpp
             selection/algorithm/Group.cpp
+            selection/algorithm/Hotspot.cpp
             selection/algorithm/GroupCycle.cpp
             selection/algorithm/Patch.cpp
             selection/algorithm/Planes.cpp

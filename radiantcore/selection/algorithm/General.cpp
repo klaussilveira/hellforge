@@ -27,6 +27,7 @@
 #include "selection/algorithm/Entity.h"
 #include "selection/algorithm/GroupCycle.h"
 #include "selection/algorithm/Shader.h"
+#include "selection/algorithm/Hotspot.h"
 #include "brush/BrushVisit.h"
 #include "patch/Patch.h"
 #include "patch/PatchNode.h"
@@ -993,6 +994,8 @@ void registerCommands()
 	GlobalCommandSystem().addCommand("PasteShader", pasteShaderToSelection);
 	GlobalCommandSystem().addCommand("PasteShaderNatural", pasteShaderNaturalToSelection);
 	GlobalCommandSystem().addCommand("SetShaderOnSelection", applyShaderToSelectionCmd, { cmd::ARGTYPE_STRING });
+	GlobalCommandSystem().addCommand("HotspotTexture", hotspotTextureCmd);
+	GlobalCommandSystem().addCommand("HotspotTextureAlt", hotspotTextureAltCmd);
 
 	GlobalCommandSystem().addCommand("SelectItemsByShader", selectItemsByShaderCmd, { cmd::ARGTYPE_STRING });
 	GlobalCommandSystem().addCommand("DeselectItemsByShader", deselectItemsByShaderCmd, { cmd::ARGTYPE_STRING });

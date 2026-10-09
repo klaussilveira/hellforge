@@ -60,6 +60,10 @@
       <renderSkeleton value="0" />
     </md5>
     <showAllLightRadii value="0"/>
+    <hotspot>
+      <mergeCoplanar value="0" />
+      <allowRotation value="0" />
+    </hotspot>
     <alwaysShowLightVertices value="1"/>
     <rotateObjectsIndependently value="0" />
     <rotationPivotIsOrigin value="0" />

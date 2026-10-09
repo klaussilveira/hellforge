@@ -95,6 +95,7 @@
     <ClCompile Include="..\..\..\test\KeyCode.cpp" />
     <ClCompile Include="..\..\..\test\StairsGenerator.cpp" />
     <ClCompile Include="..\..\..\test\TrimTool.cpp" />
+    <ClCompile Include="..\..\..\test\Hotspot.cpp" />
     <ClCompile Include="..\..\..\plugins\dm.editing\DarkmodTxt.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

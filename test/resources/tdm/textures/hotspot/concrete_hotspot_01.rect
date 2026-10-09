@@ -1,0 +1,38 @@
+Rectangles
+{
+	resolution	"512 512"
+	scale	"0.5"
+
+	rectangle
+	{
+		min	"0 0"
+		max	"256 256"
+	}
+
+	rectangle
+	{
+		min	"256 256"
+		max	"512 512"
+		reflect	1
+	}
+
+	rectangle
+	{
+		min	"256 0"
+		max	"512 128"
+		rotate	1
+	}
+
+	rectangle
+	{
+		min	"0 496"
+		max	"512 512"
+	}
+
+	rectangle
+	{
+		min	"256 128"
+		max	"320 256"
+		alt	1
+	}
+}
