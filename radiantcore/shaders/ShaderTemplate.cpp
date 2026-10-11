@@ -14,8 +14,10 @@
 #include "parser/DefTokeniser.h"
 
 #include "string/case_conv.h"
+#include "string/predicate.h"
 #include "string/trim.h"
 #include <iostream>
+#include <set>
 
 #include "scene/shaders/ShaderExpression.h"
 #include "util/ScopedBoolLock.h"
@@ -206,11 +208,19 @@ bool ShaderTemplate::parseShaderFlags(parser::DefTokeniser& tokeniser,
         _materialFlags |= Material::FLAG_TRANSLUCENT | Material::FLAG_NOSHADOWS;
 		_coverage = Material::MC_TRANSLUCENT;
     }
-    else if (token == "decal_macro")
+    else if (token == "decal_macro" || token == "decal_alphatest_macro" || token == "scorch_macro" || token == "overlay_macro")
 	{
-        _parseFlags |= Material::PF_HasDecalMacro;
+        if (token == "decal_macro")
+        {
+            _parseFlags |= Material::PF_HasDecalMacro;
+        }
 
-        _materialFlags |= Material::FLAG_TRANSLUCENT|Material::FLAG_NOSHADOWS;
+        if (token != "decal_alphatest_macro")
+        {
+            _materialFlags |= Material::FLAG_TRANSLUCENT;
+        }
+
+        _materialFlags |= Material::FLAG_NOSHADOWS;
         _materialFlags |= Material::FLAG_HAS_SORT_DEFINED;
         _materialFlags |= Material::FLAG_POLYGONOFFSET;
         _sortReq = Material::SORT_DECAL;
@@ -406,19 +416,19 @@ bool ShaderTemplate::parseShaderFlags(parser::DefTokeniser& tokeniser,
 		{
 			_deformType = Material::DEFORM_FLARE;
 
-            _deformExpressions.emplace_back(parseSingleExpressionTerm(tokeniser)); // skip size info
+            _deformExpressions.emplace_back(ShaderExpression::createFromTokens(tokeniser)); // skip size info
 		}
 		else if (type == "expand")
 		{
 			_deformType = Material::DEFORM_EXPAND;
 
-            _deformExpressions.emplace_back(parseSingleExpressionTerm(tokeniser)); // skip amount
+            _deformExpressions.emplace_back(ShaderExpression::createFromTokens(tokeniser)); // skip amount
 		}
 		else if (type == "move")
 		{
 			_deformType = Material::DEFORM_MOVE;
 
-            _deformExpressions.emplace_back(parseSingleExpressionTerm(tokeniser)); // skip amount
+            _deformExpressions.emplace_back(ShaderExpression::createFromTokens(tokeniser)); // skip amount
 		}
 		else if (type == "turbulent")
 		{
@@ -426,13 +436,26 @@ bool ShaderTemplate::parseShaderFlags(parser::DefTokeniser& tokeniser,
 
             _deformDeclName = tokeniser.nextToken(); // table name
 
-			_deformExpressions.emplace_back(parseSingleExpressionTerm(tokeniser)); // range
-			_deformExpressions.emplace_back(parseSingleExpressionTerm(tokeniser)); // timeoffset
-            _deformExpressions.emplace_back(parseSingleExpressionTerm(tokeniser)); // domain
+            for (int i = 0; i < 3; ++i)
+            {
+                auto expr = parseSingleExpressionTerm(tokeniser);
+
+                while (tokeniser.hasMoreTokens() && tokeniser.peek() == "*")
+                {
+                    tokeniser.nextToken();
+                    expr = ShaderExpression::createMultiplication(expr, parseSingleExpressionTerm(tokeniser));
+                }
+
+                _deformExpressions.emplace_back(expr);
+            }
 		}
 		else if (type == "eyeball")
 		{
 			_deformType = Material::DEFORM_EYEBALL;
+		}
+		else if (type == "corona" || type == "jitter")
+		{
+			ShaderExpression::createFromTokens(tokeniser);
 		}
 		else if (type == "particle")
 		{
@@ -701,8 +724,7 @@ bool ShaderTemplate::parseBlendMaps(parser::DefTokeniser& tokeniser, const std::
 	}
 	else if (token == "cubemap")
     {
-		// Parse the cubemap expression, but don't do anything with it for now
-        _currentLayer->setBindableTexture(MapExpression::createForToken(tokeniser));
+        _currentLayer->setBindableTexture(CameraCubeMapDecl::createForObjectPrefix(tokeniser.nextToken()));
         _currentLayer->setMapType(IShaderLayer::MapType::CubeMap);
         _currentLayer->setCubeMapMode(IShaderLayer::CUBE_MAP_OBJECT);
     }
@@ -771,6 +793,12 @@ void ShaderTemplate::parseRenderMapSize(parser::DefTokeniser& tokeniser, bool op
 bool ShaderTemplate::parseStageModifiers(parser::DefTokeniser& tokeniser,
                                          const std::string& token)
 {
+    static const std::set<std::string> IgnoredStageKeywords
+    {
+        "nomips", "glowstage", "scopeview", "notscopeview", "highres", "shuttleview",
+        "spiritwalk", "notspiritwalk", "animbump_junk", "shaderfallback1", "shaderfallback2", "shaderfallback3",
+    };
+
     if (token == "vertexcolor")
     {
         _currentLayer->setVertexColourMode(
@@ -920,6 +948,12 @@ bool ShaderTemplate::parseStageModifiers(parser::DefTokeniser& tokeniser,
             parm.expressions[i] = ShaderExpression::createFromTokens(tokeniser);
         }
 
+        if (!parm.expressions[0])
+        {
+            rWarning() << "Could not parse vertexParm " << parm.index << " in material " << getName() << std::endl;
+            return true;
+        }
+
         _currentLayer->addVertexParm(parm);
 	}
 	else if (token == "fragmentmap")
@@ -941,7 +975,7 @@ bool ShaderTemplate::parseStageModifiers(parser::DefTokeniser& tokeniser,
 		while (next == "cubemap" || next == "cameracubemap" || next == "nearest" ||
 			next == "linear" || next == "clamp" || next == "noclamp" ||
 			next == "zeroclamp" || next == "alphazeroclamp" || next == "forcehighquality" ||
-			next == "uncompressed" || next == "highquality" || next == "nopicmip")
+			next == "uncompressed" || next == "highquality" || next == "nopicmip" || next == "highres")
 		{
             map.options.emplace_back(tokeniser.nextToken());
 
@@ -1150,17 +1184,51 @@ bool ShaderTemplate::parseStageModifiers(parser::DefTokeniser& tokeniser,
 	{
 		_currentLayer->setStageFlag(IShaderLayer::FLAG_FILTER_LINEAR);
 	}
-	else if (token == "shaderparm")
+	else if (token == "shaderparm" || token == "fragmentparm" || token == "specularexp")
 	{
-		tokeniser.nextToken();
-		ShaderExpression::createFromTokens(tokeniser);
+		if (token != "specularexp")
+		{
+			tokeniser.nextToken();
+		}
+
+		while (true)
+		{
+			if (!ShaderExpression::createFromTokens(tokeniser))
+			{
+				tokeniser.nextToken();
+			}
+
+			if (!tokeniser.hasMoreTokens() || tokeniser.peek() != ",") break;
+
+			tokeniser.nextToken();
+		}
 	}
 	else if (token == "shadertexture")
 	{
 		tokeniser.nextToken();
+
+		std::string image = tokeniser.nextToken();
+
+		while (string::iequals(image, "cubemap") || string::iequals(image, "linear") ||
+			string::iequals(image, "nearest") || string::iequals(image, "uncompressed"))
+		{
+			image = tokeniser.nextToken();
+		}
+	}
+	else if (token == "glslprogram")
+	{
 		tokeniser.nextToken();
 	}
-	else
+	else if (token == "portalrendermap")
+	{
+		tokeniser.nextToken();
+		tokeniser.nextToken();
+	}
+	else if (token == "shaderlevel1" || token == "shaderlevel2" || token == "shaderlevel3")
+	{
+		_currentLayer->setCondition(ShaderExpression::createConstant(0));
+	}
+	else if (IgnoredStageKeywords.count(token) == 0)
 	{
 		return false; // unrecognised token, return false
 	}
@@ -1177,6 +1245,20 @@ bool ShaderTemplate::parseMaterialType(parser::DefTokeniser& tokeniser, const st
         for (const auto& pair : SurfaceTypeMapping)
         {
             if (value == pair.first)
+            {
+                _surfaceType = pair.second;
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    if (string::starts_with(token, "matter_"))
+    {
+        for (const auto& pair : SurfaceTypeMapping)
+        {
+            if (token.substr(7) == pair.first)
             {
                 _surfaceType = pair.second;
                 break;
@@ -1277,6 +1359,25 @@ bool ShaderTemplate::parseSurfaceFlags(parser::DefTokeniser& tokeniser,
             _surfaceFlags |= pair.second;
             return true;
         }
+    }
+
+    static const std::set<std::string> IgnoredSurfaceKeywords
+    {
+        "notfix", "sightclip", "shotclip", "largeshotclip", "projectileclip", "vehicleclip",
+        "flyclip", "itemclip", "notacticalfeatures", "bounce", "needcurrentrender", "sky",
+        "skipclip", "seethru", "noseethru", "wallwalk", "skyboxportal", "hunterclip",
+        "lightwholemesh", "detail", "skybox_macro", "forcefield",
+    };
+
+    if (IgnoredSurfaceKeywords.count(token) > 0)
+    {
+        return true;
+    }
+
+    if (token == "directportal")
+    {
+        tokeniser.nextToken();
+        return true;
     }
 
 	if (token == "guisurf")

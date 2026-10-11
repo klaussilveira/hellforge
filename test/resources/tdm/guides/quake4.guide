@@ -1,0 +1,17 @@
+guide q4test_glow(TextureParm, Glowparm)
+{
+	qer_editorimage TextureParm
+	{
+		blend add
+		map Glowparm
+	}
+}
+
+inlineGuide q4test_burn(textureParm)
+{
+	{
+		if parm7
+		blend add
+		map textureParm
+	}
+}

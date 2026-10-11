@@ -85,10 +85,8 @@ void TableDefinition::parseFromTokens(parser::DefTokeniser& tokeniser)
 {
 	std::size_t level = 0;
 
-	while (tokeniser.hasMoreTokens())
+	auto processToken = [&](const std::string& token)
 	{
-		std::string token = tokeniser.nextToken();
-
 		if (token == "{")
 		{
 			if (++level > 1)
@@ -135,6 +133,26 @@ void TableDefinition::parseFromTokens(parser::DefTokeniser& tokeniser)
 				throw parser::ParseException("Invalid token '" + token + "' encountered: " + ex.what());
 			}
 		}
+	};
+
+	while (tokeniser.hasMoreTokens())
+	{
+		std::string piece;
+
+		for (auto c : tokeniser.nextToken())
+		{
+			if (c == ',' || c == '{' || c == '}')
+			{
+				if (!piece.empty()) processToken(piece);
+				if (c != ',') processToken(std::string(1, c));
+				piece.clear();
+				continue;
+			}
+
+			piece += c;
+		}
+
+		if (!piece.empty()) processToken(piece);
 	}
 }
 

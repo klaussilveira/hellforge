@@ -1,0 +1,54 @@
+textures/preytest/keywords
+{
+	matter_metal
+	skipClip
+	seeThru
+	wallwalk
+	hunterclip
+	directportal 0
+	nonsolid
+	{
+		shaderFallback1
+		blend		specularmap
+		map			textures/a_1024x512.tga
+	}
+	{
+		shaderLevel1
+		blend		specularmap
+		map			textures/a_1024x512.tga
+		specularexp		100, .6
+	}
+	{
+		shaderLevel3
+		glowStage
+		blend shader
+		program skin.vfp
+		fragmentparm	0	1, 0, 0, 0
+		fragmentmap 1 highres textures/a_1024x512.tga
+	}
+	{
+		if ( distance < 200 )
+		blend add
+		map textures/a_1024x512.tga
+		alphaTest 0.5
+	}
+}
+
+textures/preytest/scorch
+{
+	scorch_macro
+	{
+		blend add
+		map textures/a_1024x512.tga
+	}
+}
+
+textures/preytest/decal_alphatest
+{
+	decal_alphatest_macro
+	{
+		blend diffusemap
+		map textures/a_1024x512.tga
+		alphatest 0.5
+	}
+}

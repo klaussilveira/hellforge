@@ -11,6 +11,14 @@ namespace test
 
 using ModelSkinTest = RadiantTest;
 
+TEST_F(ModelSkinTest, FindSkinIgnoresSkinExtension)
+{
+    auto skin = GlobalModelSkinCache().findSkin("tile_skin.skin");
+
+    EXPECT_TRUE(skin);
+    EXPECT_EQ(skin->getDeclName(), "tile_skin");
+}
+
 TEST_F(ModelSkinTest, FindSkins)
 {
     // All of these declarations need to be parsed and present

@@ -89,6 +89,10 @@ MapExpressionPtr MapExpression::createForToken(DefTokeniser& token)
     {
         return std::make_shared<MakeAlphaExpression>(token);
     }
+    else if (string::iequals(type, "downsize"))
+    {
+        return std::make_shared<DownsizeExpression>(token);
+    }
 
     // since we already took away the expression into the variable type, we need to pass type instead of token
     return std::make_shared<ImageExpression>(type);
@@ -772,6 +776,30 @@ std::string MakeAlphaExpression::getIdentifier() const
 std::string MakeAlphaExpression::getExpressionString()
 {
     return fmt::format("makeAlpha({0})", mapExp->getExpressionString());
+}
+
+DownsizeExpression::DownsizeExpression(DefTokeniser& token)
+{
+    token.assertNextToken("(");
+    mapExp = createForToken(token);
+    token.assertNextToken(",");
+    factor = token.nextToken();
+    token.assertNextToken(")");
+}
+
+ImagePtr DownsizeExpression::getImage() const
+{
+    return mapExp->getImage();
+}
+
+std::string DownsizeExpression::getIdentifier() const
+{
+    return mapExp->getIdentifier();
+}
+
+std::string DownsizeExpression::getExpressionString()
+{
+    return fmt::format("downsize({0}, {1})", mapExp->getExpressionString(), factor);
 }
 
 /* ImageExpression */

@@ -150,6 +150,7 @@
 		<playerHeight value="64" />
         <speakerMinRadius value="24" />
         <speakerMaxRadius value="32" />
+        <soundRadiusInUnits value="1" />
 		<guiSmallFontLimit value="0.15" />
 		<guiMediumFontLimit value="0.30" />
 	</defaults>

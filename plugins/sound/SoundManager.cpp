@@ -3,6 +3,7 @@
 #include "ifilesystem.h"
 #include "icommandsystem.h"
 #include "ideclmanager.h"
+#include "igame.h"
 
 #include "os/path.h"
 #include "os/fs.h"
@@ -113,6 +114,7 @@ StringSet SoundManager::getDependencies() const
         MODULE_VIRTUALFILESYSTEM,
         MODULE_COMMANDSYSTEM,
         MODULE_DECLMANAGER,
+        MODULE_GAMEMANAGER,
     };
 
 	return _dependencies;

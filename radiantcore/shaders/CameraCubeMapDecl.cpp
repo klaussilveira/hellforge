@@ -8,14 +8,20 @@ namespace shaders
 {
 
 // Constructor
-CameraCubeMapDecl::CameraCubeMapDecl(const std::string& prefix)
-: _prefix(prefix)
+CameraCubeMapDecl::CameraCubeMapDecl(const std::string& prefix, bool objectSuffixes)
+: _prefix(prefix),
+  _objectSuffixes(objectSuffixes)
 { }
 
 // Public construction method
 NamedBindablePtr CameraCubeMapDecl::createForPrefix(const std::string& prefix)
 {
-    return NamedBindablePtr(new CameraCubeMapDecl(prefix));
+    return NamedBindablePtr(new CameraCubeMapDecl(prefix, false));
+}
+
+NamedBindablePtr CameraCubeMapDecl::createForObjectPrefix(const std::string& prefix)
+{
+    return NamedBindablePtr(new CameraCubeMapDecl(prefix, true));
 }
 
 // Bind directional image
@@ -51,7 +57,7 @@ void CameraCubeMapDecl::bindDirection(const std::string& dir,
 
 std::string CameraCubeMapDecl::getIdentifier() const
 {
-    return "_cameraCubeMap_" + _prefix;
+    return (_objectSuffixes ? "_cubeMap_" : "_cameraCubeMap_") + _prefix;
 }
 
 std::string CameraCubeMapDecl::getExpressionString()
@@ -82,12 +88,12 @@ TexturePtr CameraCubeMapDecl::bindTexture(const std::string& name,
         );
 
         // Bind the images
-        bindDirection("_right", GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-        bindDirection("_left", GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
-        bindDirection("_up", GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
-        bindDirection("_down", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
-        bindDirection("_forward", GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
-        bindDirection("_back", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+        bindDirection(_objectSuffixes ? "_px" : "_right", GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+        bindDirection(_objectSuffixes ? "_nx" : "_left", GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+        bindDirection(_objectSuffixes ? "_py" : "_up", GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+        bindDirection(_objectSuffixes ? "_ny" : "_down", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+        bindDirection(_objectSuffixes ? "_pz" : "_forward", GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+        bindDirection(_objectSuffixes ? "_nz" : "_back", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
 
         rMessage() << "[shaders] bound cubemap texture " << texnum << std::endl;
 

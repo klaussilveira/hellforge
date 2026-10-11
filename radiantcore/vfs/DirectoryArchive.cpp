@@ -6,6 +6,7 @@
 #include "os/dir.h"
 #include "os/fs.h"
 #include "string/encoding.h"
+#include "string/case_conv.h"
 #include <vector>
 
 #include "DirectoryArchiveFile.h"
@@ -15,10 +16,44 @@ DirectoryArchive::DirectoryArchive(const std::string& root) :
 	_root(root)
 {}
 
+std::string DirectoryArchive::resolveCase(const std::string& name)
+{
+    std::string root = UnixPath(_root);
+
+    if (os::fileIsReadable(root + name))
+    {
+        return name;
+    }
+
+    std::call_once(_lowerCaseIndexBuilt, [&]
+    {
+        if (!fs::exists(root)) return;
+
+        try
+        {
+            for (fs::recursive_directory_iterator it(root), end; it != end; ++it)
+            {
+                if (fs::is_directory(it->path())) continue;
+
+                auto relative = it->path().generic_string().substr(root.length());
+                _lowerCaseIndex.emplace(string::to_lower_copy(relative), relative);
+            }
+        }
+        catch (const std::exception& ex)
+        {
+            rWarning() << "[vfs] Case-insensitive index of " << root << " incomplete: " << ex.what() << std::endl;
+        }
+    });
+
+    auto found = _lowerCaseIndex.find(string::to_lower_copy(name));
+
+    return found != _lowerCaseIndex.end() ? found->second : name;
+}
+
 ArchiveFilePtr DirectoryArchive::openFile(const std::string& name) 
 {
 	UnixPath path(_root);
-	path.push_filename(name);
+	path.push_filename(resolveCase(name));
 
 	std::shared_ptr<archive::DirectoryArchiveFile> file = 
 		std::make_shared<archive::DirectoryArchiveFile>(name, path);
@@ -34,7 +69,7 @@ ArchiveFilePtr DirectoryArchive::openFile(const std::string& name)
 ArchiveTextFilePtr DirectoryArchive::openTextFile(const std::string& name)
 {
 	UnixPath path(_root);
-	path.push_filename(name);
+	path.push_filename(resolveCase(name));
 
 	auto file = std::make_shared<archive::DirectoryArchiveTextFile>(name, _root, path);
 
@@ -49,7 +84,7 @@ ArchiveTextFilePtr DirectoryArchive::openTextFile(const std::string& name)
 bool DirectoryArchive::containsFile(const std::string& name)
 {
     UnixPath path(_root);
-    std::string filePath = std::string(path) + name;
+    std::string filePath = std::string(path) + resolveCase(name);
     return os::fileIsReadable(filePath);
 }
 

@@ -7,6 +7,7 @@
 #include "iselection.h"
 #include "ifilesystem.h"
 #include "isound.h"
+#include "igame.h"
 #include "iundo.h"
 #include "ishaders.h"
 #include "render/RenderableCollectionWalker.h"
@@ -1837,6 +1838,22 @@ TEST_F(EntityTest, MovingSpeakerNotRemovingDistanceArgs)
 
     EXPECT_NE(speaker->getEntity().getKeyValue("s_mindistance"), "") << "Key value has been lost in translation";
     EXPECT_NE(speaker->getEntity().getKeyValue("s_maxdistance"), "") << "Key value has been lost in translation";
+}
+
+TEST_F(EntityTest, SpeakerRadiusInGameUnits)
+{
+    auto speaker = algorithm::createEntityByClassName("speaker");
+
+    speaker->getEntity().setKeyValue("s_maxdistance", "2");
+    EXPECT_NEAR(speaker->localAABB().getExtents().x(), 2 * UNITS_PER_METER, 0.01);
+
+    auto setting = GlobalGameManager().currentGame()->getLocalXPath("/defaults").at(0).createChild("soundRadiusInUnits");
+    setting.setAttributeValue("value", "1");
+
+    speaker->getEntity().setKeyValue("s_maxdistance", "600");
+    EXPECT_NEAR(speaker->localAABB().getExtents().x(), 600, 0.01);
+
+    setting.erase();
 }
 
 // #6274: Empty rotation when cloning an entity using editor_rotatable and an angle key

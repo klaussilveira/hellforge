@@ -10,6 +10,7 @@
 #include "fmt/format.h"
 #include "command/ExecutionFailure.h"
 #include "string/convert.h"
+#include "gamelib.h"
 
 namespace entity
 {
@@ -58,9 +59,15 @@ inline void CreateSpeaker(const cmd::ArgumentList& args)
 
     // Initialise the speaker with suitable distance values
     auto radii = soundShader->getRadii();
+    auto inMetres = game::current::soundRadiiInMetres();
 
-    entity.setKeyValue("s_mindistance", string::to_string(radii.getMin(true)));
-    entity.setKeyValue("s_maxdistance", radii.getMax(true) > 0 ? string::to_string(radii.getMax(true)) : "10");
+    if (radii.getMax() <= 0)
+    {
+        radii.setMax(10, true);
+    }
+
+    entity.setKeyValue("s_mindistance", string::to_string(radii.getMin(inMetres)));
+    entity.setKeyValue("s_maxdistance", string::to_string(radii.getMax(inMetres)));
 }
 
 }

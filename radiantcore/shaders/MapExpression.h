@@ -188,6 +188,18 @@ public:
     std::string getExpressionString() override;
 };
 
+class DownsizeExpression :
+    public MapExpression
+{
+	MapExpressionPtr mapExp;
+	std::string factor;
+public:
+	DownsizeExpression(DefTokeniser& token);
+	ImagePtr getImage() const override;
+	std::string getIdentifier() const override;
+    std::string getExpressionString() override;
+};
+
 /**
  * \brief
  * MapExpression consisting of a single image name.

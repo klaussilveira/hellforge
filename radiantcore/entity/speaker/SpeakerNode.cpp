@@ -1,6 +1,7 @@
 #include "SpeakerNode.h"
 #include "scene/EntitySettings.h"
 #include "entitylib.h"
+#include "gamelib.h"
 
 #include "math/Frustum.h"
 #include <functional>
@@ -117,8 +118,7 @@ void SpeakerNode::sMinChanged(const std::string& value)
 
     if (m_minIsSet)
     {
-        // we need to parse in metres
-        _radii.setMin(string::convert<float>(value), true);
+        _radii.setMin(string::convert<float>(value), game::current::soundRadiiInMetres());
     }
     else
     {
@@ -138,8 +138,7 @@ void SpeakerNode::sMaxChanged(const std::string& value)
 
     if (m_maxIsSet)
     {
-        // we need to parse in metres
-        _radii.setMax(string::convert<float>(value), true);
+        _radii.setMax(string::convert<float>(value), game::current::soundRadiiInMetres());
     }
     else
     {
@@ -402,17 +401,18 @@ void SpeakerNode::freezeTransform()
     // moving a speaker.
     if (!_spawnArgs.getKeyValue(KEY_S_SHADER).empty())
     {
-        // Note: Write the spawnargs in meters
-        if (_radii.getMin(true) != _defaultRadii.getMin(true)
+        auto inMetres = game::current::soundRadiiInMetres();
+
+        if (_radii.getMin(inMetres) != _defaultRadii.getMin(inMetres)
             || !_spawnArgs.getKeyValue(KEY_S_MINDISTANCE).empty())
         {
-            _spawnArgs.setKeyValue(KEY_S_MINDISTANCE, string::to_string(_radii.getMin(true)));
+            _spawnArgs.setKeyValue(KEY_S_MINDISTANCE, string::to_string(_radii.getMin(inMetres)));
         }
 
-        if (_radii.getMax(true) != _defaultRadii.getMax(true)
+        if (_radii.getMax(inMetres) != _defaultRadii.getMax(inMetres)
             || !_spawnArgs.getKeyValue(KEY_S_MAXDISTANCE).empty())
         {
-            _spawnArgs.setKeyValue(KEY_S_MAXDISTANCE, string::to_string(_radii.getMax(true)));
+            _spawnArgs.setKeyValue(KEY_S_MAXDISTANCE, string::to_string(_radii.getMax(inMetres)));
         }
     }
 }

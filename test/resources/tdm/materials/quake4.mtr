@@ -1,0 +1,129 @@
+table q4commaTable { snap { 2, 1.5 , 1 } }
+
+guide textures/q4test/guided q4test_glow ("textures/a_1024x512", "textures/glow")
+
+textures/q4test/downsize
+{
+	diffusemap	downsize( textures/a_1024x512.tga, 1 )
+	bumpmap		addnormals ( textures/a_1024x512.tga, heightmap ( downsize(textures/a_1024x512.tga, 1), 4 ))
+}
+
+textures/q4test/keywords
+{
+	notfix
+	sightclip
+	shotClip
+	projectileClip
+	sky
+	nonsolid
+	{
+		if IsMultiplayer != 1
+		blend add
+		nomips
+		glslProgram glsl/Water.glsl
+		shaderParm vColorLight LightColor_r, LightColor_g, LightColor_b
+		shaderParm TextureTranslateScale sinTable[ time * 0.1 ], time * 0.5, 0.8, 0.2
+		shaderParm localEyePos viewOrigin
+		shaderTexture NoiseNormalTexture linear uncompressed NormalMapParm1.tga
+		shaderTexture CubeImage cubemap gfx/env/gen1
+		map textures/a_1024x512.tga
+		alphaTest 0.5
+	}
+	{
+		if glslPrograms == 0
+		blend add
+		map _white
+	}
+}
+
+textures/q4test/cubemap
+{
+	{
+		blend add
+		cubeMap env/gen1
+	}
+}
+
+textures/q4test/inlineguide
+{
+	{
+		blend add
+		map textures/a_1024x512.tga
+	}
+	inlineGuide q4test_burn(textures/a_1024x512.tga)
+}
+
+textures/q4test/turbulent
+{
+	deform turbulent sinTable .1 time * .2 3
+	{
+		blend add
+		map textures/a_1024x512.tga
+	}
+}
+
+textures/q4test/badvertexparm
+{
+	{
+		blend add
+		map textures/a_1024x512.tga
+		vertexParm 0 unknownVariable
+	}
+}
+
+textures/q4test/inlineguidetab
+{
+	inlineGuide		q4test_burn(textures/a_1024x512.tga)
+}
+
+table nomips { { 0, 1 } }
+
+table q4attachedCommaTable { snap { 1 ,2, 3 } }
+
+textures/q4test/keywordnamedtable
+{
+	{
+		blend add
+		map textures/a_1024x512.tga
+		alphaTest 0.5
+		nomips
+	}
+}
+
+textures/q4test/comparisonwithoutspaces
+{
+	{ if ( parm7 ==3 )
+		blend add
+		map textures/a_1024x512.tga
+	}
+}
+
+textures/q4test/flareexpression
+{
+	deform	flare	2 + 4 * sinTable[time*0.5]
+	qer_editorimage	textures/a_1024x512
+	{
+		blend add
+		rgba sinTable[ DecalLife ]
+		map textures/a_1024x512.tga
+	}
+}
+
+textures/q4test/jitter
+{
+	deform jitter sinTable[time * 20]
+	qer_editorimage	textures/a_1024x512
+	{
+		blend add
+		map textures/a_1024x512.tga
+	}
+}
+
+textures/q4test/shaderparmcommas
+{
+	{
+		blend add
+		shaderParm POTCorrection POTCorrectionX, POTCorrectionY
+		map textures/a_1024x512.tga
+	}
+}

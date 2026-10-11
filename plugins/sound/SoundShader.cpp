@@ -4,6 +4,7 @@
 #include "string/convert.h"
 #include <algorithm>
 #include "string/predicate.h"
+#include "gamelib.h"
 
 namespace sound
 {
@@ -36,6 +37,8 @@ void SoundShader::onBeginParsing()
 
 void SoundShader::parseFromTokens(parser::DefTokeniser& tokeniser)
 {
+    auto inMetres = game::current::soundRadiiInMetres();
+
     while (tokeniser.hasMoreTokens())
     {
         // Get the next token
@@ -53,13 +56,11 @@ void SoundShader::parseFromTokens(parser::DefTokeniser& tokeniser)
         }
         else if (nextToken == "minDistance")
         {
-            // Set the radius and convert to metres
-            _contents->soundRadii.setMin(string::convert<float>(tokeniser.nextToken()), true);
+            _contents->soundRadii.setMin(string::convert<float>(tokeniser.nextToken()), inMetres);
         }
         else if (nextToken == "maxDistance")
         {
-            // Set the radius and convert to metres
-            _contents->soundRadii.setMax(string::convert<float>(tokeniser.nextToken()), true);
+            _contents->soundRadii.setMax(string::convert<float>(tokeniser.nextToken()), inMetres);
         }
         else if (nextToken == "editor_displayFolder")
         {

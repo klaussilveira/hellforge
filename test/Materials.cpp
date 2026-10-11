@@ -2215,4 +2215,181 @@ TEST_F(MaterialsTest, EditorImageUpdatedBeforeMaterialChangedSignalEmission)
     EXPECT_FALSE(material->isEditorImageNoTex()) << "Editor image should have been updated";
 }
 
+TEST_F(MaterialsTest, Quake4DownsizeMapExpression)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/downsize");
+    auto layers = getAllLayers(material);
+
+    EXPECT_EQ(layers.size(), 2);
+    EXPECT_EQ(layers.at(0)->getMapExpression()->getExpressionString(), "downsize(textures/a_1024x512.tga, 1)");
+    EXPECT_EQ(layers.at(1)->getMapExpression()->getExpressionString(),
+        "addnormals(textures/a_1024x512.tga, heightmap(downsize(textures/a_1024x512.tga, 1), 4))");
+}
+
+TEST_F(MaterialsTest, Quake4Keywords)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/keywords");
+    auto layers = getAllLayers(material);
+
+    EXPECT_TRUE(material->getSurfaceFlags() & Material::SURF_NONSOLID);
+    EXPECT_EQ(layers.size(), 2);
+
+    EXPECT_EQ(layers.at(0)->getConditionExpression()->evaluate(0), 1.0f);
+    EXPECT_EQ(layers.at(0)->getMapExpression()->getExpressionString(), "textures/a_1024x512.tga");
+    layers.at(0)->evaluateExpressions(0);
+    EXPECT_EQ(layers.at(0)->getAlphaTest(), 0.5f);
+
+    EXPECT_EQ(layers.at(1)->getConditionExpression()->evaluate(0), 1.0f);
+}
+
+TEST_F(MaterialsTest, Quake4GuideWithSpaceBeforeParenthesis)
+{
+    EXPECT_TRUE(GlobalMaterialManager().materialExists("textures/q4test/guided"));
+
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/guided");
+
+    EXPECT_EQ(material->getEditorImageExpression()->getExpressionString(), "textures/a_1024x512");
+    EXPECT_EQ(material->getNumLayers(), 1);
+}
+
+TEST_F(MaterialsTest, Quake4TableWithDetachedComma)
+{
+    auto table = GlobalMaterialManager().getTable("q4commaTable");
+
+    EXPECT_NEAR(table->getValue(0.0f), 2.0f, TestEpsilon);
+    EXPECT_NEAR(table->getValue(0.4f), 1.5f, TestEpsilon);
+    EXPECT_NEAR(table->getValue(0.7f), 1.0f, TestEpsilon);
+}
+
+TEST_F(MaterialsTest, ObjectCubeMapStage)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/cubemap");
+    auto layer = material->getLayer(0);
+
+    EXPECT_EQ(layer->getMapType(), IShaderLayer::MapType::CubeMap);
+    EXPECT_TRUE(layer->getMapExpression()->isCubeMap());
+    EXPECT_EQ(layer->getMapExpression()->getExpressionString(), "env/gen1");
+}
+
+TEST_F(MaterialsTest, PreyKeywords)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/preytest/keywords");
+    auto layers = getAllLayers(material);
+
+    EXPECT_EQ(material->getSurfaceType(), Material::SURFTYPE_METAL);
+    EXPECT_TRUE(material->getSurfaceFlags() & Material::SURF_NONSOLID);
+    EXPECT_EQ(layers.size(), 4);
+
+    EXPECT_FALSE(layers.at(0)->getConditionExpression());
+    EXPECT_EQ(layers.at(1)->getConditionExpression()->evaluate(0), 0.0f);
+    EXPECT_EQ(layers.at(2)->getConditionExpression()->evaluate(0), 0.0f);
+    EXPECT_EQ(layers.at(2)->getFragmentMap(1).map->getExpressionString(), "textures/a_1024x512.tga");
+
+    EXPECT_EQ(layers.at(3)->getConditionExpression()->evaluate(0), 1.0f);
+    layers.at(3)->evaluateExpressions(0);
+    EXPECT_EQ(layers.at(3)->getAlphaTest(), 0.5f);
+}
+
+TEST_F(MaterialsTest, PreyDecalMacros)
+{
+    auto scorch = GlobalMaterialManager().getMaterial("textures/preytest/scorch");
+
+    EXPECT_EQ(scorch->getSortRequest(), Material::SORT_DECAL);
+    EXPECT_TRUE(scorch->getMaterialFlags() & Material::FLAG_POLYGONOFFSET);
+    EXPECT_TRUE(scorch->getMaterialFlags() & Material::FLAG_TRANSLUCENT);
+
+    auto alphaTested = GlobalMaterialManager().getMaterial("textures/preytest/decal_alphatest");
+
+    EXPECT_EQ(alphaTested->getSortRequest(), Material::SORT_DECAL);
+    EXPECT_TRUE(alphaTested->getMaterialFlags() & Material::FLAG_POLYGONOFFSET);
+    EXPECT_FALSE(alphaTested->getMaterialFlags() & Material::FLAG_TRANSLUCENT);
+}
+
+TEST_F(MaterialsTest, Quake4InlineGuide)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/inlineguide");
+
+    EXPECT_EQ(material->getNumLayers(), 2);
+    EXPECT_EQ(material->getLayer(1)->getConditionExpression()->getExpressionString(), "parm7");
+    EXPECT_EQ(material->getLayer(1)->getMapExpression()->getExpressionString(), "textures/a_1024x512.tga");
+}
+
+TEST_F(MaterialsTest, Quake4TurbulentDeformWithProduct)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/turbulent");
+
+    EXPECT_EQ(material->getDeformType(), Material::DEFORM_TURBULENT);
+    EXPECT_EQ(material->getDeformExpression(0)->getExpressionString(), "0.1");
+    EXPECT_EQ(material->getDeformExpression(1)->getExpressionString(), "time * 0.2");
+    EXPECT_EQ(material->getDeformExpression(2)->getExpressionString(), "3");
+    EXPECT_EQ(material->getNumLayers(), 1);
+}
+
+TEST_F(MaterialsTest, UnparseableVertexParmIsSkipped)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/badvertexparm");
+
+    EXPECT_EQ(material->getNumLayers(), 1);
+    EXPECT_EQ(material->getLayer(0)->getMapExpression()->getExpressionString(), "textures/a_1024x512.tga");
+}
+
+TEST_F(MaterialsTest, InlineGuideAfterTab)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/inlineguidetab");
+
+    EXPECT_EQ(material->getNumLayers(), 1);
+    EXPECT_EQ(material->getLayer(0)->getConditionExpression()->getExpressionString(), "parm7");
+}
+
+TEST_F(MaterialsTest, ExpressionStopsBeforeKeywordNamedTable)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/keywordnamedtable");
+    auto layer = material->getLayer(0);
+
+    layer->evaluateExpressions(0);
+    EXPECT_EQ(layer->getAlphaTest(), 0.5f);
+}
+
+TEST_F(MaterialsTest, ComparisonOperatorWithoutSpaces)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/comparisonwithoutspaces");
+
+    EXPECT_EQ(material->getNumLayers(), 1);
+    EXPECT_EQ(material->getLayer(0)->getConditionExpression()->getExpressionString(), "(parm7 == 3)");
+}
+
+TEST_F(MaterialsTest, TableWithAttachedCommas)
+{
+    auto table = GlobalMaterialManager().getTable("q4attachedCommaTable");
+
+    EXPECT_NEAR(table->getValue(0.0f), 1.0f, TestEpsilon);
+    EXPECT_NEAR(table->getValue(0.4f), 2.0f, TestEpsilon);
+    EXPECT_NEAR(table->getValue(0.7f), 3.0f, TestEpsilon);
+}
+
+TEST_F(MaterialsTest, DeformFlareWithExpression)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/flareexpression");
+
+    EXPECT_EQ(material->getDeformType(), Material::DEFORM_FLARE);
+    EXPECT_EQ(material->getEditorImageExpression()->getExpressionString(), "textures/a_1024x512");
+    EXPECT_EQ(material->getNumLayers(), 1);
+}
+
+TEST_F(MaterialsTest, DeformJitterConsumesExpression)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/jitter");
+
+    EXPECT_EQ(material->getEditorImageExpression()->getExpressionString(), "textures/a_1024x512");
+    EXPECT_EQ(material->getNumLayers(), 1);
+}
+
+TEST_F(MaterialsTest, ShaderParmWithEngineVariables)
+{
+    auto material = GlobalMaterialManager().getMaterial("textures/q4test/shaderparmcommas");
+
+    EXPECT_EQ(material->getNumLayers(), 1);
+    EXPECT_EQ(material->getLayer(0)->getMapExpression()->getExpressionString(), "textures/a_1024x512.tga");
+}
+
 }

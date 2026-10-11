@@ -1,6 +1,8 @@
 #pragma once
 
 #include "iarchive.h"
+#include <map>
+#include <mutex>
 
 /**
  * greebo: This wraps around a certain path in the "real"
@@ -18,6 +20,11 @@ class DirectoryArchive final :
 	// since changing the game paths will trigger a re-initialisation
 	// of the VFS anyway.
 	mutable std::string _modName;
+
+	std::map<std::string, std::string> _lowerCaseIndex;
+	std::once_flag _lowerCaseIndexBuilt;
+
+	std::string resolveCase(const std::string& name);
 
 public:
 	// Pass the root path to the constructor

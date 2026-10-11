@@ -201,8 +201,7 @@ ArchiveFilePtr Doom3FileSystem::openFile(const std::string& filename)
 {
     if (filename.find("\\") != std::string::npos)
     {
-        rError() << "Filename contains backslash: " << filename << std::endl;
-        return ArchiveFilePtr();
+        return openFile(os::standardPath(filename));
     }
 
     for (const auto& descriptor : _archives)
@@ -233,6 +232,11 @@ ArchiveFilePtr Doom3FileSystem::openFileInAbsolutePath(const std::string& filena
 
 ArchiveTextFilePtr Doom3FileSystem::openTextFile(const std::string& filename)
 {
+    if (filename.find("\\") != std::string::npos)
+    {
+        return openTextFile(os::standardPath(filename));
+    }
+
     for (const auto& descriptor : _archives)
     {
         auto file = descriptor.archive->openTextFile(filename);

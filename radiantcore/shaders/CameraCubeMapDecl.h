@@ -22,9 +22,11 @@ class CameraCubeMapDecl: public IMapExpression, public NamedBindable
     // The texture prefix
     std::string _prefix;
 
+    bool _objectSuffixes;
+
 private:
     // Construct with a prefix
-    CameraCubeMapDecl(const std::string& prefix);
+    CameraCubeMapDecl(const std::string& prefix, bool objectSuffixes);
 
     virtual bool isCubeMap() const override
     {
@@ -44,6 +46,8 @@ public:
 
     /// Construct and return a CameraCubeMapDecl from the given texture prefix.
     static NamedBindablePtr createForPrefix(const std::string& prefix);
+
+    static NamedBindablePtr createForObjectPrefix(const std::string& prefix);
 };
 
 }

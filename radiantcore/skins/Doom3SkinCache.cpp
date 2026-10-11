@@ -6,6 +6,7 @@
 #include "module/StaticModule.h"
 #include "decl/DeclarationCreator.h"
 #include "decl/DeclLib.h"
+#include "string/predicate.h"
 #include "skins/Doom3ModelSkin.h"
 
 namespace skins
@@ -13,9 +14,14 @@ namespace skins
 
 decl::ISkin::Ptr Doom3SkinCache::findSkin(const std::string& name)
 {
-    return std::static_pointer_cast<decl::ISkin>(
-        GlobalDeclarationManager().findDeclaration(decl::Type::Skin, name)
-    );
+    auto skin = GlobalDeclarationManager().findDeclaration(decl::Type::Skin, name);
+
+    if (!skin && string::iends_with(name, ".skin"))
+    {
+        skin = GlobalDeclarationManager().findDeclaration(decl::Type::Skin, name.substr(0, name.size() - 5));
+    }
+
+    return std::static_pointer_cast<decl::ISkin>(skin);
 }
 
 bool Doom3SkinCache::renameSkin(const std::string& oldName, const std::string& newName)

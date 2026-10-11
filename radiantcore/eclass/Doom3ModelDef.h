@@ -3,6 +3,7 @@
 #include "ieclass.h"
 #include "parser/DefTokeniser.h"
 #include "decl/DeclarationBase.h"
+#include "string/predicate.h"
 
 namespace eclass
 {
@@ -103,6 +104,17 @@ protected:
                 // SYNTAX: "anim" <name> <md5file> [ "{" <blah> [ <blah> ... ] "}" ]
                 auto animName = tokeniser.nextToken();
                 auto file = tokeniser.nextToken();
+                auto moreFiles = string::ends_with(file, ",");
+
+                if (moreFiles)
+                {
+                    file.pop_back();
+                }
+
+                while (moreFiles)
+                {
+                    moreFiles = string::ends_with(tokeniser.nextToken(), ",");
+                }
 
                 // Overwrite any existing animation with the same key
                 _anims[animName] = file;

@@ -6,7 +6,9 @@
 
 #include <stack>
 #include <list>
+#include <map>
 #include "string/predicate.h"
+#include "string/case_conv.h"
 
 namespace shaders
 {
@@ -18,6 +20,12 @@ namespace
 {
     const int MAX_SHADERPARM_INDEX = 11;
     const int MAX_GLOBAL_SHADERPARM_INDEX = 7;
+
+    const std::map<std::string, float> EngineVariables
+    {
+        { "ismultiplayer", 0 }, { "glslprograms", 0 }, { "distance", 0 }, { "decallife", 0 },
+        { "vieworigin", 0 }, { "potcorrectionx", 1 }, { "potcorrectiony", 1 },
+    };
 }
 
 class ShaderExpressionTokeniser :
@@ -34,7 +42,7 @@ private:
 public:
     ShaderExpressionTokeniser(parser::DefTokeniser& tokeniser) :
         _tokeniser(tokeniser),
-        _delims("[]+-%*/")
+        _delims("[]+-%*/=!<>&|")
     {}
 
 
@@ -68,22 +76,43 @@ public:
         // No items in the buffer, take a peek in the underlying stream
         std::string rawToken = _tokeniser.peek();
 
-        // Split up the token by using a sub-tokeniser, keeping all delimiters
-        parser::BasicDefTokeniser<std::string> subtokeniser(rawToken, "", _delims);
+        auto parts = split(rawToken);
 
-        // Return the first of these tokens, then exit
-        return subtokeniser.nextToken();
+        return parts.empty() ? std::string() : parts.front();
     }
 
 private:
-    void fillBuffer(const std::string& token)
+    std::list<std::string> split(const std::string& token) const
     {
-        // Use a separate tokeniser and keep all delimiters
         parser::BasicDefTokeniser<std::string> subtokeniser(token, "", _delims);
+        std::list<std::string> parts;
 
         while (subtokeniser.hasMoreTokens())
         {
-            _buffer.push_back(subtokeniser.nextToken());
+            auto part = subtokeniser.nextToken();
+
+            if (!parts.empty() && part == "=" && (parts.back() == "=" || parts.back() == "!" || parts.back() == "<" || parts.back() == ">"))
+            {
+                parts.back() += part;
+            }
+            else if (!parts.empty() && (part == "&" || part == "|") && parts.back() == part)
+            {
+                parts.back() += part;
+            }
+            else
+            {
+                parts.push_back(part);
+            }
+        }
+
+        return parts;
+    }
+
+    void fillBuffer(const std::string& token)
+    {
+        for (auto& part : split(token))
+        {
+            _buffer.push_back(part);
         }
     }
 };
@@ -121,6 +150,8 @@ public:
 
             if (token == "(")
             {
+                if (!operands.empty() && !lastTokenWasOperator) break;
+
                 _tokeniser.nextToken(); // valid token, exhaust
 
                 // New scope, treat this as new expression
@@ -139,7 +170,10 @@ public:
             else
             {
                 // No parantheses, get a new term, push it on the stack
-                term = getTerm(token);
+                if (operands.empty() || lastTokenWasOperator)
+                {
+                    term = getTerm(token);
+                }
             }
 
             if (term)
@@ -162,7 +196,7 @@ public:
 
                 if (operands.empty() || lastTokenWasOperator)
                 {
-                    lastTokenWasOperator = false; // clear the flag again
+                    lastTokenWasOperator = true;
 
                     // If this is a + or -, take it as a sign operator
                     if (token == "+")
@@ -307,6 +341,12 @@ private:
 
             // There's no fragmentPrograms option in DR, let's assume true
             return std::make_shared<ConstantExpression>(1.0f);
+        }
+        else if (auto engineVariable = EngineVariables.find(string::to_lower_copy(token)); engineVariable != EngineVariables.end())
+        {
+            _tokeniser.nextToken();
+
+            return std::make_shared<ConstantExpression>(engineVariable->second);
         }
         else
         {

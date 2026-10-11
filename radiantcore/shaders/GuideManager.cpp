@@ -1,5 +1,6 @@
 #include "GuideManager.h"
 
+#include <cctype>
 #include <iterator>
 #include <sstream>
 #include "ideclmanager.h"
@@ -7,6 +8,7 @@
 #include "itextstream.h"
 #include "parser/DefBlockSyntaxParser.h"
 #include "string/replace.h"
+#include "string/trim.h"
 
 namespace shaders
 {
@@ -14,7 +16,7 @@ namespace shaders
 std::string GuideManager::parseTemplateName(const std::string& token)
 {
     auto parenPos = token.find('(');
-    return parenPos != std::string::npos ? token.substr(0, parenPos) : token;
+    return string::trim_copy(parenPos != std::string::npos ? token.substr(0, parenPos) : token);
 }
 
 std::vector<std::string> GuideManager::parseCommaSeparated(const std::string& token, bool stripQuotes)
@@ -165,6 +167,23 @@ void GuideManager::loadFromVfs()
     rMessage() << "[GuideManager] Loaded " << _templates.size() << " guide templates" << std::endl;
 }
 
+bool GuideManager::instantiate(const std::string& invocation, std::string& body) const
+{
+    auto it = _templates.find(parseTemplateName(invocation));
+
+    if (it == _templates.end()) return false;
+
+    auto args = parseCommaSeparated(invocation, true);
+    body = it->second.body;
+
+    for (std::size_t i = 0; i < it->second.parameters.size() && i < args.size(); ++i)
+    {
+        body = string::replace_all_copy(body, it->second.parameters[i], args[i]);
+    }
+
+    return true;
+}
+
 std::string GuideManager::expandGuides(const std::string& input) const
 {
     if (_templates.empty()) return input;
@@ -181,9 +200,24 @@ std::string GuideManager::expandGuides(const std::string& input) const
         auto firstNonSpace = trimmed.find_first_not_of(" \t");
 
         if (firstNonSpace != std::string::npos &&
-            trimmed.compare(firstNonSpace, 6, "guide ") == 0)
+            trimmed.compare(firstNonSpace, 11, "inlineGuide") == 0 &&
+            firstNonSpace + 11 < trimmed.size() && std::isspace(static_cast<unsigned char>(trimmed[firstNonSpace + 11])))
+        {
+            std::string body;
+
+            if (instantiate(trimmed.substr(firstNonSpace + 12), body))
+            {
+                result += body + "\n";
+                continue;
+            }
+        }
+
+        if (firstNonSpace != std::string::npos &&
+            trimmed.compare(firstNonSpace, 5, "guide") == 0 &&
+            firstNonSpace + 5 < trimmed.size() && std::isspace(static_cast<unsigned char>(trimmed[firstNonSpace + 5])))
         {
             std::string content = trimmed.substr(firstNonSpace + 6);
+            content.erase(0, content.find_first_not_of(" \t"));
 
             auto spacePos = content.find_first_of(" \t");
             if (spacePos != std::string::npos)
@@ -192,20 +226,10 @@ std::string GuideManager::expandGuides(const std::string& input) const
                 std::string invocation = content.substr(spacePos + 1);
                 invocation.erase(0, invocation.find_first_not_of(" \t"));
 
-                std::string templateName = parseTemplateName(invocation);
-                auto args = parseCommaSeparated(invocation, true);
+                std::string body;
 
-                auto it = _templates.find(templateName);
-                if (it != _templates.end())
+                if (instantiate(invocation, body))
                 {
-                    const auto& tmpl = it->second;
-                    std::string body = tmpl.body;
-
-                    for (std::size_t i = 0; i < tmpl.parameters.size() && i < args.size(); ++i)
-                    {
-                        body = string::replace_all_copy(body, tmpl.parameters[i], args[i]);
-                    }
-
                     result += materialName + "\n{\n" + body + "\n}\n";
                     continue;
                 }

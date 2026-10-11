@@ -723,7 +723,11 @@ void Doom3ShaderLayer::setMapExpressionFromString(const std::string& expression)
 {
     _texture.reset();
 
-    if (getMapType() == IShaderLayer::MapType::CubeMap || getMapType() == IShaderLayer::MapType::CameraCubeMap)
+    if (getMapType() == IShaderLayer::MapType::CubeMap)
+    {
+        setBindableTexture(CameraCubeMapDecl::createForObjectPrefix(expression));
+    }
+    else if (getMapType() == IShaderLayer::MapType::CameraCubeMap)
     {
         setBindableTexture(CameraCubeMapDecl::createForPrefix(expression));
     }

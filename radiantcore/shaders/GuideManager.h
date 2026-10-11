@@ -34,6 +34,7 @@ private:
 
     static std::string parseTemplateName(const std::string& token);
     static std::vector<std::string> parseCommaSeparated(const std::string& token, bool stripQuotes);
+    bool instantiate(const std::string& invocation, std::string& body) const;
 };
 
 }

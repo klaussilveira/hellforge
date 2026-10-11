@@ -248,4 +248,17 @@ TEST_F(VfsTest, GetFileInfo)
 
 }
 
+TEST_F(VfsTest, CaseInsensitivePhysicalFileLookup)
+{
+    EXPECT_TRUE(GlobalFileSystem().openFile("Textures/A_1024x512.TGA"));
+    EXPECT_TRUE(GlobalFileSystem().openTextFile("MATERIALS/Quake4.mtr"));
+    EXPECT_FALSE(GlobalFileSystem().openFile("textures/b_1024x512.tga"));
+}
+
+TEST_F(VfsTest, OpenFileWithBackslashes)
+{
+    EXPECT_TRUE(GlobalFileSystem().openFile("textures\\a_1024x512.tga"));
+    EXPECT_TRUE(GlobalFileSystem().openTextFile("materials\\quake4.mtr"));
+}
+
 }
